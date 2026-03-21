@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="nimogram">
+<meta name="apple-mobile-web-app-title" content="MOOD LOG">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#ffff00">
 
@@ -15,7 +15,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
 
-<title>nimogram</title>
+<title>MOOD LOG</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -37,14 +37,28 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 /* ── HEADER ── */
 .week-header{flex-shrink:0;background:var(--bg);padding-top:env(safe-area-inset-top,36px)}
-.week-top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px 7px}
-.wordmark{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.4em;color:var(--lv4);text-transform:uppercase;margin-bottom:2px}
-.week-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.05em;color:var(--text);line-height:1}
-.header-right{display:flex;align-items:center;gap:6px}
-.week-nav{display:flex;align-items:center;gap:4px}
-.week-range{font-family:'DM Mono',monospace;font-size:9px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase;letter-spacing:0.05em}
-.nav-btn{width:24px;height:24px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
-.settings-btn{width:28px;height:28px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-left:4px}
+.week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 12px 10px}
+/* NIMOGRAMロゴ削除済み */
+.week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
+.header-right{display:flex;align-items:center;gap:12px}
+.week-nav{display:flex;align-items:center;gap:6px}
+.week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase;letter-spacing:0.05em}
+.nav-btn{width:28px;height:28px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+
+/* ニモさん指定：設定ボタンの大型化 */
+.settings-btn{
+  width:38px;height:38px;
+  border:1px solid var(--border2);
+  background:rgba(255,255,255,0.03);
+  color:var(--text);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  margin-left:4px;
+  transition: all 0.2s;
+}
+.settings-btn:active{transform:scale(0.9); background:rgba(255,255,255,0.1)}
 
 .dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
 .dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
@@ -58,35 +72,32 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .time-label.now-hour{color:var(--yellow);font-weight:700;font-size:10px}
 .week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;min-width:0;min-height:0;position:relative;border:4px solid var(--bg)}
 .week-cell:active{transform:scale(0.82)}
-/* 現在時刻セルの強調表示 */
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
-.week-cell.sel-cell{box-shadow:0 0 0 2px rgba(128,128,128,0.8)}
 
 /* ── LEGEND ── */
-.legend{display:flex;align-items:center;gap:4px;padding:5px 10px 6px;justify-content:flex-end;flex-shrink:0;border-top:0.5px solid var(--border)}
+.legend{display:flex;align-items:center;gap:4px;padding:8px 10px 8px;justify-content:flex-end;flex-shrink:0;border-top:0.5px solid var(--border)}
 .legend-label{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}.legend-box{width:10px;height:10px;border-radius:2px}
 
-/* ── PANELS (右スライドイン & 透明度調整) ── */
+/* ── PANELS (右スライドイン & 透明度調整済み) ── */
 .panel{
   position:fixed; inset:0; z-index:50;
   overflow-y:auto; -webkit-overflow-scrolling:touch;
-  /* ニモさん指定：透明度を少し下げる (0.25 -> 0.45) */
   background:rgba(10, 10, 10, 0.45);
-  backdrop-filter:blur(1px); -webkit-backdrop-filter:blur(1px);
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
   transform:translateX(100%);
   transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .panel.open{transform:translateX(0)}
 .panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
 
-.d-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.d-badge{font-family:'DM Mono',monospace;font-size:8px;color:var(--lv4);letter-spacing:0.4em;margin-bottom:5px}.d-hero{display:flex;align-items:baseline;gap:10px}.d-day{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:var(--text);letter-spacing:-2px}.d-hour{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;color:var(--yellow)}.d-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;text-transform:uppercase;letter-spacing:0.1em}.close-btn{width:34px;height:34px;border:0.5px solid var(--border2);background:rgba(128,128,128,0.08);color:var(--muted2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:4px}.sec-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.28em;text-transform:uppercase;margin-bottom:9px}.input-card{background:var(--card);border-bottom:3px solid var(--lv4);padding:16px 13px 20px;margin-bottom:16px;border-radius:8px}.intensity-row{display:flex;gap:6px}.lv-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}.lv-btn.act{border:2.5px solid var(--text);box-shadow:0 0 12px rgba(128,128,128,0.2);transform:translateY(-3px)}.lv-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.07em;text-transform:uppercase;text-align:center}.memo-input{width:100%;min-height:84px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;padding:10px 12px;resize:none;outline:none;line-height:1.7;caret-color:var(--lv4);margin-bottom:14px;border-radius:4px}.save-btn{width:100%;padding:15px;background:var(--lv3);color:#fff;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.4em;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:4px}
+.d-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.d-badge{font-family:'DM Mono',monospace;font-size:8px;color:var(--lv4);letter-spacing:0.4em;margin-bottom:5px}.d-hero{display:flex;align-items:baseline;gap:10px}.d-day{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:var(--text);letter-spacing:-2px}.d-hour{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;color:var(--yellow)}.d-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;text-transform:uppercase;letter-spacing:0.1em}.close-btn{width:38px;height:38px;border:0.5px solid var(--border2);background:rgba(128,128,128,0.08);color:var(--text);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:8px}.sec-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.28em;text-transform:uppercase;margin-bottom:9px}.input-card{background:var(--card);border-bottom:3px solid var(--lv4);padding:16px 13px 20px;margin-bottom:16px;border-radius:8px}.intensity-row{display:flex;gap:6px}.lv-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}.lv-btn.act{border:2.5px solid var(--text);box-shadow:0 0 12px rgba(128,128,128,0.2);transform:translateY(-3px)}.lv-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.07em;text-transform:uppercase;text-align:center}.memo-input{width:100%;min-height:84px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;padding:10px 12px;resize:none;outline:none;line-height:1.7;caret-color:var(--lv4);margin-bottom:14px;border-radius:4px}.save-btn{width:100%;padding:18px;background:var(--lv3);color:#fff;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:4px}
 
+/* モード切替ボタンの大型化 */
 .mode-btn-large {
   flex: 1; padding: 22px 8px; background: var(--card); color: var(--text); border: 1px solid var(--border2); border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 12px;
-  transition: all 0.2s;
 }
 .mode-btn-large.active { border-color: var(--lv4); background: rgba(0, 229, 160, 0.1); }
-.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}.theme-swatches{display:flex;gap:2px;margin-bottom:6px}.theme-swatch{flex:1;height:14px;border-radius:1px}.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
+.theme-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:7px}.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}.theme-swatches{display:flex;gap:2px;margin-bottom:6px}.theme-swatch{flex:1;height:14px;border-radius:1px}.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -94,7 +105,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 <div id="screen-week" class="screen active">
   <div class="week-header">
     <div class="week-top">
-      <div><div class="wordmark">NIMOGRAM</div><div class="week-title">Weekly Matrix</div></div>
+      <div><div class="week-title">MOOD LOG</div></div>
       <div class="header-right">
         <div class="week-nav">
           <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
@@ -129,7 +140,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 <div id="settings-panel" class="panel">
   <div class="panel-inner">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div><div class="settings-title">Settings</div><div class="settings-sub">nimogram · appearance</div></div>
+      <div><div class="week-title" style="font-size:28px">Settings</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:28px">appearance</div></div>
       <button class="close-btn" onclick="closeSettings()">✕</button>
     </div>
     <div class="s-section">
@@ -178,9 +189,7 @@ const MODES = {
 };
 
 const LV_NAMES={4:'Peak',3:'Good',2:'Fair',1:'Low',0:'Bad'};
-
-// ニモさん指定：20時まで記録できるよう拡張 (8-20 = 13時間分)
-const RECORDING_HOURS = 13; 
+const RECORDING_HOURS = 13; // 8-20
 
 let ST = {
   weekStart: monday(new Date()),
