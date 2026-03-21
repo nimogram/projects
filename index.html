@@ -22,7 +22,7 @@
   --cell-border:#0d0d0d;
 }
 
-html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;max-width:430px;margin:0 auto;overflow:hidden;position:fixed;width:100%}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
 
 /* ── SCREENS ── */
 .screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
@@ -42,7 +42,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .settings-btn:active{background:rgba(128,128,128,0.2)}
 
 /* ── DOW HEADER ── */
-.dow-header{display:grid;gap:var(--gap);padding:0 4px;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
+.dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
 .dow-spacer{}
 .dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
 .dow-name{font-family:'DM Mono',monospace;font-size:7px;text-transform:uppercase;color:var(--muted2);letter-spacing:0.04em}
@@ -52,7 +52,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .dow-col.today .dow-dot{background:var(--yellow)}
 
 /* ── GRID ── */
-.grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 4px 0;overflow:hidden}
+.grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0 0 0;overflow:hidden}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:4px;font-weight:500}
 .time-label.now-hour{color:var(--yellow);font-weight:700;font-size:10px}
 .week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;min-width:0;min-height:0;position:relative;border:4px solid var(--bg)}
@@ -291,7 +291,7 @@ const N_COLS = 7;
 const GAP    = 3;
 const BORDER = 4; // cell border width
 const TIME_W = 22;
-const PAD_H  = 4;
+const PAD_H  = 0;
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 const NOW = new Date();
@@ -369,7 +369,7 @@ function slotLv(dstr,h){const s=getSlot(dstr,h);return(s&&s.level!==undefined)?s
 
 // ── CELL SIZE ──────────────────────────────────────────────────────────────
 function calcCellSize(){
-  const screenW=Math.min(window.innerWidth,430);
+  const screenW=window.innerWidth;
   const screenH=window.innerHeight;
   const headerH=document.querySelector('.week-header')?.offsetHeight||100;
   const legendH=document.querySelector('.legend')?.offsetHeight||28;
@@ -380,11 +380,9 @@ function calcCellSize(){
 
 function applySize(){
   const sz=calcCellSize();
-  const screenW=Math.min(window.innerWidth,430);
-  const colW=Math.floor((screenW-PAD_H*2-TIME_W-GAP*N_COLS-BORDER*2*N_COLS)/N_COLS);
   const grid=document.getElementById('grid-area');
   const dow=document.getElementById('dow-header');
-  const cols=`${TIME_W}px repeat(${N_COLS},${colW}px)`;
+  const cols=`${TIME_W}px repeat(${N_COLS},1fr)`;
   if(grid){grid.style.gridTemplateRows=`repeat(${N_ROWS},${sz}px)`;grid.style.gridTemplateColumns=cols;}
   if(dow) dow.style.gridTemplateColumns=cols;
 }
