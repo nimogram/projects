@@ -14,11 +14,12 @@
 :root{
   --lv4:#39d353;--lv3:#26a641;--lv2:#006d32;--lv1:#0e4429;--lv0:#161b22;
   --empty:#0d1117;
-  --yellow:#FFD100;
+  --yellow:#00e5a0;
   --bg:#0d0d0d;--surface:#131313;--card:#181818;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
   --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;--text-inv:#000000;
-  --gap:2px;--time-col:22px;
+  --gap:3px;--time-col:22px;
+  --cell-border:#0d0d0d;
 }
 
 html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;max-width:430px;margin:0 auto;overflow:hidden;position:fixed;width:100%}
@@ -52,8 +53,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 /* ── GRID ── */
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 8px 0;overflow:hidden}
-.time-label{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted);display:flex;align-items:center;justify-content:flex-end;padding-right:3px}
-.week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;min-width:0;min-height:0;position:relative}
+.time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:4px;font-weight:500}
+.time-label.now-hour{color:var(--yellow);font-weight:700;font-size:10px}
+.week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;min-width:0;min-height:0;position:relative;border:4px solid var(--bg)}
 .week-cell:active{transform:scale(0.82)}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow)}
 .week-cell.sel-cell{box-shadow:0 0 0 2px rgba(128,128,128,0.8)}
@@ -108,15 +110,15 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .mode-icon{font-size:20px}
 
 /* COLOR THEME GRID */
-.theme-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.theme-card{border:0.5px solid var(--border2);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.15s;background:var(--card)}
-.theme-card.active{border-color:var(--lv3);box-shadow:0 0 0 1px var(--lv3)}
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;transition:all 0.15s;background:var(--card)}
+.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}
 .theme-card:active{opacity:0.8}
-.theme-swatches{display:flex;gap:3px;margin-bottom:8px}
-.theme-swatch{flex:1;height:20px;border-radius:3px}
-.theme-name{font-family:'DM Mono',monospace;font-size:9px;color:var(--text);letter-spacing:0.1em;text-transform:uppercase}
-.theme-desc{font-size:10px;color:var(--muted);font-weight:300;margin-top:2px}
-.theme-check{display:none;color:var(--lv3);font-size:12px;float:right;margin-top:-18px}
+.theme-swatches{display:flex;gap:2px;margin-bottom:6px}
+.theme-swatch{flex:1;height:14px;border-radius:2px}
+.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
+.theme-desc{font-size:9px;color:var(--muted);font-weight:300;margin-top:1px}
+.theme-check{display:none;color:var(--lv4);font-size:10px;float:right;margin-top:-16px}
 .theme-card.active .theme-check{display:block}
 
 .settings-close{width:100%;margin-top:8px;padding:14px;background:var(--card);border:0.5px solid var(--border2);color:var(--text);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.4em;border-radius:6px;transition:background 0.14s}
@@ -219,36 +221,46 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 <script>
 // ── COLOR THEMES ──────────────────────────────────────────────────────────
 const THEMES = [
-  {
-    id:'github',name:'GitHub',desc:'定番グリーン',
-    lv:['#39d353','#26a641','#006d32','#0e4429','#161b22'],
-    empty:'#0d1117',
-  },
-  {
-    id:'ocean',name:'Ocean',desc:'深海ブルー',
-    lv:['#58a6ff','#1f6feb','#0d419d','#051d4d','#0c1724'],
-    empty:'#090e17',
-  },
-  {
-    id:'sunset',name:'Sunset',desc:'夕暮れオレンジ',
-    lv:['#ffa657','#e06c1f','#b94c0f','#7a2f08','#2d1200'],
-    empty:'#160900',
-  },
-  {
-    id:'aurora',name:'Aurora',desc:'パープル系',
-    lv:['#d2a8ff','#a371f7','#6e40c9','#3d1f8c','#1a0d40'],
-    empty:'#0d0720',
-  },
-  {
-    id:'cherry',name:'Cherry',desc:'ピンク・赤',
-    lv:['#ff7b7b','#e6302e','#b01010','#6e0909','#250505'],
-    empty:'#120202',
-  },
-  {
-    id:'mono',name:'Mono',desc:'モノクローム',
-    lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'],
-    empty:'#0a0a0a',
-  },
+  {id:'emerald', name:'Emerald',  desc:'エメラルド',
+   lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], empty:'#001108', hi:'#00e5a0'},
+  {id:'sky',     name:'Sky',      desc:'水色',
+   lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], empty:'#041520', hi:'#bae6fd'},
+  {id:'yellow',  name:'Yellow',   desc:'イエロー',
+   lv:['#fde047','#facc15','#ca8a04','#78530a','#2e1f00'], empty:'#141000', hi:'#fde047'},
+  {id:'aurora',  name:'Aurora',   desc:'パープル',
+   lv:['#c4b5fd','#a78bfa','#7c3aed','#4c1d95','#1e0a40'], empty:'#0d0720', hi:'#c4b5fd'},
+  {id:'pink',    name:'Pink',     desc:'ペールピンク',
+   lv:['#fce7f3','#fbcfe8','#f9a8d4','#ec4899','#831843'], empty:'#1a0010', hi:'#fce7f3'},
+  {id:'mono',    name:'Mono',     desc:'モノクローム',
+   lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'], empty:'#0a0a0a', hi:'#e0e0e0'},
+  {id:'red',     name:'Red',      desc:'レッド',
+   lv:['#fca5a5','#ef4444','#b91c1c','#7f1d1d','#2d0000'], empty:'#0f0000', hi:'#fca5a5'},
+  {id:'orange',  name:'Orange',   desc:'オレンジ',
+   lv:['#fdba74','#f97316','#c2410c','#7c2d12','#2a1000'], empty:'#130700', hi:'#fdba74'},
+  {id:'teal',    name:'Teal',     desc:'ティール',
+   lv:['#5eead4','#14b8a6','#0f766e','#134e4a','#042f2e'], empty:'#010d0c', hi:'#5eead4'},
+  {id:'indigo',  name:'Indigo',   desc:'インディゴ',
+   lv:['#a5b4fc','#6366f1','#4338ca','#312e81','#1e1b4b'], empty:'#060520', hi:'#a5b4fc'},
+  {id:'gold',    name:'Gold',     desc:'ゴールド',
+   lv:['#fcd34d','#f59e0b','#b45309','#78350f','#1e1200'], empty:'#100900', hi:'#fcd34d'},
+  {id:'lime',    name:'Lime',     desc:'ライムグリーン',
+   lv:['#bef264','#84cc16','#4d7c0f','#1a3a05','#0a1600'], empty:'#060b00', hi:'#bef264'},
+  {id:'coral',   name:'Coral',    desc:'コーラル',
+   lv:['#fda4af','#f43f5e','#be123c','#881337','#2d0010'], empty:'#120008', hi:'#fda4af'},
+  {id:'mint',    name:'Mint',     desc:'ミント',
+   lv:['#a7f3d0','#6ee7b7','#10b981','#065f46','#022c22'], empty:'#01110d', hi:'#a7f3d0'},
+  {id:'peach',   name:'Peach',    desc:'ピーチ',
+   lv:['#fed7aa','#fb923c','#ea580c','#9a3412','#2e1000'], empty:'#130700', hi:'#fed7aa'},
+  {id:'navy',    name:'Navy',     desc:'ネイビー',
+   lv:['#93c5fd','#60a5fa','#2563eb','#1e40af','#1e3a8a'], empty:'#060e20', hi:'#93c5fd'},
+  {id:'rose',    name:'Rose',     desc:'ローズ',
+   lv:['#fecdd3','#fda4af','#fb7185','#e11d48','#4c0519'], empty:'#1a0008', hi:'#fecdd3'},
+  {id:'violet',  name:'Violet',   desc:'バイオレット',
+   lv:['#e9d5ff','#c084fc','#a855f7','#7e22ce','#3b0764'], empty:'#14022a', hi:'#e9d5ff'},
+  {id:'cyan',    name:'Cyan',     desc:'シアン',
+   lv:['#a5f3fc','#22d3ee','#0891b2','#155e75','#083344'], empty:'#020e14', hi:'#a5f3fc'},
+  {id:'brown',   name:'Brown',    desc:'ブラウン',
+   lv:['#d6b896','#b08060','#8a5c36','#5c3316','#2a1500'], empty:'#120800', hi:'#d6b896'},
 ];
 
 // ── LIGHT/DARK MODE VARS ──────────────────────────────────────────────────
@@ -257,11 +269,13 @@ const MODES = {
     bg:'#0d0d0d',surface:'#131313',card:'#181818',
     border:'rgba(255,255,255,0.07)',border2:'rgba(255,255,255,0.13)',
     muted:'#4a4a4a',muted2:'#7a7a7a',text:'#ffffff',
+    cellBorder:'#2a2a2a',
   },
   light:{
     bg:'#f5f5f5',surface:'#ffffff',card:'#ececec',
     border:'rgba(0,0,0,0.08)',border2:'rgba(0,0,0,0.15)',
-    muted:'#aaaaaa',muted2:'#888888',text:'#111111',
+    muted:'#999999',muted2:'#444444',text:'#111111',
+    cellBorder:'#bbbbbb',
   },
 };
 
@@ -274,7 +288,8 @@ const MON_L = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST'
 const HOURS  = Array.from({length:12},(_,i)=>8+i); // 08〜19
 const N_ROWS = HOURS.length;
 const N_COLS = 7;
-const GAP    = 2;
+const GAP    = 3;
+const BORDER = 4; // cell border width
 const TIME_W = 22;
 const PAD_H  = 8;
 
@@ -286,7 +301,7 @@ let ST = {
   selDs: null,
   selHour: Math.min(Math.max(NOW.getHours(),8),19),
   data:      saved.data      || {},
-  themeId:   saved.themeId   || 'github',
+  themeId:   saved.themeId   || 'emerald',
   mode:      saved.mode      || 'dark',
 };
 
@@ -306,8 +321,9 @@ function applyTheme(){
 
   // palette
   th.lv.forEach((c,i)=> root.style.setProperty(`--lv${4-i}`, c));
-  EMPTY = th.empty;
+  EMPTY = ST.mode==='light' ? '#d8d8d8' : th.empty;
   PAL   = {4:th.lv[0],3:th.lv[1],2:th.lv[2],1:th.lv[3],0:th.lv[4]};
+  root.style.setProperty('--yellow', th.hi);
 
   // text contrast per level
   LV_TEXT = {};
@@ -357,15 +373,15 @@ function calcCellSize(){
   const screenH=window.innerHeight;
   const headerH=document.querySelector('.week-header')?.offsetHeight||100;
   const legendH=document.querySelector('.legend')?.offsetHeight||28;
-  const availW=screenW-PAD_H*2-TIME_W-GAP*N_COLS;
-  const availH=screenH-headerH-legendH-GAP*(N_ROWS-1);
+  const availW=screenW-PAD_H*2-TIME_W-GAP*N_COLS-BORDER*2*N_COLS;
+  const availH=screenH-headerH-legendH-GAP*(N_ROWS-1)-BORDER*2*N_ROWS;
   return Math.max(Math.min(Math.floor(availW/N_COLS),Math.floor(availH/N_ROWS)),14);
 }
 
 function applySize(){
   const sz=calcCellSize();
   const screenW=Math.min(window.innerWidth,430);
-  const colW=Math.floor((screenW-PAD_H*2-TIME_W-GAP*N_COLS)/N_COLS);
+  const colW=Math.floor((screenW-PAD_H*2-TIME_W-GAP*N_COLS-BORDER*2*N_COLS)/N_COLS);
   const grid=document.getElementById('grid-area');
   const dow=document.getElementById('dow-header');
   const cols=`${TIME_W}px repeat(${N_COLS},${colW}px)`;
@@ -402,7 +418,9 @@ function renderWeek(){
   grid.innerHTML='';
   HOURS.forEach(h=>{
     const tl=document.createElement('div');
-    tl.className='time-label'; tl.textContent=h; grid.appendChild(tl);
+    const isNowRow=ds(days.find(d=>ds(d)===dsNow())||{}||new Date())===dsNow() && NOW.getHours()===h;
+    tl.className='time-label'+(NOW.getHours()===h&&days.some(d=>ds(d)===dsNow())?' now-hour':'');
+    tl.textContent=h; grid.appendChild(tl);
     days.forEach(d=>{
       const dstr=ds(d),lv=slotLv(dstr,h);
       const isNow=ds(d)===dsNow()&&NOW.getHours()===h;
