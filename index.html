@@ -2,25 +2,19 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-
-<!-- PWA: アプリとして独立起動させるための最重要タグ -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="nimogram">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0d0d0d">
-
-<!-- マニフェストファイル -->
+<meta name="theme-color" content="#ffff00">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
-
 <title>nimogram</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 
-/* ── THEME VARIABLES ── */
 :root {
   --lv4:#39d353;--lv3:#26a641;--lv2:#006d32;--lv1:#0e4429;--lv0:#161b22;
   --empty:#0d1117; --yellow:#ffff00;
@@ -31,11 +25,9 @@
 }
 
 html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}.screen.active{display:flex}
 
-.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-.screen.active{display:flex}
-
-/* ── HEADER ── */
+/* HEADER */
 .week-header{flex-shrink:0;background:var(--bg);padding-top:env(safe-area-inset-top,36px)}
 .week-top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px 7px}
 .wordmark{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.4em;color:var(--lv4);text-transform:uppercase;margin-bottom:2px}
@@ -46,66 +38,43 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .nav-btn{width:24px;height:24px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
 .settings-btn{width:28px;height:28px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-left:4px}
 
+/* DOW HEADER */
 .dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
 .dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
 .dow-name{font-family:'DM Mono',monospace;font-size:7px;text-transform:uppercase;color:var(--muted2);letter-spacing:0.04em}
 .dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
 .dow-dot{width:3px;height:3px;border-radius:50%;background:transparent;margin-top:1px}.dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}.dow-col.today .dow-dot{background:var(--yellow)}
 
-/* ── GRID ── */
+/* GRID */
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0 0 0;overflow:hidden}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:4px;font-weight:500}
 .time-label.now-hour{color:var(--yellow);font-weight:700;font-size:10px}
 .week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;min-width:0;min-height:0;position:relative;border:4px solid var(--bg)}
 .week-cell:active{transform:scale(0.82)}.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow)}.week-cell.sel-cell{box-shadow:0 0 0 2px rgba(128,128,128,0.8)}
-.cell-mark{font-family:'DM Mono',monospace;font-weight:700;pointer-events:none;line-height:1;font-size:clamp(6px,1.8vw,10px)}
 
-/* ── LEGEND ── */
+/* LEGEND */
 .legend{display:flex;align-items:center;gap:4px;padding:5px 10px 6px;justify-content:flex-end;flex-shrink:0;border-top:0.5px solid var(--border)}
 .legend-label{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}.legend-box{width:10px;height:10px;border-radius:2px}
 
-/* ── PANELS (右スライドイン & ニモさん指定：超透明・低ぼかし) ── */
+/* PANELS (右スライド & 超透明) */
 .panel{
   position:fixed; inset:0; z-index:50;
   overflow-y:auto; -webkit-overflow-scrolling:touch;
   background:rgba(10, 10, 10, 0.25);
-  /* ニモさん指定：ぼかしを薄く (10px -> 4px) */
-  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+  backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
   transform:translateX(100%);
   transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .panel.open{transform:translateX(0)}
 .panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
 
-.d-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.d-badge{font-family:'DM Mono',monospace;font-size:8px;color:var(--lv4);letter-spacing:0.4em;margin-bottom:5px}.d-hero{display:flex;align-items:baseline;gap:10px}.d-day{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:var(--text);letter-spacing:-2px}.d-hour{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;color:var(--yellow)}.d-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;text-transform:uppercase;letter-spacing:0.1em}.close-btn{width:34px;height:34px;border:0.5px solid var(--border2);background:rgba(128,128,128,0.08);color:var(--muted2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:4px}.sec-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.28em;text-transform:uppercase;margin-bottom:9px}.input-card{background:var(--card);border-bottom:3px solid var(--lv4);padding:16px 13px 20px;margin-bottom:16px;border-radius:8px}.intensity-row{display:flex;gap:6px}.lv-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}.lv-btn.act{border:2.5px solid var(--text);box-shadow:0 0 12px rgba(128,128,128,0.2);transform:translateY(-3px)}.lv-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.07em;text-transform:uppercase;text-align:center}.memo-input{width:100%;min-height:84px;background:var(--card);border:1px solid var(--input-border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;padding:10px 12px;resize:none;outline:none;line-height:1.7;caret-color:var(--lv4);margin-bottom:14px;border-radius:4px}.save-btn{width:100%;padding:15px;background:var(--lv3);color:#fff;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.4em;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:4px}
+.d-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.d-badge{font-family:'DM Mono',monospace;font-size:8px;color:var(--lv4);letter-spacing:0.4em;margin-bottom:5px}.d-hero{display:flex;align-items:baseline;gap:10px}.d-day{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:var(--text);letter-spacing:-2px}.d-hour{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;color:var(--yellow)}.d-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;text-transform:uppercase;letter-spacing:0.1em}.close-btn{width:34px;height:34px;border:0.5px solid var(--border2);background:rgba(128,128,128,0.08);color:var(--muted2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:4px}.sec-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.28em;text-transform:uppercase;margin-bottom:9px}.input-card{background:var(--card);border-bottom:3px solid var(--lv4);padding:16px 13px 20px;margin-bottom:16px;border-radius:8px}.intensity-row{display:flex;gap:6px}.lv-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}.lv-btn.act{border:2.5px solid var(--text);box-shadow:0 0 12px rgba(128,128,128,0.2);transform:translateY(-3px)}.lv-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.07em;text-transform:uppercase;text-align:center}.memo-input{width:100%;min-height:84px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;padding:10px 12px;resize:none;outline:none;line-height:1.7;caret-color:var(--lv4);margin-bottom:14px;border-radius:4px}.save-btn{width:100%;padding:15px;background:var(--lv3);color:#fff;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.4em;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:4px}
 
-.settings-title{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);margin-bottom:4px;letter-spacing:0.04em}.settings-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:28px}.theme-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:7px}.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}.theme-swatches{display:flex;gap:2px;margin-bottom:6px}.theme-swatch{flex:1;height:14px;border-radius:1px}.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}.settings-close{width:100%;margin-top:8px;padding:14px;background:var(--card);border:0.5px solid var(--border2);color:var(--text);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.4em;border-radius:6px}
-
-/* モード切替ボタンの大型化維持 */
 .mode-btn-large {
-  flex: 1;
-  padding: 22px 8px;
-  background: var(--card);
-  color: var(--text);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: 'DM Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  transition: all 0.2s;
+  flex: 1; padding: 22px 8px; background: var(--card); color: var(--text); border: 1px solid var(--border2); border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 12px;
 }
-.mode-btn-large.active {
-  border-color: var(--lv4);
-  background: rgba(0, 229, 160, 0.1);
-  box-shadow: 0 0 15px rgba(0, 229, 160, 0.05);
-}
+.mode-btn-large.active { border-color: var(--lv4); background: rgba(0, 229, 160, 0.1); }
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}.theme-swatches{display:flex;gap:2px;margin-bottom:6px}.theme-swatch{flex:1;height:14px;border-radius:1px}.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -123,9 +92,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
         <button class="settings-btn" onclick="openSettings()">⚙</button>
       </div>
     </div>
-    <div class="dow-header" id="dow-header"></div>
+    <div id="dow-header" class="dow-header"></div>
   </div>
-  <div class="grid-area" id="grid-area"></div>
+  <div id="grid-area" class="grid-area"></div>
   <div class="legend">
     <span class="legend-label">High</span>
     <div class="legend-box" id="leg4"></div><div class="legend-box" id="leg3"></div><div class="legend-box" id="leg2"></div><div class="legend-box" id="leg1"></div><div class="legend-box" id="leg0"></div>
@@ -133,26 +102,20 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   </div>
 </div>
 
+<!-- PANEL: DETAIL -->
 <div id="detail-panel" class="panel">
   <div class="panel-inner">
     <div class="d-top">
-      <div>
-        <div class="d-badge">◉ LOG</div>
-        <div class="d-hero"><div class="d-day" id="d-day">15</div><div class="d-hour" id="d-hour">08:00</div></div>
-        <div class="d-meta" id="d-meta">MON · MARCH 2026</div>
-      </div>
+      <div><div class="d-badge">◉ LOG</div><div class="d-hero"><div class="d-day" id="d-day">15</div><div class="d-hour" id="d-hour">08:00</div></div><div class="d-meta" id="d-meta">MON · MARCH 2026</div></div>
       <button class="close-btn" onclick="closeDetail()">✕</button>
     </div>
-    <div class="input-card">
-      <div class="sec-label">コンディション強度</div>
-      <div class="intensity-row" id="intensity-row"></div>
-    </div>
-    <div class="sec-label">メモ</div>
-    <textarea class="memo-input" id="memo-input" placeholder="メモを入力..."></textarea>
+    <div class="input-card"><div class="sec-label">コンディション強度</div><div id="intensity-row" class="intensity-row"></div></div>
+    <div class="sec-label">メモ</div><textarea id="memo-input" class="memo-input" placeholder="今の気分や記録など"></textarea>
     <button class="save-btn" onclick="saveAndClose()">✓ &nbsp;SAVE</button>
   </div>
 </div>
 
+<!-- PANEL: SETTINGS -->
 <div id="settings-panel" class="panel">
   <div class="panel-inner">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
@@ -160,148 +123,149 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
       <button class="close-btn" onclick="closeSettings()">✕</button>
     </div>
     <div class="s-section">
-      <div class="s-section-label">表示モード</div>
+      <div class="sec-label">表示モード</div>
       <div style="display:flex;gap:12px;margin-bottom:28px">
         <button id="mode-dark" class="mode-btn-large" onclick="setMode('dark')">🌙 Dark</button>
         <button id="mode-light" class="mode-btn-large" onclick="setMode('light')">☀️ Light</button>
       </div>
     </div>
-    <div class="s-section">
-      <div class="s-section-label">カラーテーマ</div>
-      <div class="theme-grid" id="theme-grid"></div>
-    </div>
-    <button class="settings-close" onclick="closeSettings()">閉じる</button>
+    <div class="s-section"><div class="sec-label">カラーテーマ</div><div id="theme-grid" class="theme-grid"></div></div>
+    <button class="save-btn" style="background:var(--card);color:var(--text)" onclick="closeSettings()">CLOSE</button>
   </div>
 </div>
 
-<script>
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const firebaseConfig = JSON.parse(__firebase_config);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'nimogram-default';
+
+// ── STATE ──
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], empty:'#001108', hi:'#00e5a0'},
   {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], empty:'#041520', hi:'#bae6fd'},
   {id:'yellow',  name:'Yellow',  lv:['#ffff00','#facc15','#ca8a04','#78530a','#2e1f00'], empty:'#141000', hi:'#ffff00'},
   {id:'whoop',   name:'Recovery',lv:['#4ade80','#a3e635','#ffff00','#f97316','#ef4444'], empty:'#1a1a1a', hi:'#4ade80'},
-  {id:'ge',      name:'GE Style',lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], empty:'#1c1c1c', hi:'#16a34a'},
   {id:'aurora',  name:'Aurora',  lv:['#c4b5fd','#a78bfa','#7c3aed','#4c1d95','#1e0a40'], empty:'#0d0720', hi:'#c4b5fd'},
-  {id:'pink',    name:'Pink',    lv:['#fce7f3','#fbcfe8','#f9a8d4','#ec4899','#831843'], empty:'#1a0010', hi:'#fce7f3'},
-  {id:'mono',    name:'Mono',    lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'], empty:'#0a0a0a', hi:'#e0e0e0'},
-  {id:'red',     name:'Red',     lv:['#fca5a5','#ef4444','#b91c1c','#7f1d1d','#2d0000'], empty:'#0f0000', hi:'#fca5a5'},
-  {id:'orange',  name:'Orange',  lv:['#fdba74','#f97316','#c2410c','#7c2d12','#2a1000'], empty:'#130700', hi:'#fdba74'},
-  {id:'teal',    name:'Teal',    lv:['#5eead4','#14b8a6','#0f766e','#134e4a','#042f2e'], empty:'#010d0c', hi:'#5eead4'},
-  {id:'indigo',  name:'Indigo',  lv:['#a5b4fc','#6366f1','#4338ca','#312e81','#1e1b4b'], empty:'#060520', hi:'#a5b4fc'},
-  {id:'gold',    name:'Gold',    lv:['#fcd34d','#f59e0b','#b45309','#78350f','#1e1200'], empty:'#100900', hi:'#fcd34d'},
-  {id:'lime',    name:'Lime',    lv:['#bef264','#84cc16','#4d7c0f','#1a3a05','#0a1600'], empty:'#060b00', hi:'#bef264'},
-  {id:'coral',   name:'Coral',   lv:['#fda4af','#f43f5e','#be123c','#881337','#2d0010'], empty:'#120008', hi:'#fda4af'},
-  {id:'mint',    name:'Mint',    lv:['#a7f3d0','#6ee7b7','#10b981','#065f46','#022c22'], empty:'#01110d', hi:'#a7f3d0'},
-  {id:'navy',    name:'Navy',    lv:['#93c5fd','#60a5fa','#2563eb','#1e40af','#1e3a8a'], empty:'#060e20', hi:'#93c5fd'},
-  {id:'rose',    name:'Rose',    lv:['#fecdd3','#fda4af','#fb7185','#e11d48','#4c0519'], empty:'#1a0008', hi:'#fecdd3'},
-  {id:'violet',  name:'Violet',  lv:['#e9d5ff','#c084fc','#a855f7','#7e22ce','#3b0764'], empty:'#14022a', hi:'#e9d5ff'},
-  {id:'brown',   name:'Brown',   lv:['#d6b896','#b08060','#8a5c36','#5c3316','#2a1500'], empty:'#120800', hi:'#d6b896'}
+  {id:'mono',    name:'Mono',    lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'], empty:'#0a0a0a', hi:'#e0e0e0'}
 ];
-
 const MODES = {
-  dark: {bg:'#0d0d0d',surface:'#131313',card:'#181818',border:'rgba(255,255,255,0.07)',text:'#ffffff'},
-  light: {bg:'#fdfdfe',surface:'#ffffff',card:'#f5f5f5',border:'rgba(0,0,0,0.04)',text:'#1a1a1a'}
+  dark:{bg:'#0d0d0d',surface:'#131313',card:'#181818',border:'rgba(255,255,255,0.07)',text:'#ffffff'},
+  light:{bg:'#fdfdfe',surface:'#ffffff',card:'#f5f5f5',border:'rgba(0,0,0,0.04)',text:'#1a1a1a'}
+};
+let ST = {
+  weekStart: monday(new Date()),
+  selDs: null, selHour: 8,
+  data: {}, themeId: 'emerald', mode: 'dark',
+  user: null
 };
 
-const LV_MARKS={4:'++',3:'+',2:'·',1:'−',0:''};
-const LV_NAMES={4:'Peak',3:'Good',2:'Fair',1:'Low',0:'Bad'};
-const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-const MON_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const MON_L=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-const HOURS=Array.from({length:12},(_,i)=>8+i);
+// ── AUTH & CLOUD SYNC ──
+async function initAuth() {
+  await signInAnonymously(auth);
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      ST.user = user;
+      loadCloudData();
+    }
+  });
+}
 
-const NOW=new Date();
-const saved=JSON.parse(localStorage.getItem('nimo-v6')||'{}');
-let ST={weekStart:monday(NOW),selDs:null,selHour:Math.min(Math.max(NOW.getHours(),8),19),data:saved.data||{},themeId:saved.themeId||'emerald',mode:saved.mode||'dark'};
+function getMatrixRef() {
+  return doc(db, 'artifacts', appId, 'users', ST.user.uid, 'matrix_data', 'main_store');
+}
 
-function persist(){localStorage.setItem('nimo-v6',JSON.stringify({data:ST.data,themeId:ST.themeId,mode:ST.mode}));}
+async function loadCloudData() {
+  if (!ST.user) return;
+  const snap = await getDoc(getMatrixRef());
+  if (snap.exists()) {
+    const cloud = snap.data();
+    ST.data = cloud.data || {};
+    ST.themeId = cloud.themeId || 'emerald';
+    ST.mode = cloud.mode || 'dark';
+    applyTheme(); renderWeek();
+  }
+}
+
+async function persistCloud() {
+  if (!ST.user) return;
+  await setDoc(getMatrixRef(), {
+    data: ST.data, themeId: ST.themeId, mode: ST.mode,
+    updatedAt: new Date()
+  }, { merge: true });
+}
+
+// ── UI LOGIC ──
+function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
+function ds(d){return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`}
 
 function applyTheme(){
   const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
   const mo=MODES[ST.mode];
   const root=document.documentElement;
   th.lv.forEach((c,i)=>root.style.setProperty(`--lv${4-i}`,c));
-  root.style.setProperty('--empty', ST.mode==='light'?'#e0e0e0':th.empty);
+  root.style.setProperty('--empty',ST.mode==='light'?'#e0e0e0':th.empty);
   root.style.setProperty('--yellow',th.hi);
   root.style.setProperty('--bg',mo.bg);
   root.style.setProperty('--surface',mo.surface);
   root.style.setProperty('--card',mo.card);
   root.style.setProperty('--text',mo.text);
   [4,3,2,1,0].forEach(lv=>{const el=document.getElementById(`leg${lv}`);if(el)el.style.background=th.lv[4-lv];});
-  
-  const panels = document.querySelectorAll('.panel');
-  panels.forEach(p => {
-    p.style.background = ST.mode === 'light' ? 'rgba(253,253,254,0.25)' : 'rgba(10,10,10,0.25)';
+  document.querySelectorAll('.panel').forEach(p => {
+    p.style.background = ST.mode==='light' ? 'rgba(253,253,254,0.25)' : 'rgba(10,10,10,0.25)';
   });
-}
-
-function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
-function ds(d){return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`}
-function dsNow(){return ds(NOW)}
-
-function calcCellSize(){
-  const headerH=document.querySelector('.week-header')?.offsetHeight||100;
-  const legendH=document.querySelector('.legend')?.offsetHeight||28;
-  const availW=window.innerWidth-22-3*7-8*7;
-  const availH=window.innerHeight-headerH-legendH-3*11-8*12;
-  return Math.max(Math.min(Math.floor(availW/7),Math.floor(availH/12)),14);
-}
-
-function applySize(){
-  const sz=calcCellSize();
-  const grid=document.getElementById('grid-area');
-  const dow=document.getElementById('dow-header');
-  const cols=`22px repeat(7,1fr)`;
-  if(grid){grid.style.gridTemplateRows=`repeat(12,${sz}px)`;grid.style.gridTemplateColumns=cols;}
-  if(dow)dow.style.gridTemplateColumns=cols;
 }
 
 function renderWeek(){
-  applyTheme();
   const ws=ST.weekStart;
   const days=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(d.getDate()+i);return d;});
-  document.getElementById('week-range').textContent=ws.getMonth()===days[6].getMonth()?`${MON_S[ws.getMonth()]} ${ws.getDate()}–${days[6].getDate()}`:`${MON_S[ws.getMonth()]}${ws.getDate()}–${MON_S[days[6].getMonth()]}${days[6].getDate()}`;
+  const MON_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('week-range').textContent=`${MON_S[ws.getMonth()]} ${ws.getDate()}–${days[6].getDate()}`;
+  
   const dowH=document.getElementById('dow-header');
+  dowH.style.gridTemplateColumns=`22px repeat(7,1fr)`;
   dowH.innerHTML='<div class="dow-spacer"></div>';
   days.forEach(d=>{
-    const isToday=ds(d)===dsNow();
+    const isToday=ds(d)===ds(new Date());
     const col=document.createElement('div'); col.className='dow-col'+(isToday?' today':'');
-    col.innerHTML=`<div class="dow-name">${DOW[d.getDay()].slice(0,3)}</div><div class="dow-date-num">${d.getDate()}</div><div class="dow-dot"></div>`;
+    col.innerHTML=`<div class="dow-name">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div><div class="dow-dot"></div>`;
     dowH.appendChild(col);
   });
+
   const grid=document.getElementById('grid-area'); grid.innerHTML='';
-  HOURS.forEach(h=>{
-    const tl=document.createElement('div'); tl.className='time-label'+(NOW.getHours()===h&&days.some(d=>ds(d)===dsNow())?' now-hour':'');
-    tl.textContent=h; grid.appendChild(tl);
+  grid.style.gridTemplateColumns=`22px repeat(7,1fr)`;
+  const hours=Array.from({length:12},(_,i)=>8+i);
+  grid.style.gridTemplateRows=`repeat(12, 1fr)`;
+
+  hours.forEach(h=>{
+    const tl=document.createElement('div'); tl.className='time-label'; tl.textContent=h; grid.appendChild(tl);
     days.forEach(d=>{
       const dstr=ds(d),lv=(ST.data[dstr]?.slots?.[h]?.level??null);
-      const isNow=ds(d)===dsNow()&&NOW.getHours()===h;
-      const cell=document.createElement('div');
-      cell.className='week-cell'+(isNow?' now-cell':'');
+      const cell=document.createElement('div'); cell.className='week-cell';
       cell.style.background=lv!==null?`var(--lv${lv})`:'var(--empty)';
-      if(ST.data[dstr]?.slots?.[h]?.note){const dot=document.createElement('div');dot.style.cssText='position:absolute;bottom:2px;right:2px;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.6)';cell.appendChild(dot);}
-      cell.addEventListener('click',()=>openDetail(d,h));
+      if(ST.data[dstr]?.slots?.[h]?.note){
+        const dot=document.createElement('div'); dot.style.cssText='position:absolute;bottom:2px;right:2px;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.6)';
+        cell.appendChild(dot);
+      }
+      cell.onclick=()=>openDetail(d,h);
       grid.appendChild(cell);
     });
   });
-  applySize();
 }
 
 function openDetail(dateObj,hour){
-  const dstr=ds(dateObj); ST.selDs=dstr; ST.selHour=hour;
+  ST.selDs=ds(dateObj); ST.selHour=hour;
   document.getElementById('d-day').textContent=dateObj.getDate();
   document.getElementById('d-hour').textContent=`${hour.toString().padStart(2,'0')}:00`;
-  document.getElementById('d-meta').textContent=`${DOW[dateObj.getDay()].toUpperCase()} · ${MON_L[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-  document.getElementById('memo-input').value=ST.data[dstr]?.slots?.[hour]?.note||'';
+  document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[ST.selHour]?.note||'';
   renderIntensity();
   document.getElementById('detail-panel').classList.add('open');
-}
-function closeDetail(){document.getElementById('detail-panel').classList.remove('open');renderWeek();}
-function saveAndClose(){
-  const note=document.getElementById('memo-input').value;
-  if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};
-  ST.data[ST.selDs].slots[ST.selHour]={...(ST.data[ST.selDs].slots[ST.selHour]||{}),note};
-  persist(); closeDetail();
 }
 
 function renderIntensity(){
@@ -309,28 +273,33 @@ function renderIntensity(){
   const row=document.getElementById('intensity-row'); row.innerHTML='';
   [4,3,2,1,0].forEach(lv=>{
     const isAct=curLv===lv;
-    const wrap=document.createElement('div'); wrap.className='lv-wrap';
     const btn=document.createElement('button'); btn.className='lv-btn'+(isAct?' act':'');
     btn.style.background=`var(--lv${lv})`;
-    btn.innerHTML=`<span style="font-size:12px;font-weight:700">${LV_MARKS[lv]}</span>`;
-    btn.addEventListener('click',()=>{
+    btn.innerHTML=`<span style="font-size:12px;font-weight:700">${['++','+','·','−',''][lv]}</span>`;
+    btn.onclick=()=>{
       if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};
       ST.data[ST.selDs].slots[ST.selHour]={...(ST.data[ST.selDs].slots[ST.selHour]||{}),level:isAct?null:lv};
-      persist(); renderIntensity();
-    });
-    wrap.appendChild(btn);
-    const lbl=document.createElement('div'); lbl.className='lv-label'; lbl.textContent=LV_NAMES[lv]; lbl.style.color=isAct?'var(--text)':'var(--muted)';
-    wrap.appendChild(lbl); row.appendChild(wrap);
+      renderIntensity();
+    };
+    row.appendChild(btn);
   });
 }
 
-function openSettings(){
-  renderSettings();
-  document.getElementById('settings-panel').classList.add('open');
-}
-function closeSettings(){document.getElementById('settings-panel').classList.remove('open');renderWeek();}
-function setMode(mode){ST.mode=mode;persist();applyTheme();renderSettings();renderWeek();}
-function setTheme(id){ST.themeId=id;persist();applyTheme();renderSettings();renderWeek();}
+window.saveAndClose = async () => {
+  const note=document.getElementById('memo-input').value;
+  if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};
+  ST.data[ST.selDs].slots[ST.selHour]={...(ST.data[ST.selDs].slots[ST.selHour]||{}),note};
+  await persistCloud();
+  document.getElementById('detail-panel').classList.remove('open');
+  renderWeek();
+};
+window.closeDetail=()=>document.getElementById('detail-panel').classList.remove('open');
+window.openSettings=()=>{renderSettings();document.getElementById('settings-panel').classList.add('open');};
+window.closeSettings=()=>document.getElementById('settings-panel').classList.remove('open');
+window.setMode=async(m)=>{ST.mode=m;applyTheme();renderSettings();await persistCloud();};
+window.setTheme=async(id)=>{ST.themeId=id;applyTheme();renderSettings();await persistCloud();};
+window.changeWeek=(d)=>{ST.weekStart=new Date(ST.weekStart);ST.weekStart.setDate(ST.weekStart.getDate()+d*7);renderWeek();};
+
 function renderSettings(){
   document.getElementById('mode-dark').className='mode-btn-large'+(ST.mode==='dark'?' active':'');
   document.getElementById('mode-light').className='mode-btn-large'+(ST.mode==='light'?' active':'');
@@ -338,20 +307,16 @@ function renderSettings(){
   THEMES.forEach(th=>{
     const isAct=ST.themeId===th.id;
     const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':'');
-    const swatches=th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('');
-    card.innerHTML=`<div class="theme-swatches">${swatches}</div><div class="theme-name">${th.name}</div>`;
-    card.addEventListener('click',()=>setTheme(th.id));
+    card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div style="flex:1;height:10px;background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`;
+    card.onclick=()=>setTheme(th.id);
     grid.appendChild(card);
   });
 }
 
-function changeWeek(delta){ST.weekStart=new Date(ST.weekStart);ST.weekStart.setDate(ST.weekStart.getDate()+delta*7);renderWeek();}
-window.addEventListener('resize',applySize);
+// INIT
+initAuth();
+applyTheme();
 renderWeek();
-
-if ("serviceWorker" in navigator && (location.protocol==='http:'||location.protocol==='https:')) {
-  navigator.serviceWorker.register("sw.js").catch(e=>console.warn(e));
-}
 </script>
 </body>
 </html>
