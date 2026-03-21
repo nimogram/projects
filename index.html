@@ -2,20 +2,18 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-<!-- PWA: アプリインストールを有効にするためのメタタグ -->
-<meta name="mobile-web-app-capable" content="yes">
+<!-- PWA: アプリとして独立起動させるための最重要タグ -->
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="nimogram">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0d0d">
 
-<!-- アイコン設定（Apple用） -->
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
-
-<!-- マニフェストファイル（GitHub Pagesのパスを考慮） -->
+<!-- マニフェストファイル -->
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
 
 <title>nimogram</title>
 <style>
@@ -66,12 +64,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .legend{display:flex;align-items:center;gap:4px;padding:5px 10px 6px;justify-content:flex-end;flex-shrink:0;border-top:0.5px solid var(--border)}
 .legend-label{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}.legend-box{width:10px;height:10px;border-radius:2px}
 
-/* ── PANELS (右スライドイン & ニモさん指定：極透明・低ぼかし) ── */
+/* ── PANELS (右スライドイン & ニモさん指定：超透明・低ぼかし) ── */
 .panel{
   position:fixed; inset:0; z-index:50;
   overflow-y:auto; -webkit-overflow-scrolling:touch;
   background:rgba(10, 10, 10, 0.25);
-  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  /* ニモさん指定：ぼかしを薄く (10px -> 4px) */
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
   transform:translateX(100%);
   transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -82,7 +81,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .settings-title{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--text);margin-bottom:4px;letter-spacing:0.04em}.settings-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:28px}.theme-grid{display:grid;grid-template-columns:repeat(4, 1fr);gap:7px}.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}.theme-swatches{display:flex;gap:2px;margin-bottom:6px}.theme-swatch{flex:1;height:14px;border-radius:1px}.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}.settings-close{width:100%;margin-top:8px;padding:14px;background:var(--card);border:0.5px solid var(--border2);color:var(--text);cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.4em;border-radius:6px}
 
-/* ニモさん指定：モード切替ボタンの大型化 */
+/* モード切替ボタンの大型化維持 */
 .mode-btn-large {
   flex: 1;
   padding: 22px 8px;
@@ -176,7 +175,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <script>
-// イエローをより明るい #ffff00 に統一（Recoveryテーマ含む）
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], empty:'#001108', hi:'#00e5a0'},
   {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], empty:'#041520', hi:'#bae6fd'},
@@ -352,7 +350,6 @@ window.addEventListener('resize',applySize);
 renderWeek();
 
 if ("serviceWorker" in navigator && (location.protocol==='http:'||location.protocol==='https:')) {
-  // Service Worker の登録範囲を考慮
   navigator.serviceWorker.register("sw.js").catch(e=>console.warn(e));
 }
 </script>
