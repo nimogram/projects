@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- PWA: アプリとして独立起動させるための最重要タグ -->
+<!-- PWA: アプリとして独立起動させるための設定 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -81,6 +81,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 /* ニモさん指定：モード切替ボタンの大型化 */
 .mode-btn-large {
   flex: 1; padding: 22px 8px; background: var(--card); color: var(--text); border: 1px solid var(--border2); border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 12px;
+  transition: all 0.2s;
 }
 .mode-btn-large.active { border-color: var(--lv4); background: rgba(0, 229, 160, 0.1); }
 .theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}.theme-swatches{display:flex;gap:2px;margin-bottom:6px}.theme-swatch{flex:1;height:14px;border-radius:1px}.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
@@ -141,22 +142,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-const firebaseConfig = JSON.parse(__firebase_config);
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'nimogram-default';
-
+<script>
 // ── UTILITIES ──
 function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
 function ds(d){return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`}
 
-// ── STATE ──
+// ── STATE (Firebaseを排除しLocalStorageのみで管理) ──
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], empty:'#001108', hi:'#00e5a0'},
   {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], empty:'#041520', hi:'#bae6fd'},
@@ -183,68 +174,22 @@ const MODES = {
   dark: {bg:'#0d0d0d',surface:'#131313',card:'#181818',border:'rgba(255,255,255,0.07)',text:'#ffffff'},
   light: {bg:'#fdfdfe',surface:'#ffffff',card:'#f5f5f5',border:'rgba(0,0,0,0.04)',text:'#1a1a1a'}
 };
+
 let ST = {
   weekStart: monday(new Date()),
   selDs: null, selHour: 8,
-  data: JSON.parse(localStorage.getItem('nimo-v6-cache') || '{}'),
-  themeId: localStorage.getItem('nimo-theme') || 'emerald',
-  mode: localStorage.getItem('nimo-mode') || 'dark',
-  user: null
+  data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
+  themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
+  mode: localStorage.getItem('nimo-v6-display-mode') || 'dark'
 };
 
-// ── CLOUD SYNC ──
-async function initAuth() {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      ST.user = user;
-      await loadCloudData();
-    } else {
-      await signInAnonymously(auth);
-    }
-  });
-}
-function getMatrixRef() {
-  return doc(db, 'artifacts', appId, 'users', ST.user.uid, 'matrix_data', 'main_store');
-}
-async function loadCloudData() {
-  if (!ST.user) return;
-  const snap = await getDoc(getMatrixRef());
-  if (snap.exists()) {
-    const cloud = snap.data();
-    ST.data = cloud.data || ST.data;
-    ST.themeId = cloud.themeId || ST.themeId;
-    ST.mode = cloud.mode || ST.mode;
-    localStorage.setItem('nimo-v6-cache', JSON.stringify(ST.data));
-    applyTheme(); renderWeek();
-  }
-}
-async function persistCloud() {
-  if (!ST.user) return;
-  localStorage.setItem('nimo-v6-cache', JSON.stringify(ST.data));
-  localStorage.setItem('nimo-theme', ST.themeId);
-  localStorage.setItem('nimo-mode', ST.mode);
-  await setDoc(getMatrixRef(), {
-    data: ST.data, themeId: ST.themeId, mode: ST.mode,
-    updatedAt: new Date()
-  }, { merge: true });
+function persist() {
+  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+  localStorage.setItem('nimo-v6-theme-id', ST.themeId);
+  localStorage.setItem('nimo-v6-display-mode', ST.mode);
 }
 
 // ── UI LOGIC ──
-function calcCellSize(){
-  const headerH=document.querySelector('.week-header')?.offsetHeight||100;
-  const legendH=document.querySelector('.legend')?.offsetHeight||28;
-  const availW=window.innerWidth-22-3*7-8*7;
-  const availH=window.innerHeight-headerH-legendH-3*11-8*12;
-  return Math.max(Math.min(Math.floor(availW/7),Math.floor(availH/12)),14);
-}
-function applySize(){
-  const sz=calcCellSize();
-  const grid=document.getElementById('grid-area');
-  const dow=document.getElementById('dow-header');
-  const cols=`22px repeat(7,1fr)`;
-  if(grid){grid.style.gridTemplateRows=`repeat(12,${sz}px)`;grid.style.gridTemplateColumns=cols;}
-  if(dow)dow.style.gridTemplateColumns=cols;
-}
 function applyTheme(){
   const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
   const mo=MODES[ST.mode];
@@ -261,7 +206,26 @@ function applyTheme(){
     p.style.background = ST.mode==='light' ? 'rgba(253,253,254,0.25)' : 'rgba(10,10,10,0.25)';
   });
 }
+
+function calcCellSize(){
+  const headerH=document.querySelector('.week-header')?.offsetHeight||100;
+  const legendH=document.querySelector('.legend')?.offsetHeight||28;
+  const availW=window.innerWidth-22-3*7-8*7;
+  const availH=window.innerHeight-headerH-legendH-3*11-8*12;
+  return Math.max(Math.min(Math.floor(availW/7),Math.floor(availH/12)),14);
+}
+
+function applySize(){
+  const sz=calcCellSize();
+  const grid=document.getElementById('grid-area');
+  const dow=document.getElementById('dow-header');
+  const cols=`22px repeat(7,1fr)`;
+  if(grid){grid.style.gridTemplateRows=`repeat(12,${sz}px)`;grid.style.gridTemplateColumns=cols;}
+  if(dow)dow.style.gridTemplateColumns=cols;
+}
+
 function renderWeek(){
+  applyTheme();
   const ws=ST.weekStart;
   const days=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(d.getDate()+i);return d;});
   const MON_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -319,19 +283,19 @@ window.renderIntensity = () => {
     row.appendChild(btn);
   });
 };
-window.saveAndClose = async () => {
+window.saveAndClose = () => {
   const note=document.getElementById('memo-input').value;
   if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};
   ST.data[ST.selDs].slots[ST.selHour]={...(ST.data[ST.selDs].slots[ST.selHour]||{}),note};
-  await persistCloud();
+  persist();
   document.getElementById('detail-panel').classList.remove('open');
   renderWeek();
 };
 window.closeDetail=()=>document.getElementById('detail-panel').classList.remove('open');
 window.openSettings=()=>{renderSettings();document.getElementById('settings-panel').classList.add('open');};
 window.closeSettings=()=>document.getElementById('settings-panel').classList.remove('open');
-window.setMode=async(m)=>{ST.mode=m;applyTheme();renderSettings();await persistCloud();};
-window.setTheme=async(id)=>{ST.themeId=id;applyTheme();renderSettings();await persistCloud();};
+window.setMode=(m)=>{ST.mode=m;applyTheme();renderSettings();persist();renderWeek();};
+window.setTheme=(id)=>{ST.themeId=id;applyTheme();renderSettings();persist();renderWeek();};
 window.changeWeek=(d)=>{ST.weekStart=new Date(ST.weekStart);ST.weekStart.setDate(ST.weekStart.getDate()+d*7);renderWeek();};
 function renderSettings(){
   document.getElementById('mode-dark').className='mode-btn-large'+(ST.mode==='dark'?' active':'');
@@ -348,9 +312,7 @@ function renderSettings(){
 
 // ── INIT ──
 window.addEventListener('resize', applySize);
-applyTheme();
 renderWeek();
-initAuth();
 </script>
 </body>
 </html>
