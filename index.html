@@ -66,12 +66,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .legend{display:flex;align-items:center;gap:4px;padding:5px 10px 6px;justify-content:flex-end;flex-shrink:0;border-top:0.5px solid var(--border)}
 .legend-label{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}.legend-box{width:10px;height:10px;border-radius:2px}
 
-/* ── PANELS (右スライドイン & 超透明・低ぼかし) ── */
+/* ── PANELS (右スライドイン & 透明度調整) ── */
 .panel{
   position:fixed; inset:0; z-index:50;
   overflow-y:auto; -webkit-overflow-scrolling:touch;
-  background:rgba(10, 10, 10, 0.25);
-  /* ニモさん指定：ぼかし 1px */
+  /* ニモさん指定：透明度を少し下げる (0.25 -> 0.45) */
+  background:rgba(10, 10, 10, 0.45);
   backdrop-filter:blur(1px); -webkit-backdrop-filter:blur(1px);
   transform:translateX(100%);
   transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -81,7 +81,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .d-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.d-badge{font-family:'DM Mono',monospace;font-size:8px;color:var(--lv4);letter-spacing:0.4em;margin-bottom:5px}.d-hero{display:flex;align-items:baseline;gap:10px}.d-day{font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1;color:var(--text);letter-spacing:-2px}.d-hour{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1;color:var(--yellow)}.d-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);margin-top:3px;text-transform:uppercase;letter-spacing:0.1em}.close-btn{width:34px;height:34px;border:0.5px solid var(--border2);background:rgba(128,128,128,0.08);color:var(--muted2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:4px}.sec-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:0.28em;text-transform:uppercase;margin-bottom:9px}.input-card{background:var(--card);border-bottom:3px solid var(--lv4);padding:16px 13px 20px;margin-bottom:16px;border-radius:8px}.intensity-row{display:flex;gap:6px}.lv-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}.lv-btn.act{border:2.5px solid var(--text);box-shadow:0 0 12px rgba(128,128,128,0.2);transform:translateY(-3px)}.lv-label{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.07em;text-transform:uppercase;text-align:center}.memo-input{width:100%;min-height:84px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;padding:10px 12px;resize:none;outline:none;line-height:1.7;caret-color:var(--lv4);margin-bottom:14px;border-radius:4px}.save-btn{width:100%;padding:15px;background:var(--lv3);color:#fff;border:none;cursor:pointer;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.4em;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:4px}
 
-/* ニモさん指定：モード切替ボタンの大型化 */
 .mode-btn-large {
   flex: 1; padding: 22px 8px; background: var(--card); color: var(--text); border: 1px solid var(--border2); border-radius: 8px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 12px;
   transition: all 0.2s;
@@ -180,6 +179,9 @@ const MODES = {
 
 const LV_NAMES={4:'Peak',3:'Good',2:'Fair',1:'Low',0:'Bad'};
 
+// ニモさん指定：20時まで記録できるよう拡張 (8-20 = 13時間分)
+const RECORDING_HOURS = 13; 
+
 let ST = {
   weekStart: monday(new Date()),
   selDs: null, selHour: 8,
@@ -208,7 +210,7 @@ function applyTheme(){
   root.style.setProperty('--text',mo.text);
   [4,3,2,1,0].forEach(lv=>{const el=document.getElementById(`leg${lv}`);if(el)el.style.background=th.lv[4-lv];});
   document.querySelectorAll('.panel').forEach(p => {
-    p.style.background = ST.mode==='light' ? 'rgba(253,253,254,0.25)' : 'rgba(10,10,10,0.25)';
+    p.style.background = ST.mode==='light' ? 'rgba(253,253,254,0.45)' : 'rgba(10,10,10,0.45)';
   });
 }
 
@@ -216,8 +218,8 @@ function calcCellSize(){
   const headerH=document.querySelector('.week-header')?.offsetHeight||100;
   const legendH=document.querySelector('.legend')?.offsetHeight||28;
   const availW=window.innerWidth-22-3*7-8*7;
-  const availH=window.innerHeight-headerH-legendH-3*11-8*12;
-  return Math.max(Math.min(Math.floor(availW/7),Math.floor(availH/12)),14);
+  const availH=window.innerHeight-headerH-legendH-3*RECORDING_HOURS-8*(RECORDING_HOURS+1);
+  return Math.max(Math.min(Math.floor(availW/7), Math.floor(availH/RECORDING_HOURS)), 14);
 }
 
 function applySize(){
@@ -225,7 +227,10 @@ function applySize(){
   const grid=document.getElementById('grid-area');
   const dow=document.getElementById('dow-header');
   const cols=`22px repeat(7,1fr)`;
-  if(grid){grid.style.gridTemplateRows=`repeat(12,${sz}px)`;grid.style.gridTemplateColumns=cols;}
+  if(grid){
+    grid.style.gridTemplateRows=`repeat(${RECORDING_HOURS},${sz}px)`;
+    grid.style.gridTemplateColumns=cols;
+  }
   if(dow)dow.style.gridTemplateColumns=cols;
 }
 
@@ -250,7 +255,7 @@ function renderWeek(){
   });
   
   const grid=document.getElementById('grid-area'); grid.innerHTML='';
-  const hours=Array.from({length:12},(_,i)=>8+i);
+  const hours=Array.from({length:RECORDING_HOURS},(_,i)=>8+i);
   hours.forEach(h=>{
     const isNowHour = h === nowHour;
     const tl=document.createElement('div'); 
@@ -287,7 +292,6 @@ window.openDetail = (dateObj, hour) => {
   document.getElementById('detail-panel').classList.add('open');
 };
 
-// ニモさん指定：マスの中の文字（++, +, ·, −）を消去
 window.renderIntensity = () => {
   const curLv=ST.data[ST.selDs]?.slots?.[ST.selHour]?.level??null;
   const row=document.getElementById('intensity-row'); row.innerHTML='';
@@ -296,7 +300,6 @@ window.renderIntensity = () => {
     const wrap=document.createElement('div'); wrap.className='lv-wrap';
     const btn=document.createElement('button'); btn.className='lv-btn'+(isAct?' act':'');
     btn.style.background=`var(--lv${lv})`;
-    // btn.innerHTML=`<span style="font-size:12px;font-weight:700">${['++','+','·','−',''][lv]}</span>`; // 削除
     btn.onclick=()=>{
       if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};
       ST.data[ST.selDs].slots[ST.selHour]={...(ST.data[ST.selDs].slots[ST.selHour]||{}),level:isAct?null:lv};
