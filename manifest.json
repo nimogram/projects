@@ -1,0 +1,24 @@
+{
+  "short_name": "nimogram",
+  "name": "nimogram Strategic Matrix",
+  "start_url": "/projects/index.html",
+  "display": "standalone",
+  "theme_color": "#0d0d0d",
+  "background_color": "#0d0d0d",
+  "display_override": ["fullscreen", "minimal-ui"],
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
