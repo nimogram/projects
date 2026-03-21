@@ -227,8 +227,6 @@ function calcCellSize(){
   const legendH = document.querySelector('.legend')?.offsetHeight || 28;
   const availW = window.innerWidth - TIME_COL_W - (GAP * 8);
   const availH = window.innerHeight - headerH - legendH - (GAP * RECORDING_HOURS);
-  
-  // 縦横どちらにも収まる「正方形の一辺」を算出
   return Math.max(Math.min(Math.floor(availW / 7), Math.floor(availH / RECORDING_HOURS)), 14);
 }
 
@@ -236,8 +234,6 @@ function applySize(){
   const sz = calcCellSize();
   const grid = document.getElementById('grid-area');
   const dow = document.getElementById('dow-header');
-  
-  // カラム設定を固定ピクセルにすることで正方形を強制
   const cols = `${TIME_COL_W}px repeat(7, ${sz}px)`;
   if(grid){
     grid.style.gridTemplateRows = `repeat(${RECORDING_HOURS}, ${sz}px)`;
@@ -346,6 +342,16 @@ function renderSettings(){
     card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div style="flex:1;height:10px;background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`;
     card.onclick=()=>setTheme(th.id);
     grid.appendChild(card);
+  });
+}
+
+// ── PWA: Service Worker Registration ──
+// プレビュー環境でのエラーを回避するためにプロトコルをチェック
+if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW Registered', reg.scope))
+      .catch(err => console.error('SW Registration Failed', err));
   });
 }
 
