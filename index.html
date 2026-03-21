@@ -57,7 +57,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:4px;font-weight:500}
 .time-label.now-hour{color:var(--yellow);font-weight:700;font-size:10px}
 .week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;min-width:0;min-height:0;position:relative;border:4px solid var(--bg)}
-.week-cell:active{transform:scale(0.82)}.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow)}.week-cell.sel-cell{box-shadow:0 0 0 2px rgba(128,128,128,0.8)}
+.week-cell:active{transform:scale(0.82)}
+/* 現在時刻セルの強調表示 */
+.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
+.week-cell.sel-cell{box-shadow:0 0 0 2px rgba(128,128,128,0.8)}
 
 /* ── LEGEND ── */
 .legend{display:flex;align-items:center;gap:4px;padding:5px 10px 6px;justify-content:flex-end;flex-shrink:0;border-top:0.5px solid var(--border)}
@@ -147,7 +150,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
 function ds(d){return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`}
 
-// ── STATE (Firebaseを排除しLocalStorageのみで管理) ──
+// ── STATE ──
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], empty:'#001108', hi:'#00e5a0'},
   {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], empty:'#041520', hi:'#bae6fd'},
@@ -226,27 +229,41 @@ function applySize(){
 
 function renderWeek(){
   applyTheme();
+  const now = new Date();
+  const nowHour = now.getHours();
+  const todayDs = ds(now);
   const ws=ST.weekStart;
   const days=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(d.getDate()+i);return d;});
   const MON_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   document.getElementById('week-range').textContent=`${MON_S[ws.getMonth()]} ${ws.getDate()}–${days[6].getDate()}`;
+  
   const dowH=document.getElementById('dow-header');
   dowH.style.gridTemplateColumns=`22px repeat(7,1fr)`;
   dowH.innerHTML='<div class="dow-spacer"></div>';
   days.forEach(d=>{
-    const isToday=ds(d)===ds(new Date());
+    const isToday=ds(d)===todayDs;
     const col=document.createElement('div'); col.className='dow-col'+(isToday?' today':'');
     col.innerHTML=`<div class="dow-name">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div><div class="dow-dot"></div>`;
     dowH.appendChild(col);
   });
+  
   const grid=document.getElementById('grid-area'); grid.innerHTML='';
   const hours=Array.from({length:12},(_,i)=>8+i);
   hours.forEach(h=>{
-    const tl=document.createElement('div'); tl.className='time-label'; tl.textContent=h; grid.appendChild(tl);
+    const isNowHour = h === nowHour;
+    const tl=document.createElement('div'); 
+    tl.className='time-label' + (isNowHour && days.some(d => ds(d) === todayDs) ? ' now-hour' : ''); 
+    tl.textContent=h; grid.appendChild(tl);
+    
     days.forEach(d=>{
-      const dstr=ds(d),lv=(ST.data[dstr]?.slots?.[h]?.level??null);
-      const cell=document.createElement('div'); cell.className='week-cell';
+      const dstr=ds(d);
+      const lv=(ST.data[dstr]?.slots?.[h]?.level??null);
+      const isNowCell = dstr === todayDs && h === nowHour;
+      
+      const cell=document.createElement('div'); 
+      cell.className='week-cell' + (isNowCell ? ' now-cell' : '');
       cell.style.background=lv!==null?`var(--lv${lv})`:'var(--empty)';
+      
       if(ST.data[dstr]?.slots?.[h]?.note){
         const dot=document.createElement('div'); dot.style.cssText='position:absolute;bottom:2px;right:2px;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,0.6)';
         cell.appendChild(dot);
