@@ -178,6 +178,8 @@ const MODES = {
   light: {bg:'#fdfdfe',surface:'#ffffff',card:'#f5f5f5',border:'rgba(0,0,0,0.04)',text:'#1a1a1a'}
 };
 
+const LV_NAMES={4:'Peak',3:'Good',2:'Fair',1:'Low',0:'Bad'};
+
 let ST = {
   weekStart: monday(new Date()),
   selDs: null, selHour: 8,
@@ -284,22 +286,28 @@ window.openDetail = (dateObj, hour) => {
   renderIntensity();
   document.getElementById('detail-panel').classList.add('open');
 };
+
+// ニモさん指定：マスの中の文字（++, +, ·, −）を消去
 window.renderIntensity = () => {
   const curLv=ST.data[ST.selDs]?.slots?.[ST.selHour]?.level??null;
   const row=document.getElementById('intensity-row'); row.innerHTML='';
   [4,3,2,1,0].forEach(lv=>{
     const isAct=curLv===lv;
+    const wrap=document.createElement('div'); wrap.className='lv-wrap';
     const btn=document.createElement('button'); btn.className='lv-btn'+(isAct?' act':'');
     btn.style.background=`var(--lv${lv})`;
-    btn.innerHTML=`<span style="font-size:12px;font-weight:700">${['++','+','·','−',''][lv]}</span>`;
+    // btn.innerHTML=`<span style="font-size:12px;font-weight:700">${['++','+','·','−',''][lv]}</span>`; // 削除
     btn.onclick=()=>{
       if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};
       ST.data[ST.selDs].slots[ST.selHour]={...(ST.data[ST.selDs].slots[ST.selHour]||{}),level:isAct?null:lv};
       renderIntensity();
     };
-    row.appendChild(btn);
+    wrap.appendChild(btn);
+    const lbl=document.createElement('div'); lbl.className='lv-label'; lbl.textContent=LV_NAMES[lv]; lbl.style.color=isAct?'var(--text)':'var(--muted)';
+    wrap.appendChild(lbl); row.appendChild(wrap);
   });
 };
+
 window.saveAndClose = () => {
   const note=document.getElementById('memo-input').value;
   if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};
