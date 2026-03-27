@@ -52,14 +52,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
 .dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
 
-/* ── GRID ── */
+/* ── GRID (Full Screen Width) ── */
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
 .time-label.now-hour{color:var(--yellow);font-weight:700}
 .week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
-/* ── STATS DASHBOARD ── */
+/* ── STATS DASHBOARD (Stats Page Top) ── */
 .stats-dashboard{background:var(--card);padding:20px;margin-bottom:15px;border-bottom:2px solid var(--lv5);display:flex;flex-direction:column;gap:15px}
 .dash-main{display:flex;justify-content:space-between;align-items:center}
 .dash-score-box{display:flex;flex-direction:column}
@@ -75,8 +75,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
 .stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5)}
 .alert-box{background:rgba(255,255,0,0.1);border:1px solid var(--yellow);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
+.day-memo-list{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:var(--text); opacity:0.9;}
 
-/* ── NAVIGATION ── */
+/* ── TAB NAVIGATION ── */
 .tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100}
 .tab-btn{flex:1;padding:15px 0;border:none;background:transparent;color:var(--muted2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
 .tab-btn.active{color:var(--yellow)}
@@ -164,8 +165,10 @@ function calcCellSize(){
   const headerH = document.querySelector('.week-header').offsetHeight;
   const navH = 80;
   const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
+  const cellW = Math.floor(availW / 7);
   const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
-  return Math.max(Math.min(Math.floor(availW / 7), Math.floor(availH / RECORDING_HOURS)), 12);
+  const cellH = Math.floor(availH / RECORDING_HOURS);
+  return Math.max(Math.min(cellW, cellH), 12);
 }
 
 function renderWeek(){
@@ -210,10 +213,22 @@ function renderSummary(){
     const dstr = ds(d);
     const slots = ST.data[dstr]?.slots || {};
     let sum=0, count=0;
-    Object.values(slots).forEach(s => { if(s.level){sum+=s.level; count++;} });
+    const notes = [];
+    
+    Object.keys(slots).forEach(h => {
+        const s = slots[h];
+        if(s.level){
+            sum += s.level; 
+            count++;
+        }
+        if(s.note && s.note.trim() !== '') {
+            notes.push(`[${h}:00] ${s.note}`);
+        }
+    });
+    
     const avg = count > 0 ? (sum/count) : null;
     if(avg) { weekSum += avg; weekCount++; }
-    return { date: d, avg: avg };
+    return { date: d, avg: avg, notes: notes };
   });
 
   const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
@@ -241,14 +256,27 @@ function renderSummary(){
   let html = dayStats.map(s => {
     const roundedAvg = s.avg !== null ? Math.round(s.avg) : null;
     let alert = '';
-    if(roundedAvg === 1) { alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。</div>`; }
-    else if(roundedAvg === 5) { alert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。</div>`; }
+    let memoHtml = '';
+
+    // 指示：平均が「1」または「5」の時のみコメントとメモを表示
+    if(roundedAvg === 1 || roundedAvg === 5) {
+        if(roundedAvg === 1) {
+            alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。リカバリーを最優先してください。</div>`;
+        } else {
+            alert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。攻めの営業を！</div>`;
+        }
+        
+        if(s.notes.length > 0) {
+            memoHtml = `<div class="day-memo-list">📝 LOGS:<br>${s.notes.join('<br>')}</div>`;
+        }
+    }
 
     return `
       <div class="stat-card" style="border-left-color: ${s.avg!==null?`var(--lv${Math.round(s.avg)})`:'var(--border)'}">
         <div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div>
         <div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>
         ${alert}
+        ${memoHtml}
       </div>
     `;
   }).join('');
@@ -324,7 +352,6 @@ function renderSettings(){
   });
 }
 
-// ── PWA: Service Worker ──
 if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Fail', err)); });
 }
