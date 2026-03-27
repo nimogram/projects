@@ -21,7 +21,7 @@
 
 /* ── THEME VARIABLES ── */
 :root {
-  --lv5:#39d353;--lv4:#26a641;--lv3:#006d32;--lv2:#0e4429;--lv1:#161b22;
+  --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
   --empty:#0d1117; --yellow:#ffff00;
   --bg:#0d0d0d;--surface:#131313;--card:#181818;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
@@ -46,20 +46,20 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .settings-btn{width:38px;height:38px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
 
-.dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5 solid var(--border);background:var(--bg);flex-shrink:0}
+.dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
 .dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
 .dow-name{font-family:'DM Mono',monospace;font-size:7px;text-transform:uppercase;color:var(--muted2)}
 .dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
 .dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
 
-/* ── GRID (Full Screen Width) ── */
+/* ── GRID ── */
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
 .time-label.now-hour{color:var(--yellow);font-weight:700}
 .week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
-/* ── SUMMARY DASHBOARD (Stats Page Top) ── */
+/* ── STATS DASHBOARD ── */
 .stats-dashboard{background:var(--card);padding:20px;margin-bottom:15px;border-bottom:2px solid var(--lv5);display:flex;flex-direction:column;gap:15px}
 .dash-main{display:flex;justify-content:space-between;align-items:center}
 .dash-score-box{display:flex;flex-direction:column}
@@ -76,7 +76,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5)}
 .alert-box{background:rgba(255,255,0,0.1);border:1px solid var(--yellow);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
 
-/* ── TAB NAVIGATION ── */
+/* ── NAVIGATION ── */
 .tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100}
 .tab-btn{flex:1;padding:15px 0;border:none;background:transparent;color:var(--muted2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
 .tab-btn.active{color:var(--yellow)}
@@ -115,14 +115,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 <div id="screen-summary" class="screen">
   <div class="week-header">
-    <div class="week-top">
-      <div class="week-title">STATS</div>
-      <button class="settings-btn" onclick="openSettings()">⚙</button>
-    </div>
+    <div class="week-top"><div class="week-title">STATS</div><button class="settings-btn" onclick="openSettings()">⚙</button></div>
   </div>
-  <div id="stats-dashboard" class="stats-dashboard">
-    <!-- JSでレンダリング -->
-  </div>
+  <div id="stats-dashboard" class="stats-dashboard"></div>
   <div class="summary-container" id="summary-content"></div>
 </div>
 
@@ -147,35 +142,34 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 const RECORDING_HOURS = 13; // 8-20
 const GAP = 2;
 const TIME_COL_PX = 28;
-const LV_NAMES={5:'Peak',4:'Good',3:'Fair',2:'Low',1:'Bad'};
 
 let ST = {
   weekStart: monday(new Date()),
   data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
   themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
-  mode: localStorage.getItem('nimo-v6-display-mode') || 'dark',
   currentTab: 'week'
 };
 
 function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
 function ds(d){return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`}
 
-function calcCellSize(){
-  const headerH = document.querySelector('.week-header').offsetHeight;
-  const navH = 80;
-  const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
-  const cellW = Math.floor(availW / 7);
-  const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
-  const cellH = Math.floor(availH / RECORDING_HOURS);
-  return Math.max(Math.min(cellW, cellH), 12);
-}
-
-function renderWeek(){
+function applyTheme(){
   const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
   const root=document.documentElement;
   th.lv.forEach((c,i)=>root.style.setProperty(`--lv${5-i}`,c));
   root.style.setProperty('--yellow', th.hi || th.lv[0]);
+}
 
+function calcCellSize(){
+  const headerH = document.querySelector('.week-header').offsetHeight;
+  const navH = 80;
+  const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
+  const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
+  return Math.max(Math.min(Math.floor(availW / 7), Math.floor(availH / RECORDING_HOURS)), 12);
+}
+
+function renderWeek(){
+  applyTheme();
   const sz = calcCellSize();
   const now = new Date();
   const todayDs = ds(now);
@@ -247,11 +241,8 @@ function renderSummary(){
   let html = dayStats.map(s => {
     const roundedAvg = s.avg !== null ? Math.round(s.avg) : null;
     let alert = '';
-    if(roundedAvg === 1) {
-      alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。リカバリーを最優先してください。</div>`;
-    } else if(roundedAvg === 5) {
-      alert = `<div class="alert-box" style="background:rgba(57,211,83,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。攻めの営業を！</div>`;
-    }
+    if(roundedAvg === 1) { alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。</div>`; }
+    else if(roundedAvg === 5) { alert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。</div>`; }
 
     return `
       <div class="stat-card" style="border-left-color: ${s.avg!==null?`var(--lv${Math.round(s.avg)})`:'var(--border)'}">
@@ -265,7 +256,7 @@ function renderSummary(){
 }
 
 const THEMES = [
-  {id:'emerald', name:'Emerald', lv:['#39d353','#26a641','#006d32','#0e4429','#161b22'], hi:'#39d353'},
+  {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
   {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], hi:'#bae6fd'},
   {id:'yellow',  name:'Yellow',  lv:['#ffff00','#facc15','#ca8a04','#78530a','#2e1f00'], hi:'#ffff00'},
   {id:'whoop',   name:'Recovery',lv:['#4ade80','#a3e635','#ffff00','#f97316','#ef4444'], hi:'#4ade80'},
@@ -333,11 +324,9 @@ function renderSettings(){
   });
 }
 
-function applyTheme(){
-  const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
-  const root=document.documentElement;
-  th.lv.forEach((c,i)=>root.style.setProperty(`--lv${5-i}`,c));
-  root.style.setProperty('--yellow', th.hi || th.lv[0]);
+// ── PWA: Service Worker ──
+if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Fail', err)); });
 }
 
 window.addEventListener('resize', ()=>switchTab(ST.currentTab));
