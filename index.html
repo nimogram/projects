@@ -51,11 +51,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
 .dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
 
-/* ── GRID ── */
+/* ── GRID (Full Screen Width) ── */
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
 .time-label.now-hour{color:var(--yellow);font-weight:700}
-.week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative}
+/* ニモさん指定：境界線を少し太く (4px -> 6px) */
+.week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative;border:6px solid var(--bg)}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
 /* ── STATS DASHBOARD ── */
@@ -219,9 +220,8 @@ function renderSummary(){
         if(s && s.level){
             sum += s.level; 
             count++;
-            // ニモさん指定：レベル1または5をつけたマスのメモのみ抽出
             if((s.level === 1 || s.level === 5) && s.note && s.note.trim() !== '') {
-                extremeNotes.push(`[${h}:00] ${s.note}`);
+                extremeNotes.push({h: h, lv: s.level, txt: s.note});
             }
         }
     }
@@ -257,7 +257,6 @@ function renderSummary(){
     const roundedAvg = s.avg !== null ? Math.round(s.avg) : null;
     let alert = '', memoHtml = '';
 
-    // 指示：平均が「1」または「5」の時のみ参謀コメントを表示
     if(roundedAvg === 1 || roundedAvg === 5) {
         if(roundedAvg === 1) {
             alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。リカバリーを最優先してくださいですよ。</div>`;
@@ -266,9 +265,10 @@ function renderSummary(){
         }
     }
     
-    // ニモさん指定：レベル1と5をつけたマスのコメントだけ表示（平均に関わらず、あれば表示）
     if(s.notes.length > 0) {
-        memoHtml = `<div class="day-memo-list">📝 LV1/5 LOGS:<br>${s.notes.join('<br>')}</div>`;
+        memoHtml = `<div class="day-memo-list">` + 
+            s.notes.map(n => `<div style="color:${n.lv===5?'#00e5a0':'#f97316'}"><b>[${n.h}:00]</b> ${n.txt}</div>`).join('') + 
+            `</div>`;
     }
 
     return `
