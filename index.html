@@ -69,7 +69,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
 .dash-day-block{display:flex;flex-direction:column;align-items:center;gap:4px}
-/* ニモさん指定：数字のフォントを大きく (10px -> 14px) */
 .dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
 .dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
 
@@ -141,7 +140,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div></div>
 
 <script>
-const RECORDING_HOURS = 13; // 8-20
+const RECORDING_HOURS = 12; // 8-19 (19時まで)
 const GAP = 2;
 const TIME_COL_PX = 28;
 
@@ -169,6 +168,8 @@ function calcCellSize(){
   const cellW = Math.floor(availW / 7);
   const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
   const cellH = Math.floor(availH / RECORDING_HOURS);
+  
+  // ニモさん指定：セルの形を正方形に戻すため、横幅と高さの小さい方を採用
   return Math.max(Math.min(cellW, cellH), 12);
 }
 
@@ -189,7 +190,7 @@ function renderWeek(){
   dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
   dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
 
-  for(let h=8; h<=20; h++){
+  for(let h=8; h<=19; h++){ // 19時まで
     const tl=document.createElement('div'); tl.className='time-label'+(h===now.getHours()?' now-hour':''); tl.textContent=h; grid.appendChild(tl);
     days.forEach(d=>{
       const dstr=ds(d);
@@ -338,4 +339,3 @@ renderWeek();
 </script>
 </body>
 </html>
-
