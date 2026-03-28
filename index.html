@@ -164,7 +164,7 @@
         .sp-stats { display: flex; gap: 6px; flex-shrink: 0; }
         .sp-stat { flex: 1; background: rgba(255,255,255,.02); border: 1px solid var(--bdr); border-radius: 9px; padding: 8px; }
         .sp-sl { font-size: 6px; font-weight: 700; letter-spacing: .4em; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
-        .sp-sv { font-family: var(--D); font-size: 22px; color: #fff; }
+        .sp-sv { font-family: var(--D); font-size: 18px; color: #fff; } /* 文字サイズを少し調整 */
         .sp-win { font-family: var(--D); font-size: 44px; color: #002b5c; -webkit-text-stroke: 1px #fff; line-height: 1; flex-shrink: 0; }
         .sp-row { flex-shrink: 0; }
         .sp-rl { font-size: 6px; font-weight: 700; letter-spacing: .35em; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
@@ -258,6 +258,7 @@
             <div class="sp-full" id="sp-full">領域システム情報を確認中...</div>
             <div class="sp-stats">
                 <div class="sp-stat"><div class="sp-sl">Visit</div><div class="sp-sv" id="sp-vc">0</div></div>
+                <div class="sp-stat"><div class="sp-sl">Scale</div><div class="sp-sv" id="sp-budget">¥0M</div></div> <!-- 追加: 投資規模 -->
                 <div class="sp-stat"><div class="sp-sl">Win Prob.</div><div class="sp-sv" id="sp-win">0%</div></div>
             </div>
             <div class="sp-row"><div class="sp-rl">Provider</div><div class="sp-rv" id="sp-vendor">—</div></div>
@@ -491,6 +492,8 @@ function render() {
         document.getElementById('sp-name').textContent=c.name;
         document.getElementById('sp-vc').textContent=c.vc;
         document.getElementById('sp-win').textContent=`${getWR(c)}%`;
+        document.getElementById('sp-budget').textContent = `¥${c.budget}M`; // 追加: 投資規模の値を反映
+        
         const kn=c.vc>0||c.vendor==='H';
         document.getElementById('sp-vendor').textContent= (kn || c.intelRevealed) ? VENDORS[c.vendor].name : '？';
         const st=document.getElementById('sp-status');
@@ -532,7 +535,6 @@ function executeStrategy() {
         const c=state.customers.find(x=>x.id===t.cid);
         const wr = getWR(c);
         
-        // ── 信頼度に応じた動的なメッセージ生成 ──
         const getDynamicMsg = (type, currentWr) => {
             const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
             const otherRivals = state.vendorList.filter(v => v !== 'H' && v !== c.vendor);
