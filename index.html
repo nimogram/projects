@@ -55,7 +55,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
 .time-label.now-hour{color:var(--yellow);font-weight:700}
-/* ニモさん指定：境界線を5pxに変更 */
+/* ニモさん指定：境界線 5px */
 .week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative;border:5px solid var(--bg)}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
@@ -69,6 +69,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
 .dash-day-block{display:flex;flex-direction:column;align-items:center;gap:4px}
+/* 14px 視認性強化 */
 .dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
 .dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
 
@@ -88,7 +89,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
 .intensity-row{display:flex;gap:6px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px}.lv-btn.act{border:2.5px solid var(--text);transform:translateY(-3px)}
 .memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none}
-.save-btn{width:100%;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px}
+
+.action-row{display:flex;gap:10px}
+.clear-btn{flex:1;padding:18px;background:transparent;border:1px solid var(--border2);color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer;transition:all 0.2s}
+.clear-btn:active{background:rgba(255,255,255,0.05)}
+.save-btn{flex:2;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer}
 
 .theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}
@@ -131,7 +136,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div id="d-day" style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1">15</div><div id="d-hour" style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:32px">08:00</div></div><button class="settings-btn" onclick="closeDetail()">✕</button></div>
   <div class="intensity-row" id="intensity-row" style="margin-bottom:20px"></div>
   <textarea id="memo-input" class="memo-input" placeholder="今の状態やメモ..."></textarea>
-  <button class="save-btn" onclick="saveAndClose()">SAVE LOG</button>
+  <div class="action-row">
+    <button class="clear-btn" onclick="clearAndClose()">CLEAR</button>
+    <button class="save-btn" onclick="saveAndClose()">SAVE LOG</button>
+  </div>
 </div></div>
 
 <div id="settings-panel" class="panel"><div class="panel-inner">
@@ -213,25 +221,32 @@ function renderSummary(){
     const dstr = ds(d);
     const slots = ST.data[dstr]?.slots || {};
     let sum=0, count=0;
-    const extremeNotes = []; // レベル1と5のみのメモ
+    const extremeNotes = []; 
     
     for(let h=8; h<=19; h++) {
         const s = slots[h];
-        if(s && s.level){
-            sum += s.level; 
-            count++;
-            if((s.level === 1 || s.level === 5) && s.note && s.note.trim() !== '') {
+        if(s && s.level){ sum += s.level; count++; }
+        if(s && s.note && s.note.trim() !== '') {
+            if(s.level === 1 || s.level === 5) {
                 extremeNotes.push({h: h, lv: s.level, txt: s.note});
             }
         }
     }
-    
     const avg = count > 0 ? (sum/count) : null;
     if(avg) { weekSum += avg; weekCount++; }
     return { date: d, avg: avg, notes: extremeNotes };
   });
 
   const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
+
+  let weeklyAlert = '';
+  if(weekAvg >= 4.0) {
+      weeklyAlert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5);margin-top:10px">✨ 今週のサマリ：ニモさんは最高潮（Peak）の波に乗っていますよ！このまま「攻め」の姿勢でクロージングを狙いましょう。</div>`;
+  } else if(weekAvg < 2.5 && weekAvg > 0) {
+      weeklyAlert = `<div class="alert-box" style="margin-top:10px">⚠️ 今週のサマリ：少し負荷が高すぎたかもしれませんね。来週に向けて、休息とタンパク質補給を優先してくださいですよ。</div>`;
+  } else if(weekAvg > 0) {
+      weeklyAlert = `<div class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px">📋 今週のサマリ：全体的に安定したパフォーマンスでした。今の規律ある生活を維持して、着実に成果を積み上げましょう。</div>`;
+  }
 
   dash.innerHTML = `
     <div class="dash-main">
@@ -251,59 +266,37 @@ function renderSummary(){
         </div>
       `).join('')}
     </div>
+    ${weeklyAlert}
   `;
 
-  let html = dayStats.map(s => {
+  // ニモさん指定：レベル1または5のメモがあった曜日だけを表示
+  let html = dayStats.filter(s => s.notes.length > 0).map(s => {
     const roundedAvg = s.avg !== null ? Math.round(s.avg) : null;
-    let alert = '', memoHtml = '';
-
-    if(roundedAvg === 1 || roundedAvg === 5) {
-        if(roundedAvg === 1) {
-            alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。リカバリーを最優先してくださいですよ。</div>`;
-        } else if(roundedAvg === 5) {
-            alert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。攻めの営業を！</div>`;
-        }
-    }
-    
-    if(s.notes.length > 0) {
-        memoHtml = `<div class="day-memo-list">` + 
-            s.notes.map(n => `<div style="color:${n.lv===5?'#00e5a0':'#f97316'}"><b>[${n.h}:00]</b> ${n.txt}</div>`).join('') + 
-            `</div>`;
-    }
+    let memoHtml = `<div class="day-memo-list">` + 
+        s.notes.map(n => `<div style="color:${n.lv===5?'#00e5a0':'#f97316'}"><b>[${n.h}:00]</b> ${n.txt}</div>`).join('') + 
+        `</div>`;
 
     return `
       <div class="stat-card" style="border-left-color: ${s.avg!==null?`var(--lv${Math.round(s.avg)})`:'var(--border)'}">
         <div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div>
         <div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>
-        ${alert}
         ${memoHtml}
       </div>
     `;
   }).join('');
+  
+  if (html === '') {
+      html = `<div style="text-align:center; padding:40px; color:var(--muted2); font-size:12px; font-family:'DM Mono',monospace;">NO LV1/5 LOGS RECORDED THIS WEEK</div>`;
+  }
+  
   container.innerHTML = html;
 }
 
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
   {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], hi:'#bae6fd'},
-  {id:'yellow',  name:'Yellow',  lv:['#ffff00','#facc15','#ca8a04','#78530a','#2e1f00'], hi:'#ffff00'},
-  {id:'whoop',   name:'Recovery',lv:['#4ade80','#a3e635','#ffff00','#f97316','#ef4444'], hi:'#4ade80'},
-  {id:'aurora',  name:'Aurora',  lv:['#c4b5fd','#a78bfa','#7c3aed','#4c1d95','#1e0a40'], hi:'#c4b5fd'},
-  {id:'mono',    name:'Mono',    lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'], hi:'#e0e0e0'},
-  {id:'pink',    name:'Pink',    lv:['#fce7f3','#fbcfe8','#f9a8d4','#ec4899','#831843'], hi:'#fce7f3'},
-  {id:'red',     name:'Red',     lv:['#fca5a5','#ef4444','#b91c1c','#7f1d1d','#2d0000'], hi:'#fca5a5'},
-  {id:'orange',  name:'Orange',  lv:['#fdba74','#f97316','#c2410c','#7c2d12','#2a1000'], hi:'#fdba74'},
-  {id:'teal',    name:'Teal',    lv:['#5eead4','#14b8a6','#0f766e','#134e4a','#042f2e'], hi:'#5eead4'},
-  {id:'indigo',  name:'Indigo',  lv:['#a5b4fc','#6366f1','#4338ca','#312e81','#1e1b4b'], hi:'#a5b4fc'},
-  {id:'gold',    name:'Gold',    lv:['#fcd34d','#f59e0b','#b45309','#78350f','#1e1200'], hi:'#fcd34d'},
-  {id:'lime',    name:'Lime',    lv:['#bef264','#84cc16','#4d7c0f','#1a3a05','#0a1600'], hi:'#bef264'},
-  {id:'coral',   name:'Coral',   lv:['#fda4af','#f43f5e','#be123c','#881337','#2d0010'], hi:'#fda4af'},
-  {id:'mint',    name:'Mint',    lv:['#a7f3d0','#6ee7b7','#10b981','#065f46','#022c22'], hi:'#a7f3d0'},
-  {id:'navy',    name:'Navy',    lv:['#93c5fd','#60a5fa','#2563eb','#1e40af','#1e3a8a'], hi:'#93c5fd'},
-  {id:'rose',    name:'Rose',    lv:['#fecdd3','#fda4af','#fb7185','#e11d48','#4c0519'], hi:'#fecdd3'},
-  {id:'violet',  name:'Violet',  lv:['#e9d5ff','#c084fc','#a855f7','#7e22ce','#3b0764'], hi:'#e9d5ff'},
-  {id:'brown',   name:'Brown',   lv:['#d6b896','#b08060','#8a5c36','#5c3316','#2a1500'], hi:'#d6b896'},
-  {id:'ge',      name:'GE Style',lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], hi:'#16a34a'}
+  {id:'yellow',  name:'Yellow',  lv:['#fde047','#facc15','#ca8a04','#78530a','#2e1f00'], hi:'#fde047'},
+  {id:'whoop',   name:'Recovery',lv:['#4ade80','#a3e635','#facc15','#f97316','#ef4444'], hi:'#4ade80'}
 ];
 
 function switchTab(t){
@@ -337,6 +330,14 @@ function saveAndClose(){
   if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n;
   localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); 
   document.getElementById('detail-panel').classList.remove('open'); 
+  switchTab(ST.currentTab);
+}
+function clearAndClose(){
+  if(ST.data[ST.selDs]?.slots?.[ST.selHour]){
+    delete ST.data[ST.selDs].slots[ST.selHour];
+    localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+  }
+  document.getElementById('detail-panel').classList.remove('open');
   switchTab(ST.currentTab);
 }
 function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); }
