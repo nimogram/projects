@@ -1,341 +1,641 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>THE ENTERPRISE: 覇権奪還</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold:    #C9A84C;
+            --emerald: #00D68F;
+            --rose:    #FF4D6D;
+            --sky:     #38BDF8;
+            --amber:   #F59E0B;
+            --bg:      #060A11;
+            --surf:    #0C1221;
+            --bdr:     rgba(255,255,255,0.07);
+            --muted:   #2a3a50;
+            --D: 'Bebas Neue', cursive;
+            --M: 'DM Mono', monospace;
+            --B: 'Outfit', sans-serif;
+            --grid-size: 6;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-<!-- PWA: アプリとして独立起動させるための設定 -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MOOD LOG">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#ffff00">
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: var(--B);
+            background: var(--bg);
+            color: #7a8fa8;
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* Scanline */
+        body::after {
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+            background: repeating-linear-gradient(180deg, transparent 0px, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+        }
 
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
+        #app {
+            width: 100%; max-width: 430px;
+            height: 100dvh;
+            display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
+            background: var(--bg);
+            opacity: 0; transition: opacity 0.5s;
+        }
+        #app.visible { opacity: 1; }
 
-<title>MOOD LOG</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        /* ── START OVERLAY ── */
+        #mode-select-ov {
+            position: fixed; inset: 0; z-index: 10000;
+            background: var(--bg); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px; text-align: center;
+        }
+        .mode-title { font-family: var(--D); font-size: 42px; color: #fff; letter-spacing: 0.15em; margin-bottom: 8px; }
+        .mode-sub { font-size: 11px; color: var(--gold); margin-bottom: 40px; letter-spacing: 0.4em; font-weight: 900; }
+        .mode-btns { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 280px; }
+        .mode-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--bdr);
+            color: #fff; border-radius: 16px; padding: 24px;
+            font-family: var(--D); font-size: 22px; letter-spacing: 0.2em;
+            cursor: pointer; transition: all 0.25s;
+        }
+        .mode-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
 
-/* ── THEME VARIABLES ── */
-:root {
-  --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
-  --empty:#0d1117; --yellow:#ffff00;
-  --bg:#0d0d0d;--surface:#131313;--card:#181818;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
-  --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
-  --gap:2px;
-  --time-col:28px;
-}
+        /* ── HEADER ── */
+        .hdr {
+            flex: 0 0 auto;
+            padding: 14px 18px 0;
+            background: var(--bg);
+            border-bottom: 1px solid var(--bdr);
+            z-index: 10;
+        }
+        .hdr-row { display: flex; justify-content: space-between; align-items: flex-end; }
+        .hdr-tag {
+            font-family: var(--D); font-size: 8px; letter-spacing: .65em;
+            color: var(--gold); line-height: 1; margin-bottom: 3px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .hdr-tag::before {
+            content: ''; width: 5px; height: 5px; border-radius: 50%;
+            background: var(--gold); flex-shrink: 0;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+        .hdr-phase { font-family: var(--D); font-size: 32px; color: #fff; line-height: 1; letter-spacing: .04em; }
+        .hdr-mh { text-align: right; padding-bottom: 3px; }
+        .hdr-mh-lbl { font-size: 7px; font-weight: 700; letter-spacing: .4em; color: var(--muted); text-transform: uppercase; margin-bottom: 1px; }
+        .hdr-mh-val { font-family: var(--D); font-size: 36px; color: var(--emerald); line-height: 1; }
 
-html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
+        .share-bar {
+            margin: 8px 0 0; height: 18px; display: flex; border-radius: 3px;
+            overflow: hidden; border: 1px solid var(--bdr);
+        }
+        .share-seg {
+            height: 100%; transition: width .7s ease;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--D); font-size: 11px; color: rgba(255,255,255,.9); 
+            white-space: nowrap; overflow: hidden;
+            font-weight: 600;
+        }
 
-.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-.screen.active{display:flex}
+        /* ── GRID AREA ── */
+        .grid-wrap {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex; align-items: center; justify-content: center;
+            padding: 8px 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            grid-template-rows: repeat(var(--grid-size), 1fr);
+            gap: 5px;
+            width: 100%; max-width: 380px;
+            aspect-ratio: 1;
+        }
+        .tile {
+            aspect-ratio: 1; border-radius: 7px;
+            border: 1.5px solid rgba(255,255,255,.05);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            position: relative; user-select: none;
+            transition: transform .12s, box-shadow .12s, border-color .12s;
+        }
+        .tile:active { transform: scale(.88); }
+        .tile.sel {
+            border-color: #fff !important;
+            box-shadow: 0 0 14px rgba(255,255,255,.35), inset 0 0 6px rgba(255,255,255,.05);
+            transform: scale(1.07); z-index: 5;
+        }
+        .t-lbl { font-family: var(--M); font-size: 14px; color: rgba(255,255,255,.8); pointer-events: none; font-weight: 600; } 
 
-/* ── HEADER ── */
-.week-header{flex-shrink:0;background:var(--bg);padding-top:env(safe-area-inset-top,36px)}
-.week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 12px 10px}
-.week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
-.header-right{display:flex;align-items:center;gap:12px}
-.week-nav{display:flex;align-items:center;gap:6px}
-.week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase}
-.nav-btn{width:28px;height:28px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+        /* ── ANIMATIONS ── */
+        @keyframes rfp  { 0%,100%{box-shadow:0 0 8px var(--gold);border-color:var(--gold)} 50%{box-shadow:0 0 16px var(--gold);border-color:#ffe88a} }
+        @keyframes bld  { 0%,100%{box-shadow:0 0 6px rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.35)} 50%{box-shadow:0 0 14px rgba(255,255,255,0.5);border-color:#fff} }
+        @keyframes cxo  { 0%,100%{box-shadow:0 0 10px var(--sky);border-color:var(--sky)} 50%{box-shadow:0 0 20px var(--sky);border-color:#93e2ff} }
+        .rfp-a  { animation: rfp  1.3s infinite ease-in-out; }
+        .bld-a  { animation: bld  1.7s infinite ease-in-out; }
+        .cxo-a  { animation: cxo  1.5s infinite ease-in-out; border-width: 2.2px !important; }
 
-.settings-btn{width:38px;height:38px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+        /* ── SIDE PANEL ── */
+        .sp {
+            position: absolute; top: 0; right: 0; bottom: 0;
+            width: 78%;
+            background: rgba(6,10,17,0.1); 
+            backdrop-filter: blur(25px) saturate(1.4);
+            border-left: 1px solid rgba(255,255,255,.1);
+            display: flex; flex-direction: column; gap: 10px;
+            padding: 16px 15px 14px;
+            z-index: 50;
+            transform: translateX(100%);
+            transition: transform .35s cubic-bezier(.16,1,.3,1);
+            overflow-y: auto; overflow-x: hidden;
+        }
+        .sp::-webkit-scrollbar { display: none; }
+        .sp.open { transform: translateX(0); }
+        .sp-hdr { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .sp-tag { font-size: 7px; font-weight: 700; letter-spacing: .5em; color: var(--emerald); text-transform: uppercase; }
+        .sp-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 4px; transition: color .15s; }
+        .sp-name { font-family: var(--D); font-size: 22px; color: #fff; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+        .sp-full { font-size: 10px; color: #4a5f78; line-height: 1.45; border-left: 3px solid var(--gold); padding-left: 7px; flex-shrink: 0; }
+        .sp-stats { display: flex; gap: 6px; flex-shrink: 0; }
+        .sp-stat { flex: 1; background: rgba(255,255,255,.02); border: 1px solid var(--bdr); border-radius: 9px; padding: 8px; }
+        .sp-sl { font-size: 6px; font-weight: 700; letter-spacing: .4em; color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
+        .sp-sv { font-family: var(--D); font-size: 22px; color: #fff; }
+        .sp-win { font-family: var(--D); font-size: 44px; color: #002b5c; -webkit-text-stroke: 1px #fff; line-height: 1; flex-shrink: 0; }
+        .sp-row { flex-shrink: 0; }
+        .sp-rl { font-size: 6px; font-weight: 700; letter-spacing: .35em; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+        .sp-rv { font-family: var(--D); font-size: 14px; color: var(--gold); letter-spacing: .1em; }
+        .sp-status { font-size: 11px; font-weight: 600; color: #fff; }
+        .sp-btns { margin-top: auto; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        .sp-btn {
+            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; border-radius: 10px; padding: 8px 8px;
+            font-family: var(--D); font-size: 13px; letter-spacing: .12em;
+            cursor: pointer; transition: all .18s; text-transform: uppercase;
+            opacity: 1; 
+        }
+        .sp-btn:hover:not(:disabled) { background: rgba(255,255,255,.25); border-color: rgba(255,255,255,.4); opacity: 1; }
+        .sp-btn.pri { background: rgba(0,214,143,.18); border-color: var(--emerald); color: var(--emerald); }
+        .sp-btn.alt { background: rgba(201,168,76,.12); border-color: var(--gold); color: var(--gold); }
+        .sp-btn:disabled { opacity: 0.1; cursor: not-allowed; }
 
-.dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
-.dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
-.dow-name{font-family:'DM Mono',monospace;font-size:7px;text-transform:uppercase;color:var(--muted2)}
-.dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
-.dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
+        /* ── LOWER UI ── */
+        .task-strip { flex: 0 0 50px; min-height: 50px; display: flex; align-items: center; gap: 6px; padding: 0 14px; overflow-x: auto; border-top: 1px solid var(--bdr); background: var(--bg); z-index: 10; }
+        .t-chip { flex-shrink: 0; display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: 18px; padding: 3px 9px 3px 11px; font-size: 9.5px; font-weight: 600; color: #c0cee0; }
+        .t-chip-name { color: var(--emerald); font-family: var(--M); font-size: 8.5px; }
+        .t-chip-rm { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; padding: 0; }
 
-/* ── GRID (Full Screen Width) ── */
-.grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
-.time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
-.time-label.now-hour{color:var(--yellow);font-weight:700}
-.week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative}
-.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
+        .exec-btn { flex: 0 0 50px; min-height: 50px; border: none; border-top: 1px solid var(--bdr); background: rgba(255,255,255,.03); color: var(--muted); font-family: var(--D); font-size: 17px; letter-spacing: .55em; text-transform: uppercase; cursor: not-allowed; opacity: .4; transition: all .25s; z-index: 10; }
+        .exec-btn.on { background: #fff; color: var(--bg); cursor: pointer; opacity: 1; box-shadow: 0 -8px 24px rgba(255,255,255,.12); }
 
-/* ── STATS DASHBOARD ── */
-.stats-dashboard{background:var(--card);padding:20px;margin-bottom:15px;border-bottom:2px solid var(--lv5);display:flex;flex-direction:column;gap:15px}
-.dash-main{display:flex;justify-content:space-between;align-items:center}
-.dash-score-box{display:flex;flex-direction:column}
-.dash-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
-.dash-value{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--text)}
-.dash-unit{font-size:12px;color:var(--muted2);margin-left:4px}
+        .log-area { flex: 0 0 40px; min-height: 40px; overflow: hidden; padding: 5px 15px; border-top: 1px solid var(--bdr); background: var(--bg); z-index: 10; }
+        .log-ln { font-family: var(--M); font-size: 8.5px; color: var(--muted); line-height: 1.55; }
 
-.dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
-.dash-day-block{display:flex;flex-direction:column;align-items:center;gap:4px}
-.dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
-.dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
+        .score-bar { flex: 0 0 48px; min-height: 48px; display: flex; justify-content: space-between; align-items: center; padding: 0 18px; border-top: 1px solid var(--bdr); background: var(--bg); z-index: 10; }
+        .score-v { font-family: var(--D); font-size: 30px; color: #fff; }
 
-.summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
-.stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5)}
-.alert-box{background:rgba(255,255,0,0.1);border:1px solid var(--yellow);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
-.day-memo-list{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:var(--text); opacity:0.9;}
+        /* ── OVERLAYS ── */
+        #result-ov, #final-modal { 
+            position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; 
+            background: rgba(6,10,17,.4); 
+            backdrop-filter: blur(8px); 
+            z-index: 800; 
+        }
+        .res-box, .final-box { 
+            width: 93%; max-height: 88dvh; border: 1px solid rgba(255,255,255,.12); 
+            border-radius: 24px; background: rgba(12,18,33,.6); 
+            display: flex; flex-direction: column; overflow: hidden; 
+        }
+        .res-hdr { padding: 20px; border-bottom: 1px solid var(--bdr); }
+        .res-title { font-family: var(--D); font-size: 20px; letter-spacing: .45em; color: var(--gold); }
+        .res-list { flex: 1; overflow-y: auto; padding: 10px 18px; }
+        .res-block { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .res-bname { font-family: var(--D); color: var(--gold); font-size: 14px; letter-spacing: .2em; border-left: 3px solid var(--gold); padding-left: 8px; margin-bottom: 8px; }
+        .res-txt { font-size: 14.5px; color: #aabbcc; }
+        .res-next, .final-btn { height: 52px; border: none; background: #fff; color: var(--bg); font-family: var(--D); font-size: 15px; letter-spacing: .5em; text-transform: uppercase; cursor: pointer; }
+        
+        #final-modal .final-box { text-align: center; padding: 30px 20px; }
+        .final-score { font-family: var(--D); font-size: 64px; color: var(--emerald); margin: 20px 0; }
 
-/* ── TAB NAVIGATION ── */
-.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100}
-.tab-btn{flex:1;padding:15px 0;border:none;background:transparent;color:var(--muted2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
-.tab-btn.active{color:var(--yellow)}
-
-/* ── PANELS ── */
-.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(10,10,10,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
-.panel.open{transform:translateX(0)}
-.panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
-.intensity-row{display:flex;gap:6px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px}.lv-btn.act{border:2.5px solid var(--text);transform:translateY(-3px)}
-.memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none}
-.save-btn{width:100%;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px}
-
-.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}
-.theme-card.active{border-color:var(--lv5);box-shadow:0 0 0 1px var(--lv5)}
-.theme-swatches{display:flex;gap:2px;margin-bottom:6px}
-.theme-swatch{flex:1;height:12px;border-radius:1px}
-.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
-</style>
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
-<div id="screen-week" class="screen active">
-  <div class="week-header">
-    <div class="week-top">
-      <div class="week-title">MOOD LOG</div>
-      <div class="header-right">
-        <div class="week-nav"><button class="nav-btn" onclick="changeWeek(-1)">‹</button><div class="week-range" id="week-range">—</div><button class="nav-btn" onclick="changeWeek(1)">›</button></div>
-        <button class="settings-btn" onclick="openSettings()">⚙</button>
-      </div>
+<div id="mode-select-ov">
+    <div class="mode-title">Operation Scoping</div>
+    <div class="mode-sub">SELECT MISSION SCALE</div>
+    <div class="mode-btns">
+        <button class="mode-btn" onclick="startApp(6)">Standard (6×6)</button>
+        <button class="mode-btn" onclick="startApp(8)">Large (8×8)</button>
     </div>
-    <div id="dow-header" class="dow-header"></div>
-  </div>
-  <div id="grid-area" class="grid-area"></div>
 </div>
 
-<div id="screen-summary" class="screen">
-  <div class="week-header">
-    <div class="week-top"><div class="week-title">STATS</div><button class="settings-btn" onclick="openSettings()">⚙</button></div>
-  </div>
-  <div id="stats-dashboard" class="stats-dashboard"></div>
-  <div class="summary-container" id="summary-content"></div>
+<div id="app">
+    <header class="hdr">
+        <div class="hdr-row">
+            <div>
+                <div class="hdr-tag">TACTICAL COMMAND</div>
+                <div class="hdr-phase" id="phase-disp">FY26M1</div>
+            </div>
+            <div class="hdr-mh">
+                <div class="hdr-mh-lbl">RESOURCE MH</div>
+                <div class="hdr-mh-val" id="mh-disp">20</div>
+            </div>
+        </div>
+        <div class="share-bar" id="share-bar"></div>
+    </header>
+
+    <section class="grid-wrap">
+        <div id="grid"></div>
+        <aside class="sp" id="sp">
+            <div class="sp-hdr"><span class="sp-tag">Tactical Detail</span><button class="sp-close" id="sp-close">✕</button></div>
+            <div class="sp-name" id="sp-name">—</div>
+            <div class="sp-full" id="sp-full">領域システム情報を確認中...</div>
+            <div class="sp-stats">
+                <div class="sp-stat"><div class="sp-sl">Visit</div><div class="sp-sv" id="sp-vc">0</div></div>
+                <div class="sp-stat"><div class="sp-sl">Win Prob.</div><div class="sp-sv" id="sp-win">0%</div></div>
+            </div>
+            <div class="sp-row"><div class="sp-rl">Provider</div><div class="sp-rv" id="sp-vendor">—</div></div>
+            <div class="sp-row"><div class="sp-rl">Phase</div><div class="sp-status" id="sp-status">—</div></div>
+            <div class="sp-btns">
+                <div style="display:flex; gap:4px;">
+                    <button class="sp-btn" style="flex:1;" onclick="addTask('VISIT',5,'訪問')">Visit(-5)</button>
+                    <button class="sp-btn" style="flex:1;" onclick="addTask('SURVEY',3,'調査')">Survey(-3)</button>
+                </div>
+                <button class="sp-btn" style="width:100%;" onclick="addTask('STUDY',8,'勉強会')">Study (-8 MH)</button>
+                <button class="sp-btn" id="sp-spec-btn" onclick="addTask('SPECIN',12,'スペックイン')">Spec-in (-12 MH)</button>
+                <button class="sp-btn alt" id="sp-cxo-btn" onclick="addTask('CXO',15,'トップ面談')">CXO Meeting (-15 MH)</button>
+                <button class="sp-btn pri" id="sp-prop-btn" onclick="addTask('PROPOSAL',10,'提案')" disabled>Submit Proposal (-10 MH)</button>
+            </div>
+        </aside>
+    </section>
+
+    <div class="task-strip" id="task-strip"></div>
+    <button class="exec-btn" id="exec-btn" disabled onclick="executeStrategy()">Launch Mission</button>
+    <div class="log-area" id="log-area"></div>
+
+    <footer class="score-bar">
+        <div class="score-v" id="score-v">¥0<span>M</span></div>
+    </footer>
 </div>
 
-<nav class="tab-nav">
-  <button class="tab-btn active" id="tab-week" onclick="switchTab('week')"><span>▦</span><span>Grid</span></button>
-  <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')"><span>📊</span><span>Stats</span></button>
-</nav>
+<div id="result-ov" class="hidden">
+    <div class="res-box">
+        <div class="res-hdr"><span class="res-title">CALL REPORT</span></div>
+        <div class="res-list" id="res-list"></div>
+        <button class="res-next" onclick="closeResult()">Next Cycle ›</button>
+    </div>
+</div>
 
-<div id="detail-panel" class="panel"><div class="panel-inner">
-  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div id="d-day" style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1">15</div><div id="d-hour" style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:32px">08:00</div></div><button class="settings-btn" onclick="closeDetail()">✕</button></div>
-  <div class="intensity-row" id="intensity-row" style="margin-bottom:20px"></div>
-  <textarea id="memo-input" class="memo-input" placeholder="今の状態やメモ..."></textarea>
-  <button class="save-btn" onclick="saveAndClose()">SAVE LOG</button>
-</div></div>
-
-<div id="settings-panel" class="panel"><div class="panel-inner">
-  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div class="week-title">Settings</div><button class="settings-btn" onclick="closeSettings()">✕</button></div>
-  <div id="theme-grid" class="theme-grid"></div>
-</div></div>
+<div id="final-modal" class="hidden">
+    <div class="final-box">
+        <div class="res-hdr"><span class="res-title">ANNUAL RESULT</span></div>
+        <div class="final-score" id="final-score">¥0M</div>
+        <button class="final-btn" onclick="location.reload()">Reset System</button>
+    </div>
+</div>
 
 <script>
-const RECORDING_HOURS = 12; // 8-19 (19時まで)
-const GAP = 2;
-const TIME_COL_PX = 28;
+// --- AUDIO ENGINE ---
+let audioCtx = null;
+function playSound(freq, type, duration, vol = 0.1) {
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch(e) { console.warn("Audio disabled."); }
+}
 
-let ST = {
-  weekStart: monday(new Date()),
-  data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
-  themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
-  currentTab: 'week'
+const SFX = {
+    select: () => playSound(600, 'sine', 0.1),
+    add: () => playSound(800, 'square', 0.05, 0.05),
+    exec: () => {
+        playSound(200, 'sawtooth', 0.3, 0.1);
+        setTimeout(() => playSound(400, 'sawtooth', 0.2, 0.1), 100);
+    },
+    win: () => {
+        [523, 659, 784, 1046].forEach((f, i) => {
+            setTimeout(() => playSound(f, 'sine', 0.6, 0.08), i * 120);
+        });
+    },
+    lost: () => playSound(100, 'sawtooth', 0.8, 0.15),
+    report: () => playSound(523.25, 'sine', 0.5, 0.1),
+    error: () => playSound(150, 'triangle', 0.3, 0.2)
 };
 
-function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
-function ds(d){return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`}
+// --- GAME LOGIC ---
+const MAX_MH = 20;
+const VENDORS = {
+    H: { name:'H社(SELF)', bg:'#00D68F' }, 
+    I: { name:'D社',        bg:'#1E40AF' },
+    A: { name:'A社',        bg:'#7C3AED' },
+    S: { name:'S社',        bg:'#B45309' },
+    E: { name:'E社',        bg:'#DB2777' }, 
+    F: { name:'F社',        bg:'#0891B2' }, 
+    NONE:{ name:'未開拓', bg:'#060A11' },
+    UNK: { name:'情報未取得', bg:'#111926' },
+};
 
-function applyTheme(){
-  const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
-  const root=document.documentElement;
-  th.lv.forEach((c,i)=>root.style.setProperty(`--lv${5-i}`,c));
-  root.style.setProperty('--yellow', th.hi || th.lv[0]);
-}
-
-function calcCellSize(){
-  const headerH = document.querySelector('.week-header').offsetHeight;
-  const navH = 80;
-  const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
-  const cellW = Math.floor(availW / 7);
-  const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
-  const cellH = Math.floor(availH / RECORDING_HOURS);
-  
-  // ニモさん指定：セルの形を正方形に戻すため、横幅と高さの小さい方を採用
-  return Math.max(Math.min(cellW, cellH), 12);
-}
-
-function renderWeek(){
-  applyTheme();
-  const sz = calcCellSize();
-  const now = new Date();
-  const todayDs = ds(now);
-  const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
-  
-  document.getElementById('week-range').textContent=`${days[0].getDate()}–${days[6].getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()]}`;
-  
-  const grid=document.getElementById('grid-area'); grid.innerHTML='';
-  grid.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
-  grid.style.gridTemplateRows = `repeat(${RECORDING_HOURS}, ${sz}px)`;
-  
-  const dowH=document.getElementById('dow-header');
-  dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
-  dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
-
-  for(let h=8; h<=19; h++){ // 19時まで
-    const tl=document.createElement('div'); tl.className='time-label'+(h===now.getHours()?' now-hour':''); tl.textContent=h; grid.appendChild(tl);
-    days.forEach(d=>{
-      const dstr=ds(d);
-      const lv=ST.data[dstr]?.slots?.[h]?.level;
-      const cell=document.createElement('div');
-      cell.className='week-cell'+(dstr===todayDs && h===now.getHours()?' now-cell':'');
-      cell.style.cssText=`height:${sz}px;background:${lv?`var(--lv${lv})`:'var(--empty)'}`;
-      if(ST.data[dstr]?.slots?.[h]?.note) cell.innerHTML='<div style="width:3px;height:3px;background:#fff;border-radius:50%;position:absolute;bottom:2px;right:2px"></div>';
-      cell.onclick=()=>openDetail(d,h);
-      grid.appendChild(cell);
-    });
-  }
-}
-
-function renderSummary(){
-  const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
-  const container = document.getElementById('summary-content');
-  const dash = document.getElementById('stats-dashboard');
-  
-  let weekSum=0, weekCount=0;
-  const dayStats = days.map(d => {
-    const dstr = ds(d);
-    const slots = ST.data[dstr]?.slots || {};
-    let sum=0, count=0;
-    const notes = [];
-    Object.keys(slots).forEach(h => {
-        const s = slots[h];
-        if(s.level){ sum += s.level; count++; }
-        if(s.note && s.note.trim() !== '') { notes.push(`[${h}:00] ${s.note}`); }
-    });
-    const avg = count > 0 ? (sum/count) : null;
-    if(avg) { weekSum += avg; weekCount++; }
-    return { date: d, avg: avg, notes: notes };
-  });
-
-  const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
-
-  dash.innerHTML = `
-    <div class="dash-main">
-      <div class="dash-score-box">
-        <div class="dash-label">Weekly Performance</div>
-        <div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div>
-      </div>
-      <div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div>
-    </div>
-    <div class="dash-daily-row">
-      ${dayStats.map(s => `
-        <div class="dash-day-block">
-          <div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${Math.round(s.avg) > 2 ? '#000' : '#fff'}">
-            ${s.avg ? s.avg.toFixed(1) : '-'}
-          </div>
-          <div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-
-  let html = dayStats.map(s => {
-    const roundedAvg = s.avg !== null ? Math.round(s.avg) : null;
-    let alert = '', memoHtml = '';
-    if(roundedAvg === 1 || roundedAvg === 5) {
-        if(roundedAvg === 1) { alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。</div>`; }
-        else { alert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。</div>`; }
-        if(s.notes.length > 0) { memoHtml = `<div class="day-memo-list">📝 LOGS:<br>${s.notes.join('<br>')}</div>`; }
-    }
-    return `
-      <div class="stat-card" style="border-left-color: ${s.avg!==null?`var(--lv${Math.round(s.avg)})`:'var(--border)'}">
-        <div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div>
-        <div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>
-        ${alert}
-        ${memoHtml}
-      </div>
-    `;
-  }).join('');
-  container.innerHTML = html;
-}
-
-const THEMES = [
-  {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
-  {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], hi:'#bae6fd'},
-  {id:'yellow',  name:'Yellow',  lv:['#ffff00','#facc15','#ca8a04','#78530a','#2e1f00'], hi:'#ffff00'},
-  {id:'whoop',   name:'Recovery',lv:['#4ade80','#a3e635','#ffff00','#f97316','#ef4444'], hi:'#4ade80'},
-  {id:'aurora',  name:'Aurora',  lv:['#c4b5fd','#a78bfa','#7c3aed','#4c1d95','#1e0a40'], hi:'#c4b5fd'},
-  {id:'mono',    name:'Mono',    lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'], hi:'#e0e0e0'},
-  {id:'pink',    name:'Pink',    lv:['#fce7f3','#fbcfe8','#f9a8d4','#ec4899','#831843'], hi:'#fce7f3'},
-  {id:'red',     name:'Red',     lv:['#fca5a5','#ef4444','#b91c1c','#7f1d1d','#2d0000'], hi:'#fca5a5'},
-  {id:'orange',  name:'Orange',  lv:['#fdba74','#f97316','#c2410c','#7c2d12','#2a1000'], hi:'#fdba74'},
-  {id:'teal',    name:'Teal',    lv:['#5eead4','#14b8a6','#0f766e','#134e4a','#042f2e'], hi:'#5eead4'},
-  {id:'indigo',  name:'Indigo',  lv:['#a5b4fc','#6366f1','#4338ca','#312e81','#1e1b4b'], hi:'#a5b4fc'},
-  {id:'gold',    name:'Gold',    lv:['#fcd34d','#f59e0b','#b45309','#78350f','#1e1200'], hi:'#fcd34d'},
-  {id:'lime',    name:'Lime',    lv:['#bef264','#84cc16','#4d7c0f','#1a3a05','#0a1600'], hi:'#bef264'},
-  {id:'coral',   name:'Coral',   lv:['#fda4af','#f43f5e','#be123c','#881337','#2d0010'], hi:'#fda4af'},
-  {id:'mint',    name:'Mint',    lv:['#a7f3d0','#6ee7b7','#10b981','#065f46','#022c22'], hi:'#a7f3d0'},
-  {id:'navy',    name:'Navy',    lv:['#93c5fd','#60a5fa','#2563eb','#1e40af','#1e3a8a'], hi:'#93c5fd'},
-  {id:'rose',    name:'Rose',    lv:['#fecdd3','#fda4af','#fb7185','#e11d48','#4c0519'], hi:'#fecdd3'},
-  {id:'violet',  name:'Violet',  lv:['#e9d5ff','#c084fc','#a855f7','#7e22ce','#3b0764'], hi:'#e9d5ff'},
-  {id:'brown',   name:'Brown',   lv:['#d6b896','#b08060','#8a5c36','#5c3316','#2a1500'], hi:'#d6b896'},
-  {id:'ge',      name:'GE Style',lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], hi:'#16a34a'}
+// 顧客名を日本名に変更
+const CUSTOMER_POOL_BASE = [
+    { id:101, name:'北海テクノロジー', budget:120, tiles6:6, tiles8:10 },
+    { id:102, name:'札幌ロジスティクス', budget:80,  tiles6:5, tiles8:9 },
+    { id:201, name:'エゾ・ネットワーク',  budget:70,  tiles6:5, tiles8:9 },
+    { id:202, name:'道央システム開発',  budget:65,  tiles6:3, tiles8:5 },
+    { id:401, name:'北海道教育支援',  budget:110, tiles6:5, tiles8:9 },
+    { id:501, name:'北日本通商',   budget:80,  tiles6:4, tiles8:7 },
+    { id:701, name:'北海アグリ連合', budget:60,  tiles6:3, tiles8:5 },
+    { id:901, name:'札幌セキュリティ',  budget:50,  tiles6:2, tiles8:4 },
+    { id:1001,name:'道央流通システム',  budget:40,  tiles6:2, tiles8:4 },
+    { id:1201,name:'北海道プラント保安',  budget:25,  tiles6:1, tiles8:2 },
 ];
 
-function switchTab(t){
-  ST.currentTab=t; document.getElementById('screen-week').classList.toggle('active',t==='week'); document.getElementById('screen-summary').classList.toggle('active',t==='summary');
-  document.getElementById('tab-week').classList.toggle('active',t==='week'); document.getElementById('tab-summary').classList.toggle('active',t==='summary');
-  t==='summary'?renderSummary():renderWeek();
-}
-function openDetail(d,h){
-  ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`;
-  document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||'';
-  const r=document.getElementById('intensity-row'); r.innerHTML='';
-  [5,4,3,2,1].forEach(lv=>{
-    const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':'');
-    b.style.background=`var(--lv${lv})`; b.onclick=()=>{ST.data[ST.selDs]={slots:{...ST.data[ST.selDs]?.slots,[h]:{level:lv}}}; openDetail(d,h);};
-    r.appendChild(b);
-  });
-  document.getElementById('detail-panel').classList.add('open');
-}
-function saveAndClose(){
-  const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n;
-  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); switchTab(ST.currentTab);
-}
-function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); }
-function changeWeek(dir){ ST.weekStart.setDate(ST.weekStart.getDate()+dir*7); switchTab(ST.currentTab); }
-function openSettings(){ renderSettings(); document.getElementById('settings-panel').classList.add('open'); }
-function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); renderWeek(); }
+let state = {
+    month:1, mh:MAX_MH, sales:0, selId:null, tasks:[], 
+    logs:[], customers:[], grid:[], gridSize: 6, vendorList: []
+};
 
-function renderSettings(){
-  const g=document.getElementById('theme-grid'); g.innerHTML='';
-  THEMES.forEach(th=>{
-    const isAct=ST.themeId===th.id;
-    const card=document.createElement('div');
-    card.className='theme-card'+(isAct?' active':'');
-    card.innerHTML=`
-      <div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div>
-      <div class="theme-name">${th.name}</div>
-    `;
-    card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); renderWeek(); };
-    g.appendChild(card);
-  });
+function startApp(size) {
+    try {
+        SFX.select();
+        state.gridSize = size;
+        state.vendorList = size === 6 ? ['H','I','A','S'] : ['H','I','A','S','E','F'];
+        document.documentElement.style.setProperty('--grid-size', size);
+        document.getElementById('mode-select-ov').classList.add('hidden');
+        document.getElementById('app').classList.add('visible');
+        init();
+    } catch(e) { console.error("Start failed: ", e); }
 }
 
-if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Fail', err)); });
+function init() {
+    state.customers = CUSTOMER_POOL_BASE.map(b => {
+        const vendor = state.vendorList[Math.floor(Math.random()*state.vendorList.length)];
+        return {
+            ...b,
+            tiles: state.gridSize === 6 ? b.tiles6 : b.tiles8,
+            vendor: vendor,
+            mo: Math.floor(Math.random()*45)+1,
+            vc:0, specIn:false, cxoProtect:0, intelRevealed:false,
+            affinity: Math.floor(Math.random()*21),
+            // 自社（H）の場合: base 5〜40% (後のボーナス50%と合算して 55〜90% を実現)
+            baseRapport: (vendor === 'H') ? 
+                Math.floor(Math.random() * 36) + 5 : 
+                Math.floor(Math.random() * 31) + 10 
+        };
+    });
+    buildGrid();
+    render();
 }
-window.addEventListener('resize', ()=>switchTab(ST.currentTab));
-renderWeek();
+
+function buildGrid() {
+    const size = state.gridSize;
+    const totalCells = size * size;
+    const grid = Array(totalCells).fill(null);
+    const shuffled = [...state.customers].sort(() => Math.random() - 0.5);
+    shuffled.forEach(c => {
+        let placed = 0;
+        while (placed < c.tiles) {
+            let options = [];
+            let empties = [];
+            for (let i = 0; i < totalCells; i++) {
+                if (grid[i] === null) {
+                    empties.push(i);
+                    const row = Math.floor(i / size), col = i % size;
+                    const ns = [col > 0 ? i-1 : -1, col < size-1 ? i+1 : -1, row > 0 ? i-size : -1, row < size-1 ? i+size : -1];
+                    if (ns.some(n => n !== -1 && grid[n]?.cid === c.id)) options.push(i);
+                }
+            }
+            let target = (placed === 0 || options.length === 0) ? empties[Math.floor(Math.random() * empties.length)] : options[Math.floor(Math.random() * options.length)];
+            if (target !== undefined) { grid[target] = { cid: c.id }; placed++; } else break;
+        }
+    });
+    state.grid = grid;
+}
+
+function getWR(c, vId = 'H') {
+    if (!c) return 0;
+    let r = (vId === 'H') ? (c.baseRapport || 5) : 5;
+    
+    if (vId === 'H') r += (c.vc * 5); 
+    else r += (c.affinity || 0);
+
+    if (c.vendor === vId) {
+        r += (vId === 'H') ? 50 : 40;
+    }
+    
+    if (c.mo >= 48 && c.mo < 50) r += 40; else if (c.mo >= 50) r -= 20;
+    if (vId === 'H' && c.specIn) r += 30;
+
+    if (vId === 'H') {
+        state.tasks.filter(t=>t.cid===c.id).forEach(t=>{ 
+            if(t.type==='VISIT') r+=5; 
+            if(t.type==='STUDY') r+=10; 
+            if(t.type==='CXO') r+=50; 
+        });
+    }
+    return Math.min(99, Math.max(5, Math.round(r)));
+}
+
+function render() {
+    document.getElementById('phase-disp').textContent = `FY26M${state.month}`;
+    document.getElementById('mh-disp').textContent = state.mh;
+    document.getElementById('score-v').innerHTML = `¥${state.sales}<span>M</span>`;
+
+    const s={};
+    state.vendorList.forEach(v => s[v] = 0);
+    state.customers.forEach(c=>{ if(s[c.vendor]!==undefined) s[c.vendor]+=c.budget; });
+    
+    const bar = document.getElementById('share-bar'); bar.innerHTML='';
+    const total = Object.values(s).reduce((a,b)=>a+b,0)||1;
+    state.vendorList.forEach(v=>{
+        const p=(s[v]/total)*100;
+        if(p>0){ const d=document.createElement('div'); d.className='share-seg'; d.style.cssText=`width:${p}%;background:${VENDORS[v].bg}`; d.textContent=p>10?Math.round(p)+'%':''; bar.appendChild(d); }
+    });
+
+    const size = state.gridSize;
+    const gEl = document.getElementById('grid'); gEl.innerHTML='';
+    state.grid.forEach(t=>{
+        const el=document.createElement('div'); el.className='tile';
+        if (t && t.cid) {
+            const c=state.customers.find(x=>x.id===t.cid);
+            const kn=c.vc>0||c.vendor==='H';
+            el.style.backgroundColor=VENDORS[kn?c.vendor:'UNK'].bg;
+            if(state.selId===c.id) el.classList.add('sel');
+            if(c.cxoProtect > 0) el.classList.add('cxo-a');
+            else if(kn && c.mo>=48 && c.mo<50) el.classList.add('rfp-a');
+            else if(kn && c.mo>=50) el.classList.add('bld-a');
+            const sp=document.createElement('span'); sp.className='t-lbl'; sp.textContent=kn?Math.ceil(c.mo/12):'?'; el.appendChild(sp);
+            el.onclick=()=>{ SFX.select(); state.selId=c.id; render(); };
+        } else el.style.backgroundColor=VENDORS.NONE.bg;
+        gEl.appendChild(el);
+    });
+
+    const sp=document.getElementById('sp');
+    if (state.selId) {
+        const c=state.customers.find(x=>x.id===state.selId);
+        sp.classList.add('open');
+        document.getElementById('sp-name').textContent=c.name;
+        document.getElementById('sp-vc').textContent=c.vc;
+        document.getElementById('sp-win').textContent=`${getWR(c)}%`;
+        const kn=c.vc>0||c.vendor==='H';
+        document.getElementById('sp-vendor').textContent= (kn || c.intelRevealed) ? VENDORS[c.vendor].name : '？';
+        const st=document.getElementById('sp-status');
+        if(c.cxoProtect>0){ st.textContent=`🛡 CXO防衛中 (${c.cxoProtect})`; st.style.color='var(--sky)'; }
+        else if(c.mo>=50){ st.textContent='運用/構築中'; st.style.color=''; }
+        else if(c.mo>=48){ st.textContent='📄 RFP放出中'; st.style.color='var(--amber)'; }
+        else{ st.textContent='稼働中'; st.style.color=''; }
+        
+        document.getElementById('sp-prop-btn').disabled=!(kn && c.mo>=48 && c.mo<50);
+        document.getElementById('sp-spec-btn').disabled=(c.mo>=48 || c.specIn || getWR(c) < 75);
+        document.getElementById('sp-cxo-btn').disabled=(getWR(c) < 75);
+    } else sp.classList.remove('open');
+
+    const ts=document.getElementById('task-strip'); ts.innerHTML='';
+    state.tasks.forEach((t,i)=>{
+        const c=document.createElement('div'); c.className='t-chip';
+        c.innerHTML=`<span class="t-chip-name">${t.cname}</span><span>${t.label}</span><button class="t-chip-rm" onclick="removeTask(${i})">✕</button>`;
+        ts.appendChild(c);
+    });
+    document.getElementById('exec-btn').disabled=state.tasks.length===0;
+    document.getElementById('exec-btn').className='exec-btn'+(state.tasks.length?' on':'');
+}
+
+function addTask(type,cost,label) {
+    if(!state.selId || state.mh<cost) { SFX.error(); return; }
+    SFX.add();
+    const c=state.customers.find(x=>x.id===state.selId);
+    state.tasks.push({cid:c.id,cname:c.name,type,cost,label});
+    state.mh-=cost; state.selId=null; render();
+}
+function removeTask(i) { SFX.select(); state.mh+=state.tasks[i].cost; state.tasks.splice(i,1); render(); }
+
+function executeStrategy() {
+    SFX.exec();
+    let tr = [];
+    const activeCids = [...new Set(state.tasks.map(t => t.cid))];
+
+    state.tasks.forEach(t=>{
+        const c=state.customers.find(x=>x.id===t.cid);
+        const wr = getWR(c);
+        
+        // ── 信頼度に応じた動的なメッセージ生成 ──
+        const getDynamicMsg = (type, currentWr) => {
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            const otherRivals = state.vendorList.filter(v => v !== 'H' && v !== c.vendor);
+            const rName = VENDORS[pick(otherRivals)].name;
+
+            if (type === 'VISIT') {
+                if (currentWr >= 75) return pick([
+                    `担当者と密談。${rName}の提案に不信感を持っているようです。`,
+                    "温かい歓迎。他社のカタログはすべて片付けられていました。",
+                    "キーマンと意気投合。次回のRFP要件について内密に相談を受けました。"
+                ]);
+                if (currentWr >= 40) return pick([
+                    "世間話に終執しましたが、こちらの新製品には興味を示しています。",
+                    `受付で${rName}の担当者とすれ違いました。競争が激化しています。`,
+                    "担当者は多忙そうでしたが、短い面談でポジティブな感触を得ました。"
+                ]);
+                return pick([
+                    "受付での対応は冷ややか。他社のカタログが山積みになっています。",
+                    `${rName}の製品が現場に深く浸透しており、切り込みが難しい状況です。`,
+                    "門前払い一歩手前。信頼構築にはまだ時間がかかりそうです。"
+                ]);
+            }
+            if (type === 'STUDY') {
+                if (currentWr >= 75) return pick([
+                    "現場エンジニアと深い技術交流。自社仕様への完全な理解を得ました。",
+                    "「これなら他社から乗り換える価値がある」との評価を頂きました。",
+                    "質疑応答が活発に行われ、現場の支持を完全に掌握しました。"
+                ]);
+                return pick([
+                    "勉強会は盛況。製品への理解度が一段階上がったようです。",
+                    "他社比較の質問が多く出ましたが、概ねこちらの優位性をアピールできました。",
+                    "出席者の反応は上々。次なるアクションへの橋渡しが完了しました。"
+                ]);
+            }
+            if (type === 'SURVEY') return `市場調査により${VENDORS[c.vendor].name}の動向を特定。`;
+            if (type === 'SPECIN') return pick([
+                "スペックイン成功。RFP要件に自社仕様がガッチリ組み込まれました。",
+                "要件定義に潜り込み完了。他社が追随できない仕様を仕込みました。"
+            ]);
+            if (type === 'CXO') return pick([
+                "CXOと合意。以後3ヶ月間、他社の介入を完全にシャットアウトします。",
+                "トップダウンでの自社採用方針が固まりました。鉄壁の防衛。 "
+            ]);
+            return "";
+        };
+
+        if(t.type==='VISIT'){ 
+            c.vc++; 
+            tr.push({n:c.name, tx: getDynamicMsg('VISIT', wr)}); 
+        }
+        else if(t.type==='STUDY'){ 
+            c.vc += 2; 
+            tr.push({n:c.name, tx: getDynamicMsg('STUDY', wr)});
+        }
+        else if(t.type==='SURVEY'){ c.intelRevealed=true; tr.push({n:c.name, tx: getDynamicMsg('SURVEY', wr)}); }
+        else if(t.type==='SPECIN'){ c.specIn=true; tr.push({n:c.name, tx: getDynamicMsg('SPECIN', wr)}); }
+        else if(t.type==='CXO'){ c.cxoProtect=4; tr.push({n:c.name, tx: getDynamicMsg('CXO', wr)}); }
+        else if(t.type==='PROPOSAL'){
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            if(Math.random()*100 < wr){ 
+                SFX.win(); c.vendor='H'; c.mo=55; state.sales+=c.budget; 
+                tr.push({n:c.name, tx: pick(['【受注】覇権を奪還しました！構築フェーズへ。', '【受注】満場一致で採用決定。圧倒的な勝利です。'])}); 
+            } else { 
+                SFX.lost(); 
+                tr.push({n:c.name, tx: pick(['【失注】競合のロジックに押し切られました。', '【失注】最後の最後でリリースのタイミングが合わず。'])}); 
+            }
+        }
+    });
+
+    state.vendorList.filter(v => v !== 'H').forEach(rid => {
+        let rmh = Math.floor(Math.random() * 11) + 15; 
+        while (rmh >= 6) {
+            const targets = state.customers.filter(c => c.vendor !== rid && c.cxoProtect <= 0 && c.mo < 50);
+            if (!targets.length) break;
+            const tgt = targets[Math.floor(Math.random() * targets.length)];
+            if (rmh >= 12 && getWR(tgt, rid) >= 75 && (tgt.mo >= 48 || activeCids.includes(tgt.id))) {
+                rmh -= 12;
+                if (Math.random() * 100 < (tgt.mo >= 48 ? 35 : 12)) {
+                    tgt.vendor = rid; tgt.mo = 1; tgt.vc = 0; tgt.specIn = false;
+                    tr.push({ n: tgt.name, tx: `【急報】${VENDORS[rid].name}のリソース集中投下によりベンダーが交代。` });
+                }
+            } else { rmh -= 6; }
+        }
+    });
+
+    state.month++; state.tasks=[]; state.mh=MAX_MH; state.selId=null;
+    state.customers.forEach(c=>{ c.mo=c.mo>=60?1:c.mo+1; if(c.cxoProtect>0) c.cxoProtect--; });
+    const rl=document.getElementById('res-list'); rl.innerHTML='';
+    tr.forEach(r=>{ rl.innerHTML+=`<div class="res-block"><div class="res-bname">${r.n}</div><div class="res-txt">${r.tx}</div></div>`; });
+    setTimeout(() => { SFX.report(); document.getElementById('result-ov').classList.remove('hidden'); }, 300);
+    render();
+}
+
+function closeResult() { 
+    SFX.select();
+    document.getElementById('result-ov').classList.add('hidden'); 
+    if(state.month>12) { 
+        document.getElementById('final-score').textContent=`¥${state.sales}M`; 
+        document.getElementById('final-modal').classList.remove('hidden'); 
+    } 
+}
+
+document.getElementById('sp-close').onclick=()=>{ SFX.select(); state.selId=null; render(); };
 </script>
 </body>
 </html>
