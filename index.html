@@ -59,7 +59,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
-/* ── STATS DASHBOARD (Stats Page Top) ── */
+/* ── STATS DASHBOARD ── */
 .stats-dashboard{background:var(--card);padding:20px;margin-bottom:15px;border-bottom:2px solid var(--lv5);display:flex;flex-direction:column;gap:15px}
 .dash-main{display:flex;justify-content:space-between;align-items:center}
 .dash-score-box{display:flex;flex-direction:column}
@@ -69,7 +69,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
 .dash-day-block{display:flex;flex-direction:column;align-items:center;gap:4px}
-.dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;font-weight:900}
+/* ニモさん指定：数字のフォントを大きく (10px -> 14px) */
+.dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
 .dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
 
 .summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
@@ -214,18 +215,11 @@ function renderSummary(){
     const slots = ST.data[dstr]?.slots || {};
     let sum=0, count=0;
     const notes = [];
-    
     Object.keys(slots).forEach(h => {
         const s = slots[h];
-        if(s.level){
-            sum += s.level; 
-            count++;
-        }
-        if(s.note && s.note.trim() !== '') {
-            notes.push(`[${h}:00] ${s.note}`);
-        }
+        if(s.level){ sum += s.level; count++; }
+        if(s.note && s.note.trim() !== '') { notes.push(`[${h}:00] ${s.note}`); }
     });
-    
     const avg = count > 0 ? (sum/count) : null;
     if(avg) { weekSum += avg; weekCount++; }
     return { date: d, avg: avg, notes: notes };
@@ -255,22 +249,12 @@ function renderSummary(){
 
   let html = dayStats.map(s => {
     const roundedAvg = s.avg !== null ? Math.round(s.avg) : null;
-    let alert = '';
-    let memoHtml = '';
-
-    // 指示：平均が「1」または「5」の時のみコメントとメモを表示
+    let alert = '', memoHtml = '';
     if(roundedAvg === 1 || roundedAvg === 5) {
-        if(roundedAvg === 1) {
-            alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。リカバリーを最優先してください。</div>`;
-        } else {
-            alert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。攻めの営業を！</div>`;
-        }
-        
-        if(s.notes.length > 0) {
-            memoHtml = `<div class="day-memo-list">📝 LOGS:<br>${s.notes.join('<br>')}</div>`;
-        }
+        if(roundedAvg === 1) { alert = `<div class="alert-box">⚠️ 参謀警告：本日のコンディションは「Bad」です。</div>`; }
+        else { alert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5)">✨ 称賛：本日のコンディションは「Peak」です。</div>`; }
+        if(s.notes.length > 0) { memoHtml = `<div class="day-memo-list">📝 LOGS:<br>${s.notes.join('<br>')}</div>`; }
     }
-
     return `
       <div class="stat-card" style="border-left-color: ${s.avg!==null?`var(--lv${Math.round(s.avg)})`:'var(--border)'}">
         <div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div>
@@ -341,13 +325,7 @@ function renderSettings(){
       <div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div>
       <div class="theme-name">${th.name}</div>
     `;
-    card.onclick=()=>{
-      ST.themeId=th.id;
-      localStorage.setItem('nimo-v6-theme-id',th.id);
-      applyTheme();
-      renderSettings();
-      renderWeek();
-    };
+    card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); renderWeek(); };
     g.appendChild(card);
   });
 }
@@ -355,9 +333,9 @@ function renderSettings(){
 if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Fail', err)); });
 }
-
 window.addEventListener('resize', ()=>switchTab(ST.currentTab));
 renderWeek();
 </script>
 </body>
 </html>
+
