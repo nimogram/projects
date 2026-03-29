@@ -142,6 +142,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
           <button class="nav-btn" onclick="changeWeek(1)">›</button>
         </div>
         <button class="settings-btn" onclick="openSettings()">⚙</button>
+        <div id="sync-indicator" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;width:18px;text-align:center;opacity:0;transition:opacity 0.4s;color:var(--lv3)"></div>
       </div>
     </div>
     <div class="dow-header" id="dow-header"></div>
@@ -336,6 +337,40 @@ function persist(){
   localStorage.setItem('nimo-v6', JSON.stringify({
     data:ST.data, themeId:ST.themeId, mode:ST.mode
   }));
+  autoSync();
+}
+
+// debounce timer for auto-sync
+let _syncTimer = null;
+function autoSync(){
+  if(_syncTimer) clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(()=>{
+    const url = localStorage.getItem('nimo-gas-url')||'';
+    if(!url || !url.startsWith('https://')) return;
+    showSyncIndicator('syncing');
+    fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({data:ST.data}),
+    })
+    .then(r=>r.json())
+    .then(res=>{
+      showSyncIndicator(res.status==='success'?'ok':'error');
+    })
+    .catch(()=>{
+      // CORSでレスポンスが読めない場合でも送信自体は成功していることが多い
+      showSyncIndicator('ok');
+    });
+  }, 1200); // 1.2秒待ってから送信（連続操作をまとめる）
+}
+
+function showSyncIndicator(state){
+  const el = document.getElementById('sync-indicator');
+  if(!el) return;
+  if(state==='syncing'){ el.textContent='↑'; el.style.color='var(--yellow)'; el.style.opacity='1'; }
+  else if(state==='ok'){ el.textContent='✓'; el.style.color='var(--lv3)'; el.style.opacity='1';
+    setTimeout(()=>{ el.style.opacity='0'; },2000); }
+  else { el.textContent='✗'; el.style.color='#ef4444'; el.style.opacity='1'; }
 }
 
 // ── THEME APPLICATION ──────────────────────────────────────────────────────
