@@ -1,46 +1,68 @@
-/**
- * MOOD LOG Service Worker
- * 2026-03-21 17:56 JST
- * * 戦略的キャッシュ管理により、オフライン環境下での
- * 起動速度向上と安定性を担保します。
- */
+// ==== VERSION管理（ここだけ更新すればOK）====
+const VERSION = "v7-20260329";
+const STATIC_CACHE = `static-${VERSION}`;
 
-const CACHE_NAME = 'mood-log-v1';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap'
+// キャッシュ対象（JS/CSS/画像など）
+const STATIC_ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json"
 ];
 
-// インストール時にリソースをキャッシュ
-self.addEventListener('install', (event) => {
+// ==== INSTALL ====
+self.addEventListener("install", (event) => {
+  self.skipWaiting(); // 即時反映
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(STATIC_CACHE).then(cache => {
+      return cache.addAll(STATIC_ASSETS);
     })
   );
-  // 新しいSWをすぐに有効化
-  self.skipWaiting();
 });
 
-// 古いキャッシュのクリーンアップ
-self.addEventListener('activate', (event) => {
+// ==== ACTIVATE ====
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(key => {
+          if (key !== STATIC_CACHE) {
+            return caches.delete(key); // 古いキャッシュ削除
+          }
+        })
+      )
+    )
   );
-  self.clients.claim();
+  self.clients.claim(); // 既存ページも更新
 });
 
-// リクエストのフェッチ（キャッシュ優先、なければネットワーク）
-self.addEventListener('fetch', (event) => {
+// ==== FETCH戦略 ====
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+
+  // ★① HTMLは常に最新（最重要）
+  if (req.mode === "navigate") {
+    event.respondWith(fetch(req));
+    return;
+  }
+
+  // ★② APIなどはネット優先
+  if (req.url.includes("/exec")) {
+    event.respondWith(
+      fetch(req).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // ★③ その他はキャッシュ優先（高速化）
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    caches.match(req).then(cached => {
+      return cached || fetch(req).then(res => {
+        return caches.open(STATIC_CACHE).then(cache => {
+          cache.put(req, res.clone());
+          return res;
+        });
+      });
     })
   );
 });
