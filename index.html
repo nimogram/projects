@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 
+<!-- PWA設定 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MOOD LOG">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#121212">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
 
@@ -56,7 +55,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
 .time-label.now-hour{color:var(--yellow);font-weight:700}
-/* ニモさん指定：境界線 5px */
 .week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative;border:5px solid var(--bg)}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
@@ -75,7 +73,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
 .stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5)}
-.alert-box{background:rgba(255,255,0,0.1);border:1px solid var(--yellow);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
+.alert-box{background:rgba(255,255,255,0.03);border:1px solid var(--border2);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.6}
 .day-memo-list{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:var(--text); opacity:0.9; line-height:1.6;}
 
 /* Monthly Grid Specific */
@@ -188,6 +186,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 const RECORDING_HOURS = 12; // 8-19
 const GAP = 2;
 const TIME_COL_PX = 28;
+const apiKey = ""; // Runtime provides this
 
 let ST = {
   weekStart: monday(new Date()),
@@ -262,7 +261,7 @@ async function syncToSheets() {
   statusEl.textContent = "⌛ 同期中... ニモさんの軌跡を転送しています。";
   statusEl.style.color = "var(--yellow)";
   try {
-    const response = await fetch(url, {
+    await fetch(url, {
       method: 'POST', mode: 'no-cors', cache: 'no-cache',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: ST.data })
@@ -297,10 +296,8 @@ function renderSummary(){
     return { date: d, avg: avg, notes: extremeNotes };
   });
   const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
-  let weeklyAlert = '';
-  if(weekAvg >= 4.0) weeklyAlert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5);margin-top:10px">✨ 今週のサマリ：ニモさんは最高潮（Peak）の波に乗っていますよ！このまま「攻め」の姿勢でクロージングを狙いましょう。</div>`;
-  else if(weekAvg < 2.5 && weekAvg > 0) weeklyAlert = `<div class="alert-box" style="margin-top:10px">⚠️ 今週のサマリ：少し負荷が高すぎたかもしれませんね。休息とタンパク質補給を優先してくださいですよ。</div>`;
-  else if(weekAvg > 0) weeklyAlert = `<div class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px">📋 今週のサマリ：全体的に安定したパフォーマンスでした。今の規律ある生活を維持しましょう。</div>`;
+  let weeklyAlert = `<div class="alert-box">📋 今週のサマリ：全体平均は ${weekAvg.toFixed(2)} です。</div>`;
+
   dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="dash-daily-row">${dayStats.map(s => `<div class="dash-day-block"><div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>${weeklyAlert}`;
   let html = dayStats.filter(s => s.notes.length > 0).map(s => {
     let memoHtml = `<div class="day-memo-list">${s.notes.map(n => `<div style="color:${n.lv===5?'#00e5a0':'#f97316'}"><b>[${n.h}:00]</b> ${n.txt}</div>`).join('')}</div>`;
@@ -309,42 +306,84 @@ function renderSummary(){
   container.innerHTML = html || `<div style="text-align:center; padding:40px; color:var(--muted2); font-size:12px; font-family:'DM Mono',monospace;">NO LV1/5 LOGS RECORDED THIS WEEK</div>`;
 }
 
-function renderMonth(){
+// 指数バックオフ付きGemini API呼び出し
+async function fetchGemini(userQuery, systemPrompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+  const payload = {
+    contents: [{ parts: [{ text: userQuery }] }],
+    systemInstruction: { parts: [{ text: systemPrompt }] }
+  };
+  
+  for (let i = 0; i < 5; i++) {
+    try {
+      const resp = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+      if (resp.ok) {
+        const result = await resp.json();
+        return result.candidates?.[0]?.content?.parts?.[0]?.text;
+      }
+    } catch (e) {}
+    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+  }
+  return "申し訳ありません、分析に失敗しましたですよ。もう一度お試しくださいね。";
+}
+
+async function renderMonth(){
   const start = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), 1);
   const end = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth() + 1, 0);
   const container = document.getElementById('month-content');
   const dash = document.getElementById('month-dashboard');
   document.getElementById('month-range').textContent = `${['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][start.getMonth()]} ${start.getFullYear()}`;
+  
   let monthSum = 0, monthCount = 0;
   let dailyStats = [];
+  let allNotes = [];
+
   for(let d=1; d<=end.getDate(); d++){
     const cur = new Date(start.getFullYear(), start.getMonth(), d);
     const dstr = ds(cur);
     const slots = ST.data[dstr]?.slots || {};
     let sum=0, count=0;
-    for(let h=8; h<=19; h++) { if(slots[h]?.level){ sum += slots[h].level; count++; } }
+    for(let h=8; h<=19; h++) { 
+        if(slots[h]?.level){ 
+            sum += slots[h].level; count++; 
+            if(slots[h].note) allNotes.push(`【${d}日 ${h}時/Lv${slots[h].level}】${slots[h].note}`);
+        } 
+    }
     const avg = count > 0 ? (sum/count) : null;
     if(avg) { monthSum += avg; monthCount++; }
     dailyStats.push({ date: cur, avg: avg });
   }
+
   const totalAvg = monthCount > 0 ? (monthSum / monthCount) : 0;
-  let monthlyAlert = '';
-  if(totalAvg >= 4.0) monthlyAlert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5);margin-top:10px">🌙 月間サマリ：素晴らしい一ヶ月でしたね！ニモさんの「攻」の規律が完全に定着しています。</div>`;
-  else if(totalAvg < 2.5 && totalAvg > 0) monthlyAlert = `<div class="alert-box" style="margin-top:10px">🌙 月間サマリ：少し無理が重なった月だったかもしれません。次月は戦略的な「守」を意識してくださいですよ。</div>`;
-  else if(totalAvg > 0) monthlyAlert = `<div class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px">🌙 月間サマリ：安定感のある一ヶ月でした。HPE案件も順調に進んでいるようです。</div>`;
-  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(totalAvg) || 1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div>${monthlyAlert}`;
+  
+  // 初期表示（分析中）
+  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(totalAvg) || 1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div><div id="monthly-ai-box" class="alert-box">⌛ 参謀が今月のログを精査していますですよ...</div>`;
+
+  // カレンダー構築
   const startOffset = (start.getDay() + 6) % 7; 
-  let html = `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:8px;">`;
-  ['M','T','W','T','F','S','S'].forEach(d => html += `<div style="text-align:center; font-size:8px; color:var(--muted); font-family:'DM Mono',monospace;">${d}</div>`);
-  html += `</div><div class="month-calendar-grid">`;
-  for(let i=0; i<startOffset; i++) html += `<div class="month-day-cell" style="opacity:0"></div>`;
+  let calHtml = `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:8px;">`;
+  ['M','T','W','T','F','S','S'].forEach(d => calHtml += `<div style="text-align:center; font-size:8px; color:var(--muted); font-family:'DM Mono',monospace;">${d}</div>`);
+  calHtml += `</div><div class="month-calendar-grid">`;
+  for(let i=0; i<startOffset; i++) calHtml += `<div class="month-day-cell" style="opacity:0"></div>`;
   dailyStats.forEach(s => {
     const bgColor = s.avg !== null ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)';
     const textColor = s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff';
-    html += `<div class="month-day-cell" style="background:${bgColor}; color:${textColor}"><div class="month-day-num">${s.date.getDate()}</div>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
+    calHtml += `<div class="month-day-cell" style="background:${bgColor}; color:${textColor}"><div class="month-day-num">${s.date.getDate()}</div>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
   });
-  html += `</div>`;
-  container.innerHTML = html;
+  calHtml += `</div>`;
+  container.innerHTML = calHtml;
+
+  // AI分析の実行（ニモさんの全コメントをGeminiに渡す）
+  if (allNotes.length > 0) {
+    const systemPrompt = `あなたはニモさんの優秀な参謀です。ニモさんは30代男性、外資系エンタープライズIT営業、INTJ-A、16時間ファスティング実践者。提示された1ヶ月分のログ（体調、感情、仕事メモ）を読み取り、愛のある厳しさを持った月次戦略レポを日本語で作成してください。30代女性秘書の口調で、ニモさんの『攻・財・体』のバランスを多角的に評価し、翌月のアクションを1つだけ提案してください。箇条書きを活用しつつ、最後は心強い一言で締めてください。`;
+    const userQuery = `今月のログデータ：\n${allNotes.join('\n')}\n月間平均スコア：${totalAvg.toFixed(2)}`;
+    
+    const aiResponse = await fetchGemini(userQuery, systemPrompt);
+    const aiBox = document.getElementById('monthly-ai-box');
+    if (aiBox) aiBox.innerText = aiResponse;
+  } else {
+    document.getElementById('monthly-ai-box').innerText = "🌙 今月はまだコメントが記録されていないようですね。次月はぜひ『事実』を刻んでくださいね。";
+  }
 }
 
 const THEMES = [
