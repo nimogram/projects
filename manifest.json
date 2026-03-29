@@ -1,24 +1,15 @@
 {
-  "short_name": "nimogram",
-  "name": "nimogram Strategic Matrix",
-  "start_url": "/projects/index.html",
+  "name": "MOOD LOG",
+  "short_name": "MOOD",
+  "start_url": "./",
   "display": "standalone",
-  "theme_color": "#0d0d0d",
   "background_color": "#0d0d0d",
-  "display_override": ["fullscreen", "minimal-ui"],
-  "orientation": "portrait",
+  "theme_color": "#121212",
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png",
-      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
