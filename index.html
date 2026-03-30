@@ -331,11 +331,12 @@ let ST = {
   data:      saved.data      || {},
   themeId:   saved.themeId   || 'emerald',
   mode:      saved.mode      || 'dark',
+  gasUrl:    saved.gasUrl    || '',
 };
 
 function persist(){
   localStorage.setItem('nimo-v6', JSON.stringify({
-    data:ST.data, themeId:ST.themeId, mode:ST.mode
+    data:ST.data, themeId:ST.themeId, mode:ST.mode, gasUrl:ST.gasUrl
   }));
   autoSync();
 }
@@ -345,7 +346,7 @@ let _syncTimer = null;
 function autoSync(){
   if(_syncTimer) clearTimeout(_syncTimer);
   _syncTimer = setTimeout(()=>{
-    const url = localStorage.getItem('nimo-gas-url')||'';
+    const url = ST.gasUrl||'';
     if(!url || !url.startsWith('https://')) return;
     showSyncIndicator('syncing');
     fetch(url,{
@@ -552,11 +553,12 @@ function renderIntensity(){
 
 // ── GAS SYNC ──────────────────────────────────────────────────────────────
 function saveGasUrl(url){
-  localStorage.setItem('nimo-gas-url', url);
+  ST.gasUrl = url;
+  persist();
 }
 
 function syncToSheet(){
-  const url = localStorage.getItem('nimo-gas-url')||'';
+  const url = ST.gasUrl||'';
   if(!url || !url.startsWith('https://')){
     setSyncStatus('⚠ URLを入力してください', '#f97316'); return;
   }
@@ -596,7 +598,7 @@ function setSyncStatus(msg, color){
 
 function loadGasUrl(){
   const input = document.getElementById('gas-url-input');
-  if(input) input.value = localStorage.getItem('nimo-gas-url')||'';
+  if(input) input.value = ST.gasUrl||'';
 }
 function openSettings(){
   renderSettings();
