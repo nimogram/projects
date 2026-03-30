@@ -2,40 +2,28 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-
-<!-- PWA: アプリとして独立起動させるための設定 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MOOD LOG">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#121212">
-
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
-
 <title>MOOD LOG</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-
-/* ── THEME VARIABLES ── */
 :root {
   --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
   --empty:#0d1117; --yellow:#ffff00;
   --bg:#0d0d0d;--surface:#131313;--card:#181818;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
   --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
-  --gap:2px;
-  --time-col:28px;
+  --gap:2px;--time-col:28px;
 }
-
 html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
-
 .screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 .screen.active{display:flex}
-
-/* ── HEADER ── */
 .week-header{flex-shrink:0;background:var(--bg);padding-top:env(safe-area-inset-top,36px)}
 .week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 12px 10px}
 .week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
@@ -44,75 +32,61 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase}
 .nav-btn{width:28px;height:28px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
 .settings-btn{width:38px;height:38px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
-
 .dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
 .dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
 .dow-name{font-family:'DM Mono',monospace;font-size:7px;text-transform:uppercase;color:var(--muted2)}
 .dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
 .dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
-
-/* ── GRID ── */
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
 .time-label.now-hour{color:var(--yellow);font-weight:700}
-/* ニモさん指定：境界線 5px */
 .week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative;border:5px solid var(--bg)}
-.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
-
-/* ── DASHBOARDS ── */
+.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow);z-index:10;}
 .stats-dashboard{background:var(--card);padding:20px;margin-bottom:15px;border-bottom:2px solid var(--lv5);display:flex;flex-direction:column;gap:15px}
 .dash-main{display:flex;justify-content:space-between;align-items:center}
 .dash-score-box{display:flex;flex-direction:column}
 .dash-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
 .dash-value{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--text)}
 .dash-unit{font-size:12px;color:var(--muted2);margin-left:4px}
-
-.dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
+.dash-daily-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;width:100%}
 .dash-day-block{display:flex;flex-direction:column;align-items:center;gap:4px}
 .dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
 .dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
-
 .summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
 .stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5)}
 .alert-box{background:rgba(255,255,0,0.1);border:1px solid var(--yellow);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
-.day-memo-list{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:var(--text); opacity:0.9; line-height:1.6;}
-
-/* Monthly Grid Specific */
-.month-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 0; }
-.month-day-cell { 
-    aspect-ratio: 1; border-radius: 4px; position: relative; display: flex; align-items: center; justify-content: center; 
-    font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    background: var(--empty);
-}
-.month-day-num { position: absolute; top: 4px; left: 4px; font-size: 8px; font-family: 'DM Mono', monospace; opacity: 0.6; }
-
-/* ── TAB NAVIGATION ── */
-.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100}
+.day-memo-list{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05);font-size:11px;color:var(--text);opacity:0.9;line-height:1.6;}
+.month-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:10px 0;}
+.month-day-cell{aspect-ratio:1;border-radius:4px;position:relative;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5);background:var(--empty);}
+.month-day-num{position:absolute;top:4px;left:4px;font-size:8px;font-family:'DM Mono',monospace;opacity:0.6;}
+.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,20px);z-index:100}
 .tab-btn{flex:1;padding:15px 0;border:none;background:transparent;color:var(--muted2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
 .tab-btn.active{color:var(--yellow)}
-
-/* ── PANELS ── */
-.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(10,10,10,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
+.panel{position:fixed;inset:0;z-index:150;overflow-y:auto;background:rgba(10,10,10,0.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1)}
 .panel.open{transform:translateX(0)}
-.panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
+.panel-inner{padding:44px 20px 64px;max-width:430px;margin:0 auto}
 .intensity-row{display:flex;gap:6px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px}.lv-btn.act{border:2.5px solid var(--text);transform:translateY(-3px)}
 .memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none}
-
 .action-row{display:flex;gap:10px}
 .clear-btn{flex:1;padding:18px;background:transparent;border:1px solid var(--border2);color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer;transition:all 0.2s}
 .clear-btn:active{background:rgba(255,255,255,0.05)}
 .save-btn{flex:2;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer}
-
-/* ── SETTINGS ── */
 .settings-input{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:12px;border-radius:4px;margin-bottom:15px;outline:none}
 .sync-btn{width:100%;padding:15px;background:var(--yellow);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.2em;cursor:pointer;margin-bottom:20px}
-
 .theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}
 .theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}
 .theme-swatches{display:flex;gap:2px;margin-bottom:6px}
 .theme-swatch{flex:1;height:12px;border-radius:1px}
 .theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
+
+/* ── AI SUMMARY BOX ── */
+.ai-summary-box{background:rgba(0,184,122,0.07);border:1px solid rgba(0,184,122,0.3);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.ai-summary-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--lv4);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ai-summary-label::before{content:'✦';font-size:10px}
+.ai-summary-text{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.7;font-weight:300}
+.ai-summary-text.loading{color:var(--muted2);font-style:italic}
+.ai-summary-text.error{color:rgba(255,100,100,0.8);font-size:12px}
 </style>
 </head>
 <body>
@@ -131,9 +105,20 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <div id="grid-area" class="grid-area"></div>
 </div>
 
+<!-- ① STATSに週ナビゲーション追加 -->
 <div id="screen-summary" class="screen">
   <div class="week-header">
-    <div class="week-top"><div class="week-title">STATS (1/5)</div><button class="settings-btn" onclick="openSettings()">⚙</button></div>
+    <div class="week-top">
+      <div class="week-title">STATS</div>
+      <div class="header-right">
+        <div class="week-nav">
+          <button class="nav-btn" onclick="changeStatsWeek(-1)">‹</button>
+          <div class="week-range" id="stats-week-range">—</div>
+          <button class="nav-btn" onclick="changeStatsWeek(1)">›</button>
+        </div>
+        <button class="settings-btn" onclick="openSettings()">⚙</button>
+      </div>
+    </div>
   </div>
   <div id="stats-dashboard" class="stats-dashboard"></div>
   <div class="summary-container" id="summary-content"></div>
@@ -171,25 +156,24 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 <div id="settings-panel" class="panel"><div class="panel-inner">
   <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div class="week-title">Settings</div><button class="settings-btn" onclick="closeSettings()">✕</button></div>
-  
   <div style="margin-bottom:20px">
     <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Cloud Sync (GAS URL)</div>
     <input type="text" id="sync-url" class="settings-input" placeholder="https://script.google.com/macros/s/.../exec">
     <button id="btn-sync" class="sync-btn" onclick="syncToSheets()">SYNC TO SHEETS</button>
-    <div id="sync-status" style="font-size:10px; text-align:center; color:var(--muted2); line-height:1.4;"></div>
+    <div id="sync-status" style="font-size:10px;text-align:center;color:var(--muted2);line-height:1.4;"></div>
   </div>
-
   <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Themes</div>
   <div id="theme-grid" class="theme-grid"></div>
 </div></div>
 
 <script>
-const RECORDING_HOURS = 12; // 8-19
+const RECORDING_HOURS = 12;
 const GAP = 2;
 const TIME_COL_PX = 28;
 
 let ST = {
   weekStart: monday(new Date()),
+  statsWeekStart: monday(new Date()), // ① STATSの週は独立して管理
   viewMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
   themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
@@ -208,231 +192,288 @@ function applyTheme(){
 }
 
 function calcCellSize(){
-  const headerH = document.querySelector('.week-header').offsetHeight;
-  const navH = 80;
-  const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
-  const cellW = Math.floor(availW / 7);
-  const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
-  const cellH = Math.floor(availH / RECORDING_HOURS);
-  return Math.max(Math.min(cellW, cellH), 12);
+  const headerH=document.querySelector('.week-header').offsetHeight;
+  const navH=80;
+  const availW=window.innerWidth-TIME_COL_PX-(GAP*8);
+  const cellW=Math.floor(availW/7);
+  const availH=window.innerHeight-headerH-navH-(GAP*RECORDING_HOURS);
+  const cellH=Math.floor(availH/RECORDING_HOURS);
+  return Math.max(Math.min(cellW,cellH),12);
 }
 
 function renderWeek(){
   applyTheme();
-  const sz = calcCellSize();
-  const now = new Date();
-  const todayDs = ds(now);
+  const sz=calcCellSize();
+  const now=new Date();
+  const todayDs=ds(now);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
-  
   document.getElementById('week-range').textContent=`${days[0].getDate()}–${days[6].getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()]}`;
-  
   const grid=document.getElementById('grid-area'); grid.innerHTML='';
-  grid.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
-  grid.style.gridTemplateRows = `repeat(${RECORDING_HOURS}, ${sz}px)`;
-  
+  grid.style.gridTemplateColumns=`${TIME_COL_PX}px repeat(7,1fr)`;
+  grid.style.gridTemplateRows=`repeat(${RECORDING_HOURS},${sz}px)`;
   const dowH=document.getElementById('dow-header');
-  dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
-  dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
-
-  for(let h=8; h<=19; h++){
+  dowH.style.gridTemplateColumns=`${TIME_COL_PX}px repeat(7,1fr)`;
+  dowH.innerHTML='<div class="dow-spacer"></div>'+days.map(d=>`<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
+  for(let h=8;h<=19;h++){
     const tl=document.createElement('div'); tl.className='time-label'+(h===now.getHours()?' now-hour':''); tl.textContent=h; grid.appendChild(tl);
     days.forEach(d=>{
-      const dstr=ds(d);
-      const lv=ST.data[dstr]?.slots?.[h]?.level;
+      const dstr=ds(d); const lv=ST.data[dstr]?.slots?.[h]?.level;
       const cell=document.createElement('div');
-      cell.className='week-cell'+(dstr===todayDs && h===now.getHours()?' now-cell':'');
+      cell.className='week-cell'+(dstr===todayDs&&h===now.getHours()?' now-cell':'');
       cell.style.cssText=`height:${sz}px;background:${lv?`var(--lv${lv})`:'var(--empty)'}`;
       if(ST.data[dstr]?.slots?.[h]?.note) cell.innerHTML='<div style="width:3px;height:3px;background:#fff;border-radius:50%;position:absolute;bottom:2px;right:2px"></div>';
-      cell.onclick=()=>openDetail(d,h);
-      grid.appendChild(cell);
+      cell.onclick=()=>openDetail(d,h); grid.appendChild(cell);
     });
   }
 }
 
-async function syncToSheets() {
-  const url = document.getElementById('sync-url').value;
-  const statusEl = document.getElementById('sync-status');
-  
-  if (!url) {
-      statusEl.textContent = "⚠️ GASの『ウェブアプリURL』を入力してくださいですよ。";
-      statusEl.style.color = "var(--yellow)";
-      return;
+async function syncToSheets(){
+  const url=document.getElementById('sync-url').value;
+  const statusEl=document.getElementById('sync-status');
+  if(!url){statusEl.textContent="⚠️ GASのウェブアプリURLを入力してください。";statusEl.style.color="var(--yellow)";return;}
+  if(!url.endsWith('/exec')){statusEl.textContent="⚠️ URLの末尾が /exec になっていません。";statusEl.style.color="var(--yellow)";return;}
+  ST.syncUrl=url; localStorage.setItem('nimo-v6-sync-url',url);
+  statusEl.textContent="⌛ 同期中...";statusEl.style.color="var(--yellow)";
+  try{
+    await fetch(url,{method:'POST',mode:'no-cors',cache:'no-cache',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:ST.data})});
+    statusEl.textContent="✅ 同期完了！シートを確認してください。";statusEl.style.color="var(--lv5)";
+  }catch(err){
+    statusEl.textContent="❌ 通信エラー。URLとデプロイ設定を確認してください。";statusEl.style.color="#ff4444";
   }
-  
-  if (!url.endsWith('/exec')) {
-      statusEl.textContent = "⚠️ URLの末尾が /exec になっていません。デプロイ時のURLを再確認してくださいですよ。";
-      statusEl.style.color = "var(--yellow)";
-      return;
-  }
+}
 
-  ST.syncUrl = url;
-  localStorage.setItem('nimo-v6-sync-url', url);
-  
-  statusEl.textContent = "⌛ 同期中... ニモさんの軌跡を転送しています。\n(GASエディタで『承認』が済んでいるか確認してくださいね)";
-  statusEl.style.color = "var(--yellow)";
-  
-  try {
-    // GAS側で CORS エラーを回避するため no-cors モードを使用
-    await fetch(url, {
-      method: 'POST',
-      mode: 'no-cors', 
-      cache: 'no-cache',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: ST.data })
-    });
-    
-    // no-corsの場合レスポンス内容は取得できませんが、エラーが出なければ送信成功とみなします
-    statusEl.textContent = "✅ 同期リクエスト完了！\nシートが更新されているか確認してくださいですよ。";
-    statusEl.style.color = "var(--lv5)";
-  } catch (err) {
-    console.error('GAS Sync Error:', err);
-    statusEl.textContent = "❌ 通信エラー。URLが正しいか、またはGAS側のデプロイ設定（アクセス権：全員）を確認してくださいですよ。";
-    statusEl.style.color = "#ff4444";
-  }
+// ── ① STATS 週ナビゲーション ──────────────────────────────────────────────
+function changeStatsWeek(dir){
+  ST.statsWeekStart=new Date(ST.statsWeekStart);
+  ST.statsWeekStart.setDate(ST.statsWeekStart.getDate()+dir*7);
+  renderSummary();
 }
 
 function renderSummary(){
-  const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
-  const container = document.getElementById('summary-content');
-  const dash = document.getElementById('stats-dashboard');
-  let weekSum=0, weekCount=0;
-  const dayStats = days.map(d => {
-    const dstr = ds(d);
-    const slots = ST.data[dstr]?.slots || {};
-    let sum=0, count=0;
-    const extremeNotes = []; 
-    for(let h=8; h<=19; h++) {
-        const s = slots[h];
-        if(s && s.level){ sum += s.level; count++; }
-        if(s && s.note && s.note.trim() !== '') {
-            if(s.level === 1 || s.level === 5) { extremeNotes.push({h: h, lv: s.level, txt: s.note}); }
-        }
+  applyTheme();
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.statsWeekStart);d.setDate(d.getDate()+i);return d;});
+  const MONTHS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+
+  // 週ラベル更新
+  document.getElementById('stats-week-range').textContent=
+    `${days[0].getDate()}–${days[6].getDate()} ${MONTHS[ST.statsWeekStart.getMonth()]}`;
+
+  const container=document.getElementById('summary-content');
+  const dash=document.getElementById('stats-dashboard');
+  let weekSum=0,weekCount=0;
+  const dayStats=days.map(d=>{
+    const dstr=ds(d); const slots=ST.data[dstr]?.slots||{};
+    let sum=0,count=0; const extremeNotes=[];
+    for(let h=8;h<=19;h++){
+      const s=slots[h];
+      if(s&&s.level){sum+=s.level;count++;}
+      if(s&&s.note&&s.note.trim()!==''){if(s.level===1||s.level===5){extremeNotes.push({h:h,lv:s.level,txt:s.note});}}
     }
-    const avg = count > 0 ? (sum/count) : null;
-    if(avg) { weekSum += avg; weekCount++; }
-    return { date: d, avg: avg, notes: extremeNotes };
+    const avg=count>0?(sum/count):null;
+    if(avg){weekSum+=avg;weekCount++;}
+    return{date:d,avg:avg,notes:extremeNotes};
   });
-  const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
-  let weeklyAlert = '';
-  if(weekAvg >= 4.0) weeklyAlert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5);margin-top:10px">✨ 今週のサマリ：ニモさんは最高潮（Peak）の波に乗っていますよ！このまま「攻め」の姿勢でクロージングを狙いましょう。</div>`;
-  else if(weekAvg < 2.5 && weekAvg > 0) weeklyAlert = `<div class="alert-box" style="margin-top:10px">⚠️ 今週のサマリ：少し負荷が高すぎたかもしれませんね。休息とタンパク質補給を優先してくださいですよ。</div>`;
-  else if(weekAvg > 0) weeklyAlert = `<div class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px">📋 今週のサマリ：全体的に安定したパフォーマンスでした。今の規律ある生活を維持しましょう。</div>`;
-  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="dash-daily-row">${dayStats.map(s => `<div class="dash-day-block"><div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>${weeklyAlert}`;
-  let html = dayStats.filter(s => s.notes.length > 0).map(s => {
-    let memoHtml = `<div class="day-memo-list">${s.notes.map(n => `<div style="color:${n.lv===5?'#00e5a0':'#f97316'}"><b>[${n.h}:00]</b> ${n.txt}</div>`).join('')}</div>`;
-    return `<div class="stat-card" style="border-left-color: var(--lv${s.avg!==null?Math.round(s.avg):'1'})"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
+  const weekAvg=weekCount>0?(weekSum/weekCount):0;
+  let weeklyAlert='';
+  if(weekAvg>=4.0) weeklyAlert=`<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5);margin-top:10px">✨ 今週のサマリ：ニモさんは最高潮（Peak）の波に乗っていますよ！このまま「攻め」の姿勢でクロージングを狙いましょう。</div>`;
+  else if(weekAvg<2.5&&weekAvg>0) weeklyAlert=`<div class="alert-box" style="margin-top:10px">⚠️ 今週のサマリ：少し負荷が高すぎたかもしれませんね。休息とタンパク質補給を優先してくださいですよ。</div>`;
+  else if(weekAvg>0) weeklyAlert=`<div class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px">📋 今週のサマリ：全体的に安定したパフォーマンスでした。今の規律ある生活を維持しましょう。</div>`;
+
+  dash.innerHTML=`<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color:var(--lv${Math.round(weekAvg)||1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width:50px;height:50px;background:var(--lv${Math.round(weekAvg)||0});border-radius:8px;box-shadow:0 0 15px var(--lv${Math.round(weekAvg)||0})44"></div></div><div class="dash-daily-row">${dayStats.map(s=>`<div class="dash-day-block"><div class="dash-box" style="background:${s.avg?`var(--lv${Math.round(s.avg)})`:'var(--empty)'};color:${s.avg&&Math.round(s.avg)>2?'#000':'#fff'}">${s.avg?s.avg.toFixed(1):'-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>${weeklyAlert}`;
+
+  let html=dayStats.filter(s=>s.notes.length>0).map(s=>{
+    let memoHtml=`<div class="day-memo-list">${s.notes.map(n=>`<div style="color:${n.lv===5?'#00e5a0':'#f97316'}"><b>[${n.h}:00]</b> ${n.txt}</div>`).join('')}</div>`;
+    return `<div class="stat-card" style="border-left-color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
   }).join('');
-  container.innerHTML = html || `<div style="text-align:center; padding:40px; color:var(--muted2); font-size:12px; font-family:'DM Mono',monospace;">NO LV1/5 LOGS RECORDED THIS WEEK</div>`;
+  container.innerHTML=html||`<div style="text-align:center;padding:40px;color:var(--muted2);font-size:12px;font-family:'DM Mono',monospace;">NO LV1/5 LOGS RECORDED THIS WEEK</div>`;
 }
 
+// ── ② MONTHLY AIサマリ ────────────────────────────────────────────────────
 function renderMonth(){
-  const start = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), 1);
-  const end = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth() + 1, 0);
-  const container = document.getElementById('month-content');
-  const dash = document.getElementById('month-dashboard');
-  document.getElementById('month-range').textContent = `${['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][start.getMonth()]} ${start.getFullYear()}`;
-  let monthSum = 0, monthCount = 0;
-  let dailyStats = [];
-  for(let d=1; d<=end.getDate(); d++){
-    const cur = new Date(start.getFullYear(), start.getMonth(), d);
-    const dstr = ds(cur);
-    const slots = ST.data[dstr]?.slots || {};
-    let sum=0, count=0;
-    for(let h=8; h<=19; h++) { if(slots[h]?.level){ sum += slots[h].level; count++; } }
-    const avg = count > 0 ? (sum/count) : null;
-    if(avg) { monthSum += avg; monthCount++; }
-    dailyStats.push({ date: cur, avg: avg });
+  applyTheme();
+  const start=new Date(ST.viewMonth.getFullYear(),ST.viewMonth.getMonth(),1);
+  const end=new Date(ST.viewMonth.getFullYear(),ST.viewMonth.getMonth()+1,0);
+  const container=document.getElementById('month-content');
+  const dash=document.getElementById('month-dashboard');
+  const MONTHS_LONG=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  document.getElementById('month-range').textContent=`${MONTHS_LONG[start.getMonth()]} ${start.getFullYear()}`;
+
+  let monthSum=0,monthCount=0;
+  let dailyStats=[];
+  const allNotes=[]; // 月内の全メモを収集
+
+  for(let d=1;d<=end.getDate();d++){
+    const cur=new Date(start.getFullYear(),start.getMonth(),d);
+    const dstr=ds(cur);
+    const slots=ST.data[dstr]?.slots||{};
+    let sum=0,count=0;
+    for(let h=8;h<=19;h++){
+      if(slots[h]?.level){sum+=slots[h].level;count++;}
+      if(slots[h]?.note&&slots[h].note.trim()!==''){
+        allNotes.push({date:`${d}日`,hour:h,level:slots[h].level||0,note:slots[h].note});
+      }
+    }
+    const avg=count>0?(sum/count):null;
+    if(avg){monthSum+=avg;monthCount++;}
+    dailyStats.push({date:cur,avg:avg});
   }
-  const totalAvg = monthCount > 0 ? (monthSum / monthCount) : 0;
-  let monthlyAlert = '';
-  if(totalAvg >= 4.0) monthlyAlert = `<div class="alert-box" style="background:rgba(0,229,160,0.1);border-color:var(--lv5);margin-top:10px">🌙 月間サマリ：素晴らしい一ヶ月でしたね！ニモさんの「攻」の規律が完全に定着しています。</div>`;
-  else if(totalAvg < 2.5 && totalAvg > 0) monthlyAlert = `<div class="alert-box" style="margin-top:10px">🌙 月間サマリ：少し無理が重なった月だったかもしれません。次月は戦略的な「守」を意識してくださいですよ。</div>`;
-  else if(totalAvg > 0) monthlyAlert = `<div class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px">🌙 月間サマリ：安定感のある一ヶ月でした。HPE案件も順調に進んでいるようです。</div>`;
-  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(totalAvg) || 1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div>${monthlyAlert}`;
-  const startOffset = (start.getDay() + 6) % 7; 
-  let html = `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:8px;">`;
-  ['M','T','W','T','F','S','S'].forEach(d => html += `<div style="text-align:center; font-size:8px; color:var(--muted); font-family:'DM Mono',monospace;">${d}</div>`);
-  html += `</div><div class="month-calendar-grid">`;
-  for(let i=0; i<startOffset; i++) html += `<div class="month-day-cell" style="opacity:0"></div>`;
-  dailyStats.forEach(s => {
-    const bgColor = s.avg !== null ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)';
-    const textColor = s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff';
-    html += `<div class="month-day-cell" style="background:${bgColor}; color:${textColor}"><div class="month-day-num">${s.date.getDate()}</div>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
+  const totalAvg=monthCount>0?(monthSum/monthCount):0;
+
+  dash.innerHTML=`<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color:var(--lv${Math.round(totalAvg)||1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width:50px;height:50px;background:var(--lv${Math.round(totalAvg)||0});border-radius:8px;box-shadow:0 0 15px var(--lv${Math.round(totalAvg)||0})44"></div></div>`;
+
+  const startOffset=(start.getDay()+6)%7;
+  let calHtml=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;">`;
+  ['M','T','W','T','F','S','S'].forEach(d=>calHtml+=`<div style="text-align:center;font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;">${d}</div>`);
+  calHtml+=`</div><div class="month-calendar-grid">`;
+  for(let i=0;i<startOffset;i++) calHtml+=`<div class="month-day-cell" style="opacity:0"></div>`;
+  dailyStats.forEach(s=>{
+    const bgColor=s.avg!==null?`var(--lv${Math.round(s.avg)})`:'var(--empty)';
+    const textColor=s.avg&&Math.round(s.avg)>2?'#000':'#fff';
+    calHtml+=`<div class="month-day-cell" style="background:${bgColor};color:${textColor}"><div class="month-day-num">${s.date.getDate()}</div>${s.avg?s.avg.toFixed(1):''}</div>`;
   });
-  html += `</div>`;
-  container.innerHTML = html;
+  calHtml+=`</div>`;
+
+  // AIサマリボックス（即座に表示→非同期で内容を取得）
+  const aiBoxId='ai-monthly-summary';
+  container.innerHTML=calHtml+`
+    <div class="ai-summary-box" id="${aiBoxId}">
+      <div class="ai-summary-label">AI Monthly Summary</div>
+      <div class="ai-summary-text loading" id="${aiBoxId}-text">コメントを分析中...</div>
+    </div>`;
+
+  // メモがある場合はAI生成、ない場合はシンプルなメッセージ
+  if(allNotes.length===0){
+    document.getElementById(`${aiBoxId}-text`).className='ai-summary-text';
+    document.getElementById(`${aiBoxId}-text`).textContent=
+      totalAvg>=4.0?'今月は記録なしですが、パフォーマンスは最高潮でした。':
+      totalAvg>0?'今月のコンディションは安定していました。メモを追加するとより詳しい分析ができますよ。':
+      'まだ記録がありません。コンディションを記録して分析を始めましょう。';
+    return;
+  }
+
+  // Anthropic APIでAIサマリ生成
+  generateMonthlySummary(allNotes, totalAvg, MONTHS_LONG[start.getMonth()], aiBoxId);
 }
 
-const THEMES = [
-  {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
-  {id:'sky',     name:'Sky',     lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], hi:'#bae6fd'},
-  {id:'yellow',  name:'Yellow',  lv:['#fde047','#facc15','#ca8a04','#78530a','#2e1f00'], hi:'#fde047'},
-  {id:'whoop',   name:'Recovery',lv:['#4ade80','#a3e635','#facc15','#f97316','#ef4444'], hi:'#4ade80'},
-  {id:'aurora',  name:'Aurora',  lv:['#c4b5fd','#a78bfa','#7c3aed','#4c1d95','#1e0a40'], hi:'#c4b5fd'},
-  {id:'mono',    name:'Mono',    lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'], hi:'#e0e0e0'},
-  {id:'pink',    name:'Pink',    lv:['#fce7f3','#fbcfe8','#f9a8d4','#ec4899','#831843'], hi:'#fce7f3'},
-  {id:'red',     name:'Red',     lv:['#fca5a5','#ef4444','#b91c1c','#7f1d1d','#2d0000'], hi:'#fca5a5'},
-  {id:'orange',  name:'Orange',  lv:['#fdba74','#f97316','#c2410c','#7c2d12','#2a1000'], hi:'#fdba74'},
-  {id:'teal',    name:'Teal',    lv:['#5eead4','#14b8a6','#0f766e','#134e4a','#042f2e'], hi:'#5eead4'},
-  {id:'indigo',  name:'Indigo',  lv:['#a5b4fc','#6366f1','#4338ca','#312e81','#1e1b4b'], hi:'#a5b4fc'},
-  {id:'gold',    name:'Gold',    lv:['#fcd34d','#f59e0b','#b45309','#78350f','#1e1200'], hi:'#fcd34d'},
-  {id:'lime',    name:'Lime',    lv:['#bef264','#84cc16','#4d7c0f','#1a3a05','#0a1600'], hi:'#bef264'},
-  {id:'coral',   name:'Coral',   lv:['#fda4af','#f43f5e','#be123c','#881337','#2d0010'], hi:'#fda4af'},
-  {id:'mint',    name:'Mint',    lv:['#a7f3d0','#6ee7b7','#10b981','#065f46','#022c22'], hi:'#a7f3d0'},
-  {id:'navy',    name:'Navy',    lv:['#93c5fd','#60a5fa','#2563eb','#1e40af','#1e3a8a'], hi:'#93c5fd'},
-  {id:'rose',    name:'Rose',    lv:['#fecdd3','#fda4af','#fb7185','#e11d48','#4c0519'], hi:'#fecdd3'},
-  {id:'violet',  name:'Violet',  lv:['#e9d5ff','#c084fc','#a855f7','#7e22ce','#3b0764'], hi:'#e9d5ff'},
-  {id:'brown',   name:'Brown',   lv:['#d6b896','#b08060','#8a5c36','#5c3316','#2a1500'], hi:'#d6b896'},
-  {id:'ge',      name:'GE Style',lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], hi:'#16a34a'}
+async function generateMonthlySummary(notes, avgScore, monthName, boxId){
+  const textEl=document.getElementById(`${boxId}-text`);
+  if(!textEl) return;
+
+  // メモをテキストに整形
+  const notesText=notes.slice(0,30).map(n=>`・${n.date} ${n.hour}時 [Lv${n.level}]: ${n.note}`).join('\n');
+
+  const prompt=`以下はニモさん（HPEの法人営業・札幌営業所長・INTJ-A）の${monthName}のコンディション記録です。
+月間平均スコア: ${avgScore.toFixed(2)}/5.0
+
+記録されたメモ（一部）:
+${notesText}
+
+上記のデータをもとに、200字以内で月間サマリコメントを日本語で書いてください。
+・コンディションの傾向と特徴
+・良かった点・注意点
+・来月への一言アドバイス
+語尾は「〜ですよ」「〜ましょう」など秘書口調で。`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:400,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'サマリを生成できませんでした。';
+    if(textEl){
+      textEl.className='ai-summary-text';
+      textEl.textContent=text;
+    }
+  }catch(err){
+    if(textEl){
+      textEl.className='ai-summary-text error';
+      textEl.textContent='AI接続エラー。インターネット接続を確認してください。';
+    }
+  }
+}
+
+const THEMES=[
+  {id:'emerald',name:'Emerald',lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'],hi:'#00e5a0'},
+  {id:'sky',name:'Sky',lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'],hi:'#bae6fd'},
+  {id:'yellow',name:'Yellow',lv:['#fde047','#facc15','#ca8a04','#78530a','#2e1f00'],hi:'#fde047'},
+  {id:'whoop',name:'Recovery',lv:['#4ade80','#a3e635','#facc15','#f97316','#ef4444'],hi:'#4ade80'},
+  {id:'aurora',name:'Aurora',lv:['#c4b5fd','#a78bfa','#7c3aed','#4c1d95','#1e0a40'],hi:'#c4b5fd'},
+  {id:'mono',name:'Mono',lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'],hi:'#e0e0e0'},
+  {id:'pink',name:'Pink',lv:['#fce7f3','#fbcfe8','#f9a8d4','#ec4899','#831843'],hi:'#fce7f3'},
+  {id:'red',name:'Red',lv:['#fca5a5','#ef4444','#b91c1c','#7f1d1d','#2d0000'],hi:'#fca5a5'},
+  {id:'orange',name:'Orange',lv:['#fdba74','#f97316','#c2410c','#7c2d12','#2a1000'],hi:'#fdba74'},
+  {id:'teal',name:'Teal',lv:['#5eead4','#14b8a6','#0f766e','#134e4a','#042f2e'],hi:'#5eead4'},
+  {id:'indigo',name:'Indigo',lv:['#a5b4fc','#6366f1','#4338ca','#312e81','#1e1b4b'],hi:'#a5b4fc'},
+  {id:'gold',name:'Gold',lv:['#fcd34d','#f59e0b','#b45309','#78350f','#1e1200'],hi:'#fcd34d'},
+  {id:'lime',name:'Lime',lv:['#bef264','#84cc16','#4d7c0f','#1a3a05','#0a1600'],hi:'#bef264'},
+  {id:'coral',name:'Coral',lv:['#fda4af','#f43f5e','#be123c','#881337','#2d0010'],hi:'#fda4af'},
+  {id:'mint',name:'Mint',lv:['#a7f3d0','#6ee7b7','#10b981','#065f46','#022c22'],hi:'#a7f3d0'},
+  {id:'navy',name:'Navy',lv:['#93c5fd','#60a5fa','#2563eb','#1e40af','#1e3a8a'],hi:'#93c5fd'},
+  {id:'rose',name:'Rose',lv:['#fecdd3','#fda4af','#fb7185','#e11d48','#4c0519'],hi:'#fecdd3'},
+  {id:'violet',name:'Violet',lv:['#e9d5ff','#c084fc','#a855f7','#7e22ce','#3b0764'],hi:'#e9d5ff'},
+  {id:'brown',name:'Brown',lv:['#d6b896','#b08060','#8a5c36','#5c3316','#2a1500'],hi:'#d6b896'},
+  {id:'ge',name:'GE Style',lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'],hi:'#16a34a'}
 ];
 
 function switchTab(t){
-  ST.currentTab=t; 
-  document.getElementById('screen-week').classList.toggle('active',t==='week'); 
+  ST.currentTab=t;
+  document.getElementById('screen-week').classList.toggle('active',t==='week');
   document.getElementById('screen-summary').classList.toggle('active',t==='summary');
   document.getElementById('screen-month').classList.toggle('active',t==='month');
-  document.getElementById('tab-week').classList.toggle('active',t==='week'); 
+  document.getElementById('tab-week').classList.toggle('active',t==='week');
   document.getElementById('tab-summary').classList.toggle('active',t==='summary');
   document.getElementById('tab-month').classList.toggle('active',t==='month');
   if(t==='summary') renderSummary(); else if(t==='month') renderMonth(); else renderWeek();
 }
 function openDetail(d,h){
-  ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`;
+  ST.selDs=ds(d);ST.selHour=h;
+  document.getElementById('d-day').textContent=d.getDate();
+  document.getElementById('d-hour').textContent=`${h}:00`;
   document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||'';
-  const r=document.getElementById('intensity-row'); r.innerHTML='';
+  const r=document.getElementById('intensity-row');r.innerHTML='';
   [5,4,3,2,1].forEach(lv=>{
-    const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':'');
-    b.style.background=`var(--lv${lv})`; b.onclick=()=>{ if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:lv}; openDetail(d,h); };
+    const b=document.createElement('button');b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':'');
+    b.style.background=`var(--lv${lv})`;
+    b.onclick=()=>{if(!ST.data[ST.selDs])ST.data[ST.selDs]={slots:{}};ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h],level:lv};openDetail(d,h);};
     r.appendChild(b);
   });
   document.getElementById('detail-panel').classList.add('open');
 }
 function saveAndClose(){
-  const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n;
-  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); switchTab(ST.currentTab);
+  const n=document.getElementById('memo-input').value;
+  if(ST.data[ST.selDs]?.slots?.[ST.selHour])ST.data[ST.selDs].slots[ST.selHour].note=n;
+  localStorage.setItem('nimo-v6-matrix-data',JSON.stringify(ST.data));
+  document.getElementById('detail-panel').classList.remove('open');
+  switchTab(ST.currentTab);
 }
 function clearAndClose(){
-  if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); }
-  document.getElementById('detail-panel').classList.remove('open'); switchTab(ST.currentTab);
+  if(ST.data[ST.selDs]?.slots?.[ST.selHour]){delete ST.data[ST.selDs].slots[ST.selHour];localStorage.setItem('nimo-v6-matrix-data',JSON.stringify(ST.data));}
+  document.getElementById('detail-panel').classList.remove('open');
+  switchTab(ST.currentTab);
 }
-function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); }
-function changeWeek(dir){ ST.weekStart.setDate(ST.weekStart.getDate()+dir*7); switchTab(ST.currentTab); }
-function changeMonth(dir){ ST.viewMonth.setMonth(ST.viewMonth.getMonth()+dir); switchTab('month'); }
-function openSettings(){ renderSettings(); document.getElementById('settings-panel').classList.add('open'); }
-function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); switchTab(ST.currentTab); }
-
+function closeDetail(){document.getElementById('detail-panel').classList.remove('open');}
+function changeWeek(dir){ST.weekStart.setDate(ST.weekStart.getDate()+dir*7);switchTab(ST.currentTab);}
+function changeMonth(dir){ST.viewMonth.setMonth(ST.viewMonth.getMonth()+dir);switchTab('month');}
+function openSettings(){renderSettings();document.getElementById('settings-panel').classList.add('open');}
+function closeSettings(){document.getElementById('settings-panel').classList.remove('open');switchTab(ST.currentTab);}
 function renderSettings(){
-  document.getElementById('sync-url').value = ST.syncUrl;
-  const g=document.getElementById('theme-grid'); g.innerHTML='';
+  document.getElementById('sync-url').value=ST.syncUrl;
+  const g=document.getElementById('theme-grid');g.innerHTML='';
   THEMES.forEach(th=>{
     const isAct=ST.themeId===th.id;
-    const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':'');
+    const card=document.createElement('div');card.className='theme-card'+(isAct?' active':'');
     card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`;
-    card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); switchTab(ST.currentTab); };
+    card.onclick=()=>{ST.themeId=th.id;localStorage.setItem('nimo-v6-theme-id',th.id);applyTheme();renderSettings();switchTab(ST.currentTab);};
     g.appendChild(card);
   });
 }
-window.addEventListener('resize', ()=>switchTab(ST.currentTab));
+window.addEventListener('resize',()=>switchTab(ST.currentTab));
 renderWeek();
 </script>
 </body>
