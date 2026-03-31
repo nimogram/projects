@@ -243,6 +243,11 @@ async function syncToSheets(){
 }
 
 // ── ① STATS 週ナビゲーション ──────────────────────────────────────────────
+function jumpToStatsWeek(dateStr){
+  const d=new Date(dateStr);
+  ST.statsWeekStart=monday(d);
+  switchTab('summary');
+}
 function changeStatsWeek(dir){
   ST.statsWeekStart=new Date(ST.statsWeekStart);
   ST.statsWeekStart.setDate(ST.statsWeekStart.getDate()+dir*7);
@@ -267,7 +272,7 @@ function renderSummary(){
     for(let h=8;h<=19;h++){
       const s=slots[h];
       if(s&&s.level){sum+=s.level;count++;}
-      if(s&&s.note&&s.note.trim()!==''){if(s.level===1||s.level===5){extremeNotes.push({h:h,lv:s.level,txt:s.note});}}
+      if(s&&s.note&&s.note.trim()!==''&&s.level!==3){extremeNotes.push({h:h,lv:s.level||0,txt:s.note});}
     }
     const avg=count>0?(sum/count):null;
     if(avg){weekSum+=avg;weekCount++;}
@@ -282,7 +287,7 @@ function renderSummary(){
   dash.innerHTML=`<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color:var(--lv${Math.round(weekAvg)||1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width:50px;height:50px;background:var(--lv${Math.round(weekAvg)||0});border-radius:8px;box-shadow:0 0 15px var(--lv${Math.round(weekAvg)||0})44"></div></div><div class="dash-daily-row">${dayStats.map(s=>`<div class="dash-day-block"><div class="dash-box" style="background:${s.avg?`var(--lv${Math.round(s.avg)})`:'var(--empty)'};color:${s.avg&&Math.round(s.avg)>2?'#000':'#fff'}">${s.avg?s.avg.toFixed(1):'-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>${weeklyAlert}`;
 
   let html=dayStats.filter(s=>s.notes.length>0).map(s=>{
-    let memoHtml=`<div class="day-memo-list">${s.notes.map(n=>`<div style="color:${n.lv===5?'#00e5a0':'#f97316'}"><b>[${n.h}:00]</b> ${n.txt}</div>`).join('')}</div>`;
+    let memoHtml=`<div class="day-memo-list">${s.notes.map(n=>`<div style="color:${n.lv>=4?'#00e5a0':n.lv<=2?'#f97316':'#7dd3fc'}"><b>[${n.h}:00 Lv${n.lv}]</b> ${n.txt}</div>`).join('')}</div>`;
     return `<div class="stat-card" style="border-left-color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
   }).join('');
   container.innerHTML=html||`<div style="text-align:center;padding:40px;color:var(--muted2);font-size:12px;font-family:'DM Mono',monospace;">NO LV1/5 LOGS RECORDED THIS WEEK</div>`;
@@ -341,7 +346,8 @@ function renderMonth(){
   dailyStats.forEach(s=>{
     const bgColor=s.avg!==null?`var(--lv${Math.round(s.avg)})`:'var(--empty)';
     const textColor=s.avg&&Math.round(s.avg)>2?'#000':'#fff';
-    calHtml+=`<div class="month-day-cell" style="background:${bgColor};color:${textColor}"><div class="month-day-num">${s.date.getDate()}</div>${s.avg?s.avg.toFixed(1):''}</div>`;
+    const dateStr=s.date.toISOString().slice(0,10);
+    calHtml+=`<div class="month-day-cell" style="background:${bgColor};color:${textColor};cursor:pointer;" onclick="jumpToStatsWeek('${dateStr}')"><div class="month-day-num">${s.date.getDate()}</div>${s.avg?s.avg.toFixed(1):''}</div>`;
   });
   calHtml+=`</div>`;
   container.innerHTML=calHtml;
