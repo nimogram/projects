@@ -319,7 +319,19 @@ function renderMonth(){
   }
   const totalAvg=monthCount>0?(monthSum/monthCount):0;
 
-  dash.innerHTML=`<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color:var(--lv${Math.round(totalAvg)||1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width:50px;height:50px;background:var(--lv${Math.round(totalAvg)||0});border-radius:8px;box-shadow:0 0 15px var(--lv${Math.round(totalAvg)||0})44"></div></div>`;
+  // AIサマリを含むdashboard（平均数値の下に配置）
+  dash.innerHTML=`
+    <div class="dash-main">
+      <div class="dash-score-box">
+        <div class="dash-label">Monthly Performance</div>
+        <div class="dash-value" style="color:var(--lv${Math.round(totalAvg)||1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div>
+      </div>
+      <div style="width:50px;height:50px;background:var(--lv${Math.round(totalAvg)||0});border-radius:8px;box-shadow:0 0 15px var(--lv${Math.round(totalAvg)||0})44"></div>
+    </div>
+    <div class="ai-summary-box" id="ai-monthly-summary">
+      <div class="ai-summary-label">AI Monthly Summary</div>
+      <div class="ai-summary-text loading" id="ai-monthly-summary-text">コメントを分析中...</div>
+    </div>`;
 
   const startOffset=(start.getDay()+6)%7;
   let calHtml=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;">`;
@@ -332,34 +344,26 @@ function renderMonth(){
     calHtml+=`<div class="month-day-cell" style="background:${bgColor};color:${textColor}"><div class="month-day-num">${s.date.getDate()}</div>${s.avg?s.avg.toFixed(1):''}</div>`;
   });
   calHtml+=`</div>`;
+  container.innerHTML=calHtml;
 
-  // AIサマリボックス（即座に表示→非同期で内容を取得）
-  const aiBoxId='ai-monthly-summary';
-  container.innerHTML=calHtml+`
-    <div class="ai-summary-box" id="${aiBoxId}">
-      <div class="ai-summary-label">AI Monthly Summary</div>
-      <div class="ai-summary-text loading" id="${aiBoxId}-text">コメントを分析中...</div>
-    </div>`;
-
-  // メモがある場合はAI生成、ない場合はシンプルなメッセージ
+  // メモがない場合はシンプルなメッセージ
   if(allNotes.length===0){
-    document.getElementById(`${aiBoxId}-text`).className='ai-summary-text';
-    document.getElementById(`${aiBoxId}-text`).textContent=
+    document.getElementById('ai-monthly-summary-text').className='ai-summary-text';
+    document.getElementById('ai-monthly-summary-text').textContent=
       totalAvg>=4.0?'今月は記録なしですが、パフォーマンスは最高潮でした。':
       totalAvg>0?'今月のコンディションは安定していました。メモを追加するとより詳しい分析ができますよ。':
       'まだ記録がありません。コンディションを記録して分析を始めましょう。';
     return;
   }
 
-  // Anthropic APIでAIサマリ生成
-  generateMonthlySummary(allNotes, totalAvg, MONTHS_LONG[start.getMonth()], aiBoxId);
+  // AIサマリ生成
+  generateMonthlySummary(allNotes, totalAvg, MONTHS_LONG[start.getMonth()]);
 }
 
-async function generateMonthlySummary(notes, avgScore, monthName, boxId){
-  const textEl=document.getElementById(`${boxId}-text`);
+async function generateMonthlySummary(notes, avgScore, monthName){
+  const textEl=document.getElementById('ai-monthly-summary-text');
   if(!textEl) return;
 
-  // メモをテキストに整形
   const notesText=notes.slice(0,30).map(n=>`・${n.date} ${n.hour}時 [Lv${n.level}]: ${n.note}`).join('\n');
 
   const prompt=`以下はニモさん（HPEの法人営業・札幌営業所長・INTJ-A）の${monthName}のコンディション記録です。
@@ -386,15 +390,16 @@ ${notesText}
     });
     const data=await res.json();
     const text=data.content?.[0]?.text||'サマリを生成できませんでした。';
-    if(textEl){
-      textEl.className='ai-summary-text';
-      textEl.textContent=text;
-    }
+    textEl.className='ai-summary-text';
+    textEl.textContent=text;
   }catch(err){
-    if(textEl){
-      textEl.className='ai-summary-text error';
-      textEl.textContent='AI接続エラー。インターネット接続を確認してください。';
-    }
+    // フォールバック：スコアベースの固定コメント
+    textEl.className='ai-summary-text';
+    textEl.textContent=
+      avgScore>=4.0?`${monthName}は月間平均${avgScore.toFixed(2)}と高水準でした。ニモさんの「攻」の姿勢が結果に表れていますよ。来月もこの勢いを維持しましょう。`:
+      avgScore>=3.0?`${monthName}は月間平均${avgScore.toFixed(2)}と安定した推移でした。良いリズムが続いていますよ。来月はさらに一段上を目指しましょう。`:
+      avgScore>0?`${monthName}は月間平均${avgScore.toFixed(2)}でした。負荷が高い時期だったかもしれません。休息とタンパク質補給を意識して来月に備えましょう。`:
+      'まだデータが少ないですが、継続して記録することで傾向が見えてきますよ。';
   }
 }
 
