@@ -190,22 +190,67 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div></div>
 
 <script>
-const RECORDING_HOURS = 12; // 8-19
+const RECORDING_HOURS = 12; 
 const GAP = 2;
 const TIME_COL_PX = 28;
 
+/**
+ * ニモさんの戦略：日付キーの標準化 (YYYY-MM-DD)
+ * 修正：月を+1し、常に2桁でパディングすることで整合性を保ちます。
+ */
+function ds(d){
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const date = d.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${date}`;
+}
+
+/**
+ * 参謀：データ浄化装置 (Sanitizer)
+ * 壊れた形式のキー（Mon Mar 30... や 2026-2-30等）を正しい YYYY-MM-DD に修復します。
+ */
+function sanitizeData(raw) {
+    const clean = {};
+    for (let key in raw) {
+        let cleanKey = key;
+        // 1. 不正な文字列キー (Mon Mar 30 202 など) の修復
+        if (isNaN(Date.parse(key)) === false && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+            cleanKey = ds(new Date(key));
+        } 
+        // 2. 以前のバグ (2026-2-30 などパディング不足) の修復
+        else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(key) && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+            const parts = key.split('-');
+            const d = new Date(parts[0], parts[1], parts[2]); // 注意：JSのDateコンストラクタは月が0始まり
+            // ここでは元のキー文字列から推測して再構築
+            cleanKey = `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
+        }
+
+        // マージ処理
+        if (!clean[cleanKey]) {
+            clean[cleanKey] = raw[key];
+        } else {
+            // 重複がある場合は中身を統合
+            clean[cleanKey].slots = Object.assign({}, clean[cleanKey].slots, raw[key].slots);
+            if (raw[key].memo) clean[cleanKey].memo = raw[key].memo;
+        }
+    }
+    return clean;
+}
+
+let rawSaved = JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}');
 let ST = {
   weekStart: monday(new Date()),
   statsWeekStart: monday(new Date()),
   viewMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
+  data: sanitizeData(rawSaved), // 起動時に浄化を実行
   themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
   syncUrl: localStorage.getItem('nimo-v6-sync-url') || '',
   currentTab: 'week'
 };
+// 浄化後のデータを即時保存
+localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
 
 function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
-function ds(d){return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`}
 
 function applyTheme(){
   const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
@@ -256,34 +301,20 @@ function renderWeek(){
   }
 }
 
-/**
- * 参謀：修正版同期システム
- */
 async function syncToSheets() {
   const urlEl = document.getElementById('sync-url');
-  const url = urlEl ? urlEl.value : ST.syncUrl; // 入力欄があれば優先
+  const url = urlEl && urlEl.value ? urlEl.value : ST.syncUrl;
   const statusEl = document.getElementById('sync-status');
   const dot = document.getElementById('sync-dot');
   const text = document.getElementById('sync-text');
   
-  if (!url) {
-    if(statusEl) {
-        statusEl.textContent = "⚠️ GASのURLを入力してくださいですよ。";
-        statusEl.style.color = "var(--yellow)";
-    }
-    return;
-  }
+  if (!url) return;
 
-  // URLをステートに保存
   ST.syncUrl = url;
   localStorage.setItem('nimo-v6-sync-url', url);
 
   if(dot) dot.style.background = "var(--yellow)";
   if(text) text.textContent = "SYNCING...";
-  if(statusEl) {
-      statusEl.textContent = "⌛ 同期中...";
-      statusEl.style.color = "var(--yellow)";
-  }
   
   try {
     const response = await fetch(url, {
@@ -298,16 +329,16 @@ async function syncToSheets() {
     } catch(e) {
         if(dot) dot.style.background = "var(--lv4)";
         if(text) text.textContent = "SENT";
-        if(statusEl) statusEl.textContent = "✅ 送信完了。";
         return;
     }
 
     if (result && result.data) {
-      ST.data = Object.assign({}, result.data, ST.data);
+      // 受信したデータも即座に浄化してからマージ
+      const cleanIncoming = sanitizeData(result.data);
+      ST.data = Object.assign({}, cleanIncoming, ST.data);
       localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
       if(dot) dot.style.background = "var(--lv5)";
       if(text) text.textContent = "UPDATED";
-      if(statusEl) statusEl.textContent = "✅ 同期＆履歴取得完了！";
       
       if(ST.currentTab === 'summary') renderSummary();
       else if(ST.currentTab === 'month') renderMonth();
@@ -319,7 +350,6 @@ async function syncToSheets() {
   } catch (err) { 
       if(dot) dot.style.background = "#ff4444";
       if(text) text.textContent = "ERROR";
-      if(statusEl) statusEl.textContent = "❌ 同期失敗。URLを確認してください。";
   }
   
   setTimeout(() => {
@@ -449,7 +479,6 @@ function jumpToWeek(dateIso) {
   switchTab('week');
 }
 
-/* ── 20種類のカラーテーマを完全保持 ── */
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
   {id:'sky', name:'Sky', lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], hi:'#bae6fd'},
@@ -501,16 +530,17 @@ function saveAndClose(){
 }
 function clearAndClose(){
   if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); }
+  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
   document.getElementById('detail-panel').classList.remove('open'); 
   switchTab(ST.currentTab);
   syncToSheets(); 
 }
-function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); }
-function changeWeek(dir){ ST.weekStart.setDate(ST.weekStart.getDate()+dir*7); renderWeek(); }
+function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); renderWeek(); }
+function changeWeek(delta){ ST.weekStart = new Date(ST.weekStart); ST.weekStart.setDate(ST.weekStart.getDate() + delta * 7); renderWeek(); }
 function changeStatsWeek(dir){ ST.statsWeekStart.setDate(ST.statsWeekStart.getDate()+dir*7); renderSummary(); }
 function changeMonth(dir){ ST.viewMonth.setMonth(ST.viewMonth.getMonth()+dir); renderMonth(); }
 function openSettings(){ renderSettings(); document.getElementById('settings-panel').classList.add('open'); }
-function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); switchTab(ST.currentTab); }
+function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); renderWeek(); }
 
 function renderSettings(){
   document.getElementById('sync-url').value = ST.syncUrl;
@@ -523,11 +553,10 @@ function renderSettings(){
     g.appendChild(card);
   });
 }
-window.addEventListener('resize', ()=>switchTab(ST.currentTab));
+window.addEventListener('resize', ()=>renderWeek());
 
 renderWeek();
-syncToSheets();
-
+syncToSheets(); 
 </script>
 </body>
 </html>
