@@ -1,9 +1,483 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Settings, ChevronLeft, ChevronRight, Grid as GridIcon, BarChart2, Calendar, X, Save, Trash2, Sparkles } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 
-// --- Constants ---
-const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbz0gGf10eKlU6vjxBuueX1xBxSiA6XIzBNmDMNBLKT-GlqH3bIi1SNcXDF-B-hAS-8oOA/exec";
-const RECORDING_HOURS = Array.from({ length: 12 }, (_, i) => i + 8); // 8:00 - 19:00
+<!-- PWA: スマホで独立したアプリとして動作させる設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MOOD LOG">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d0d0d">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
+
+<title>NIMOGRAM LOG</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+/* ── THEME VARIABLES ── */
+:root {
+  --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
+  --empty:#0d1117; --yellow:#ffff00;
+  --bg:#0d0d0d;--surface:#131313;--card:#181818;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
+  --gap:2px;
+  --time-col:28px;
+}
+
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
+
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+.screen.active{display:flex}
+
+/* ── HEADER ── */
+.week-header{flex-shrink:0;background:var(--bg);padding-top:env(safe-area-inset-top,36px)}
+.week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 12px 10px}
+.week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
+.header-right{display:flex;align-items:center;gap:12px}
+.week-nav{display:flex;align-items:center;gap:6px}
+.week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase}
+.nav-btn{width:28px;height:28px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.settings-btn{width:38px;height:38px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+
+.dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
+.dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
+.dow-name{font-family:'DM Mono',monospace;font-size:7px;text-transform:uppercase;color:var(--muted2)}
+.dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
+.dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
+
+/* ── GRID: 5px 境界線デザイン ── */
+.grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
+.time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
+.time-label.now-hour{color:var(--yellow);font-weight:700}
+.week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative;border:5px solid var(--bg)}
+.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
+
+/* ── DASHBOARDS ── */
+.stats-dashboard{background:var(--card);padding:20px;margin-bottom:15px;border-bottom:2px solid var(--lv5);display:flex;flex-direction:column;gap:15px}
+.dash-main{display:flex;justify-content:space-between;align-items:center}
+.dash-score-box{display:flex;flex-direction:column}
+.dash-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.dash-value{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--text)}
+.dash-unit{font-size:12px;color:var(--muted2);margin-left:4px}
+
+.dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
+.dash-day-block{display:flex;flex-direction:column;align-items:center;gap:4px}
+.dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
+.dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
+
+.summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
+.stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5)}
+.alert-box{background:rgba(255,255,0,0.1);border:1px solid var(--yellow);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
+.day-memo-list{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:var(--text); opacity:0.9; line-height:1.6;}
+
+/* Monthly Grid Specific */
+.month-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 0; }
+.month-day-cell { 
+    aspect-ratio: 1; border-radius: 4px; position: relative; display: flex; align-items: center; justify-content: center; 
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    background: var(--empty);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.month-day-num { position: absolute; top: 4px; left: 4px; font-size: 8px; font-family: 'DM Mono', monospace; opacity: 0.6; }
+
+/* ── TAB NAVIGATION ── */
+.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100}
+.tab-btn{flex:1;padding:15px 0;border:none;background:transparent;color:var(--muted2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tab-btn.active{color:var(--yellow)}
+
+/* ── PANELS ── */
+.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(10,10,10,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
+.panel.open{transform:translateX(0)}
+.panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
+.intensity-row{display:flex;gap:6px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px}.lv-btn.act{border:2.5px solid var(--text);transform:translateY(-3px)}
+.memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none}
+
+.action-row{display:flex;gap:10px}
+.clear-btn{flex:1;padding:18px;background:transparent;border:1px solid var(--border2);color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer;transition:all 0.2s}
+.clear-btn:active{background:rgba(255,255,255,0.05)}
+.save-btn{flex:2;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer}
+
+/* ── SETTINGS ── */
+.settings-input{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:12px;border-radius:4px;margin-bottom:15px;outline:none}
+.sync-btn{width:100%;padding:15px;background:var(--yellow);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.2em;cursor:pointer;margin-bottom:20px}
+
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}
+.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}
+.theme-swatches{display:flex;gap:2px;margin-bottom:6px}
+.theme-swatch{flex:1;height:12px;border-radius:1px}
+.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div id="screen-week" class="screen active">
+  <div class="week-header">
+    <div class="week-top">
+      <div><div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.4em;color:var(--lv4)">NIMOGRAM</div><div class="week-title">Weekly Matrix</div></div>
+      <div class="header-right">
+        <div id="auto-sync-indicator" style="font-family:'DM Mono',monospace; font-size:7px; color:var(--muted2); display:flex; align-items:center; gap:4px;"><span id="sync-dot" style="width:4px; height:4px; border-radius:50%; background:var(--muted2);"></span><span id="sync-text">IDLE</span></div>
+        <div class="week-nav"><button class="nav-btn" onclick="changeWeek(-1)">‹</button><div class="week-range" id="week-range">—</div><button class="nav-btn" onclick="changeWeek(1)">›</button></div>
+        <button class="settings-btn" onclick="openSettings()">⚙</button>
+      </div>
+    </div>
+    <div id="dow-header" class="dow-header"></div>
+  </div>
+  <div id="grid-area" class="grid-area"></div>
+</div>
+
+<div id="screen-summary" class="screen">
+  <div class="week-header">
+    <div class="week-top">
+        <div class="week-title">STATS</div>
+        <div class="week-nav"><button class="nav-btn" onclick="changeStatsWeek(-1)">‹</button><div class="week-range" id="stats-week-range">—</div><button class="nav-btn" onclick="changeStatsWeek(1)">›</button></div>
+        <button class="settings-btn" onclick="openSettings()">⚙</button>
+    </div>
+  </div>
+  <div id="stats-dashboard" class="stats-dashboard"></div>
+  <div class="summary-container" id="summary-content"></div>
+</div>
+
+<div id="screen-month" class="screen">
+  <div class="week-header">
+    <div class="week-top">
+      <div class="week-title">MONTHLY</div>
+      <div class="header-right">
+        <div class="week-nav"><button class="nav-btn" onclick="changeMonth(-1)">‹</button><div class="week-range" id="month-range">—</div><button class="nav-btn" onclick="changeMonth(1)">›</button></div>
+        <button class="settings-btn" onclick="openSettings()">⚙</button>
+      </div>
+    </div>
+  </div>
+  <div id="month-dashboard" class="stats-dashboard"></div>
+  <div class="summary-container" id="month-content"></div>
+</div>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" id="tab-week" onclick="switchTab('week')"><span>▦</span><span>Grid</span></button>
+  <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')"><span>📊</span><span>Stats</span></button>
+  <button class="tab-btn" id="tab-month" onclick="switchTab('month')"><span>📅</span><span>Month</span></button>
+</nav>
+
+<div id="detail-panel" class="panel"><div class="panel-inner">
+  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div id="d-day" style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1">15</div><div id="d-hour" style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:32px">08:00</div></div><button class="settings-btn" onclick="closeDetail()">✕</button></div>
+  <div class="intensity-row" id="intensity-row" style="margin-bottom:20px"></div>
+  <textarea id="memo-input" class="memo-input" placeholder="今の状態やメモ..."></textarea>
+  <div class="action-row">
+    <button class="clear-btn" onclick="clearAndClose()">CLEAR</button>
+    <button class="save-btn" onclick="saveAndClose()">SAVE LOG</button>
+  </div>
+</div></div>
+
+<div id="settings-panel" class="panel"><div class="panel-inner">
+  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div class="week-title">Settings</div><button class="settings-btn" onclick="closeSettings()">✕</button></div>
+  
+  <div style="margin-bottom:20px">
+    <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Cloud Sync (GAS URL)</div>
+    <input type="text" id="sync-url" class="settings-input" placeholder="https://script.google.com/macros/s/.../exec">
+    <button id="btn-sync" class="sync-btn" onclick="syncToSheets()">MANUAL SYNC</button>
+    <div id="sync-status" style="font-size:10px; text-align:center; color:var(--muted2); line-height:1.4;"></div>
+  </div>
+
+  <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Themes</div>
+  <div id="theme-grid" class="theme-grid"></div>
+</div></div>
+
+<script>
+const RECORDING_HOURS = 12; 
+const GAP = 2;
+const TIME_COL_PX = 28;
+
+/**
+ * ニモさんの戦略：日付キーの標準化 (YYYY-MM-DD)
+ * 修正：月を+1し、常に2桁でパディングすることで整合性を保ちます。
+ */
+function ds(d){
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const date = d.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${date}`;
+}
+
+/**
+ * 参謀：データ浄化装置 (Sanitizer)
+ * 壊れた形式のキー（Mon Mar 30... や 2026-2-30等）を正しい YYYY-MM-DD に修復します。
+ */
+function sanitizeData(raw) {
+    const clean = {};
+    for (let key in raw) {
+        let cleanKey = key;
+        // 1. 不正な文字列キー (Mon Mar 30 202 など) の修復
+        if (isNaN(Date.parse(key)) === false && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+            cleanKey = ds(new Date(key));
+        } 
+        // 2. 以前のバグ (2026-2-30 などパディング不足) の修復
+        else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(key) && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+            const parts = key.split('-');
+            const d = new Date(parts[0], parts[1], parts[2]); // 注意：JSのDateコンストラクタは月が0始まり
+            // ここでは元のキー文字列から推測して再構築
+            cleanKey = `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
+        }
+
+        // マージ処理
+        if (!clean[cleanKey]) {
+            clean[cleanKey] = raw[key];
+        } else {
+            // 重複がある場合は中身を統合
+            clean[cleanKey].slots = Object.assign({}, clean[cleanKey].slots, raw[key].slots);
+            if (raw[key].memo) clean[cleanKey].memo = raw[key].memo;
+        }
+    }
+    return clean;
+}
+
+let rawSaved = JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}');
+let ST = {
+  weekStart: monday(new Date()),
+  statsWeekStart: monday(new Date()),
+  viewMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  data: sanitizeData(rawSaved), // 起動時に浄化を実行
+  themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
+  syncUrl: localStorage.getItem('nimo-v6-sync-url') || '',
+  currentTab: 'week'
+};
+// 浄化後のデータを即時保存
+localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+
+function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
+
+function applyTheme(){
+  const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
+  const root=document.documentElement;
+  th.lv.forEach((c,i)=>root.style.setProperty(`--lv${5-i}`,c));
+  root.style.setProperty('--yellow', th.hi || th.lv[0]);
+}
+
+function calcCellSize(){
+  const headerH = document.querySelector('.week-header').offsetHeight;
+  const navH = 80;
+  const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
+  const cellW = Math.floor(availW / 7);
+  const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
+  const cellH = Math.floor(availH / RECORDING_HOURS);
+  return Math.max(Math.min(cellW, cellH), 12);
+}
+
+function renderWeek(){
+  applyTheme();
+  const sz = calcCellSize();
+  const now = new Date();
+  const todayDs = ds(now);
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
+  
+  document.getElementById('week-range').textContent=`${days[0].getDate()}–${days[6].getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()]}`;
+  
+  const grid=document.getElementById('grid-area'); grid.innerHTML='';
+  grid.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${RECORDING_HOURS}, ${sz}px)`;
+  
+  const dowH=document.getElementById('dow-header');
+  dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
+  dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
+
+  for(let h=8; h<=19; h++){
+    const tl=document.createElement('div'); tl.className='time-label'+(h===now.getHours()?' now-hour':''); tl.textContent=h; grid.appendChild(tl);
+    days.forEach(d=>{
+      const dstr=ds(d);
+      const lv=ST.data[dstr]?.slots?.[h]?.level;
+      const cell=document.createElement('div');
+      cell.className='week-cell'+(dstr===todayDs && h===now.getHours()?' now-cell':'');
+      cell.style.cssText=`height:${sz}px;background:${lv?`var(--lv${lv})`:'var(--empty)'}`;
+      if(ST.data[dstr]?.slots?.[h]?.note) cell.innerHTML='<div style="width:3px;height:3px;background:#fff;border-radius:50%;position:absolute;bottom:2px;right:2px"></div>';
+      cell.onclick=()=>openDetail(d,h);
+      grid.appendChild(cell);
+    });
+  }
+}
+
+async function syncToSheets() {
+  const urlEl = document.getElementById('sync-url');
+  const url = urlEl && urlEl.value ? urlEl.value : ST.syncUrl;
+  const statusEl = document.getElementById('sync-status');
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  
+  if (!url) return;
+
+  ST.syncUrl = url;
+  localStorage.setItem('nimo-v6-sync-url', url);
+
+  if(dot) dot.style.background = "var(--yellow)";
+  if(text) text.textContent = "SYNCING...";
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'sync', data: ST.data })
+    });
+    
+    const resText = await response.text();
+    let result;
+    try {
+        result = JSON.parse(resText);
+    } catch(e) {
+        if(dot) dot.style.background = "var(--lv4)";
+        if(text) text.textContent = "SENT";
+        return;
+    }
+
+    if (result && result.data) {
+      // 受信したデータも即座に浄化してからマージ
+      const cleanIncoming = sanitizeData(result.data);
+      ST.data = Object.assign({}, cleanIncoming, ST.data);
+      localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+      if(dot) dot.style.background = "var(--lv5)";
+      if(text) text.textContent = "UPDATED";
+      
+      if(ST.currentTab === 'summary') renderSummary();
+      else if(ST.currentTab === 'month') renderMonth();
+      else renderWeek();
+    } else {
+      if(dot) dot.style.background = "var(--lv4)";
+      if(text) text.textContent = "OK";
+    }
+  } catch (err) { 
+      if(dot) dot.style.background = "#ff4444";
+      if(text) text.textContent = "ERROR";
+  }
+  
+  setTimeout(() => {
+    if(dot) dot.style.background = "var(--muted2)";
+    if(text) text.textContent = "IDLE";
+  }, 3000);
+}
+
+function renderSummary(){
+  applyTheme();
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.statsWeekStart);d.setDate(d.getDate()+i);return d;});
+  const container = document.getElementById('summary-content');
+  const dash = document.getElementById('stats-dashboard');
+  
+  document.getElementById('stats-week-range').textContent=`${days[0].getDate()}–${days[6].getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.statsWeekStart.getMonth()]}`;
+
+  let weekSum=0, weekCount=0;
+  const dayStats = days.map(d => {
+    const dstr = ds(d);
+    const slots = ST.data[dstr]?.slots || {};
+    let sum=0, count=0;
+    const memoLogs = []; 
+    for(let h=8; h<=19; h++) {
+        const s = slots[h];
+        if(s && s.level){ sum += s.level; count++; }
+        if(s && s.note && s.note.trim() !== '') {
+            memoLogs.push({h: h, lv: s.level || 0, txt: s.note});
+        }
+    }
+    const avg = count > 0 ? (sum/count) : null;
+    if(avg) { weekSum += avg; weekCount++; }
+    return { date: d, avg: avg, notes: memoLogs };
+  });
+  const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
+  
+  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="dash-daily-row">${dayStats.map(s => `<div class="dash-day-block"><div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>`;
+
+  let html = dayStats.filter(s => s.notes.length > 0).map(s => {
+    let memoHtml = `<div class="day-memo-list">${s.notes.map(n => `<div><b>[${n.h}:00]</b> <span style="color:var(--lv${n.lv})">●</span> ${n.txt}</div>`).join('')}</div>`;
+    return `<div class="stat-card" style="border-left-color: var(--lv${s.avg!==null?Math.round(s.avg):'1'})"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
+  }).join('');
+  container.innerHTML = html || `<div style="text-align:center; padding:40px; color:var(--muted2); font-size:12px; font-family:'DM Mono',monospace;">NO MEMOS RECORDED THIS WEEK</div>`;
+}
+
+function renderMonth(){
+  applyTheme();
+  const start = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), 1);
+  const end = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth() + 1, 0);
+  const container = document.getElementById('month-content');
+  const dash = document.getElementById('month-dashboard');
+  document.getElementById('month-range').textContent = `${['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][start.getMonth()]} ${start.getFullYear()}`;
+  
+  let monthSum = 0, monthCount = 0;
+  let dailyStats = [];
+  let monthMemos = [];
+
+  for(let d=1; d<=end.getDate(); d++){
+    const cur = new Date(start.getFullYear(), start.getMonth(), d);
+    const dstr = ds(cur);
+    const slots = ST.data[dstr]?.slots || {};
+    let sum=0, count=0;
+    for(let h=8; h<=19; h++) {
+        if(slots[h]?.level){ sum += slots[h].level; count++; }
+        if(slots[h]?.note) monthMemos.push(`Day ${d}: ${slots[h].note}`);
+    }
+    const avg = count > 0 ? (sum/count) : null;
+    if(avg) { monthSum += avg; monthCount++; }
+    dailyStats.push({ date: cur, avg: avg });
+  }
+  const totalAvg = monthCount > 0 ? (monthSum / monthCount) : 0;
+  
+  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(totalAvg) || 1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div><div id="ai-summary-box" class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px; min-height:60px;">🌙 月間サマリ：<button onclick="getAiSummary()" style="background:var(--lv5); border:none; padding:4px 8px; border-radius:4px; font-size:10px; color:#000; font-weight:bold; cursor:pointer;">AIで分析する</button></div>`;
+  
+  const startOffset = (start.getDay() + 6) % 7; 
+  let html = `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:8px;">`;
+  ['M','T','W','T','F','S','S'].forEach(d => html += `<div style="text-align:center; font-size:8px; color:var(--muted); font-family:'DM Mono',monospace;">${d}</div>`);
+  html += `</div><div class="month-calendar-grid">`;
+  for(let i=0; i<startOffset; i++) html += `<div class="month-day-cell" style="opacity:0"></div>`;
+  dailyStats.forEach(s => {
+    const bgColor = s.avg !== null ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)';
+    const textColor = s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff';
+    html += `<div class="month-day-cell" style="background:${bgColor}; color:${textColor}" onclick="jumpToWeek('${s.date.toISOString()}')"><div class="month-day-num">${s.date.getDate()}</div>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+  window.lastMonthMemos = monthMemos;
+}
+
+async function getAiSummary() {
+  const box = document.getElementById('ai-summary-box');
+  const memos = window.lastMonthMemos || [];
+  if (memos.length === 0) { box.innerHTML = "🌙 月間サマリ：今月はまだメモが記録されていないようですですよ。"; return; }
+  box.innerHTML = "⌛ AI参謀がログを精査しています...";
+  
+  const apiKey = ""; 
+  const prompt = `あなたはニモさんの秘書兼参謀です。以下の1ヶ月間の記録を分析し、仕事・健康・メンタル傾向を総括してください。愛情深く冷静な口調（〜ですよ）で200文字程度で回答してください。\nメモ：\n${memos.join('\n')}`;
+
+  const fetchWithRetry = async (url, options, retries = 5, backoff = 1000) => {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok && retries > 0) throw new Error(res.status);
+      return res;
+    } catch (err) {
+      if (retries === 0) throw err;
+      await new Promise(resolve => setTimeout(resolve, backoff));
+      return fetchWithRetry(url, options, retries - 1, backoff * 2);
+    }
+  };
+
+  try {
+    const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const result = await response.json();
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+    box.innerHTML = `🌙 月間サマリ：${text}`;
+  } catch (err) { 
+    box.innerHTML = "🌙 月間サマリ：分析中にエラーが発生しました。時間を置いて再度お試しくださいですよ。"; 
+  }
+}
+
+function jumpToWeek(dateIso) {
+  const d = new Date(dateIso);
+  ST.weekStart = monday(d);
+  switchTab('week');
+}
 
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
@@ -28,544 +502,61 @@ const THEMES = [
   {id:'ge', name:'GE Style', lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], hi:'#16a34a'}
 ];
 
-// --- Helpers ---
-const ds = (d) => {
-  const year = d.getFullYear();
-  const month = (d.getMonth() + 1).toString().padStart(2, '0');
-  const date = d.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${date}`;
-};
-
-const getMonday = (d) => {
-  const t = new Date(d);
-  t.setHours(0, 0, 0, 0);
-  const dw = t.getDay();
-  t.setDate(t.getDate() + (dw === 0 ? -6 : 1 - dw));
-  return t;
-};
-
-const sanitizeData = (raw) => {
-  const clean = {};
-  if (!raw) return clean;
-  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-  for (let key in raw) {
-    let cleanKey = null;
-    if (datePattern.test(key)) {
-      cleanKey = key;
-    } else {
-      try {
-        let d = new Date(key);
-        if (!isNaN(d.getTime())) {
-          if (d.getFullYear() < 2000) d.setFullYear(new Date().getFullYear());
-          cleanKey = ds(d);
-        }
-      } catch (e) {}
-    }
-    if (!cleanKey) continue;
-    if (!clean[cleanKey]) {
-      clean[cleanKey] = raw[key];
-    } else {
-      clean[cleanKey].slots = { ...clean[cleanKey].slots, ...raw[key].slots };
-    }
-  }
-  return clean;
-};
-
-// --- Components ---
-
-const App = () => {
-  const [data, setData] = useState(() => sanitizeData(JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}')));
-  const [themeId, setThemeId] = useState(localStorage.getItem('nimo-v6-theme-id') || 'emerald');
-  const [currentTab, setCurrentTab] = useState('week');
-  const [weekStart, setWeekStart] = useState(getMonday(new Date()));
-  const [viewMonth, setViewMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  const [syncStatus, setSyncStatus] = useState('IDLE');
-  const [showSettings, setShowSettings] = useState(false);
-  const [selectedCell, setSelectedCell] = useState(null); // { dateStr, hour, date }
-  const [aiAnalysis, setAiAnalysis] = useState("");
-  const [isAiLoading, setIsAiLoading] = useState(false);
-
-  // Sync Logic
-  const syncToSheets = async (currentData) => {
-    setSyncStatus('SYNCING');
-    try {
-      const response = await fetch(DEFAULT_GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'sync', data: currentData })
-      });
-      const result = await response.json();
-      if (result && result.data) {
-        const cleanIncoming = sanitizeData(result.data);
-        const merged = { ...cleanIncoming, ...currentData };
-        setData(merged);
-        localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(merged));
-        setSyncStatus('UPDATED');
-      } else {
-        setSyncStatus('SENT');
-      }
-    } catch (err) {
-      setSyncStatus('ERROR');
-    }
-    setTimeout(() => setSyncStatus('IDLE'), 3000);
-  };
-
-  useEffect(() => {
-    syncToSheets(data);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('nimo-v6-theme-id', themeId);
-  }, [themeId]);
-
-  const activeTheme = useMemo(() => THEMES.find(t => t.id === themeId) || THEMES[0], [themeId]);
-
-  const cssVars = {
-    '--lv5': activeTheme.lv[0],
-    '--lv4': activeTheme.lv[1],
-    '--lv3': activeTheme.lv[2],
-    '--lv2': activeTheme.lv[3],
-    '--lv1': activeTheme.lv[4],
-    '--yellow': activeTheme.hi || activeTheme.lv[0],
-  };
-
-  const handleSaveCell = (dateStr, hour, level, note) => {
-    const newData = { ...data };
-    if (!newData[dateStr]) newData[dateStr] = { slots: {} };
-    newData[dateStr].slots[hour] = { level, note };
-    setData(newData);
-    localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(newData));
-    setSelectedCell(null);
-    syncToSheets(newData);
-  };
-
-  const handleClearCell = (dateStr, hour) => {
-    const newData = { ...data };
-    if (newData[dateStr]?.slots[hour]) {
-      delete newData[dateStr].slots[hour];
-      setData(newData);
-      localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(newData));
-    }
-    setSelectedCell(null);
-    syncToSheets(newData);
-  };
-
-  const getAiSummary = async (memos) => {
-    if (memos.length === 0) return;
-    setIsAiLoading(true);
-    setAiAnalysis("⌛ AI参謀がログを精査しています...");
-    try {
-      const apiKey = ""; // API Key is provided by environment
-      const prompt = `あなたはニモさんの秘書兼参謀です。以下の1ヶ月間の記録を分析し、仕事・健康・メンタル傾向を総括してください。愛情深く冷静な口調（〜ですよ）で200文字程度で回答してください。\nメモ：\n${memos.join('\n')}`;
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-      const result = await response.json();
-      setAiAnalysis(result.candidates?.[0]?.content?.parts?.[0]?.text || "分析に失敗しましたですよ。");
-    } catch (err) {
-      setAiAnalysis("🌙 分析中にエラーが発生しましたですよ。");
-    }
-    setIsAiLoading(false);
-  };
-
-  return (
-    <div style={cssVars} className="bg-[#0d0d0d] text-white h-screen w-full flex flex-col overflow-hidden font-sans select-none">
-      
-      {/* --- Main Screens --- */}
-      <div className="flex-1 flex flex-col overflow-hidden pt-safe">
-        {currentTab === 'week' && (
-          <WeekView 
-            weekStart={weekStart} 
-            setWeekStart={setWeekStart} 
-            data={data} 
-            onCellClick={(d, h) => setSelectedCell({ dateStr: ds(d), hour: h, date: d })} 
-            syncStatus={syncStatus} 
-            setShowSettings={setShowSettings} 
-          />
-        )}
-        {currentTab === 'summary' && (
-          <StatsView 
-            weekStart={weekStart} 
-            setWeekStart={setWeekStart} 
-            data={data} 
-            setShowSettings={setShowSettings} 
-          />
-        )}
-        {currentTab === 'month' && (
-          <MonthView 
-            viewMonth={viewMonth} 
-            setViewMonth={setViewMonth} 
-            data={data} 
-            setShowSettings={setShowSettings} 
-            onJump={(d) => { setWeekStart(getMonday(d)); setCurrentTab('week'); }} 
-            getAiSummary={getAiSummary} 
-            aiAnalysis={aiAnalysis} 
-            isAiLoading={isAiLoading} 
-          />
-        )}
-      </div>
-
-      {/* --- Navigation --- */}
-      <nav className="flex bg-[#0a0a0a]/85 backdrop-blur-md border-t border-white/5 pb-safe">
-        <TabButton active={currentTab === 'week'} onClick={() => setCurrentTab('week')} icon={<GridIcon size={18} />} label="Grid" />
-        <TabButton active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} icon={<BarChart2 size={18} />} label="Stats" />
-        <TabButton active={currentTab === 'month'} onClick={() => setCurrentTab('month')} icon={<Calendar size={18} />} label="Month" />
-      </nav>
-
-      {/* --- Detail Modal --- */}
-      {selectedCell && (
-        <DetailModal 
-          cell={selectedCell} 
-          existing={data[selectedCell.dateStr]?.slots?.[selectedCell.hour]} 
-          onSave={(lvl, nt) => handleSaveCell(selectedCell.dateStr, selectedCell.hour, lvl, nt)} 
-          onClear={() => handleClearCell(selectedCell.dateStr, selectedCell.hour)} 
-          onClose={() => setSelectedCell(null)} 
-        />
-      )}
-
-      {/* --- Settings Panel --- */}
-      {showSettings && (
-        <SettingsPanel 
-          themeId={themeId} 
-          onThemeChange={setThemeId} 
-          onClose={() => setShowSettings(false)} 
-          onManualSync={() => syncToSheets(data)}
-        />
-      )}
-    </div>
-  );
-};
-
-const TabButton = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex-1 py-4 flex flex-col items-center gap-1 transition-colors ${active ? 'text-[var(--yellow)]' : 'text-[#4a4a4a]'}`}>
-    {icon}
-    <span className="text-[10px] uppercase font-mono">{label}</span>
-  </button>
-);
-
-const WeekView = ({ weekStart, setWeekStart, data, onCellClick, syncStatus, setShowSettings }) => {
-  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    return d;
-  }), [weekStart]);
-
-  const todayStr = ds(new Date());
-  const nowHour = new Date().getHours();
-
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center p-3">
-        <div>
-          <div className="text-[7px] font-mono tracking-[0.4em] text-[var(--lv4)]">NIMOGRAM</div>
-          <div className="text-2xl font-bebas tracking-wider leading-none">WEEKLY MATRIX</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-[7px] font-mono text-[#7a7a7a]">
-            <div className={`w-1 h-1 rounded-full ${syncStatus === 'SYNCING' ? 'bg-[var(--yellow)] animate-pulse' : syncStatus === 'ERROR' ? 'bg-red-500' : 'bg-[#4a4a4a]'}`} />
-            {syncStatus}
-          </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setWeekStart(prev => { const d = new Date(prev); d.setDate(d.getDate() - 7); return d; })} className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[#7a7a7a]"><ChevronLeft size={16} /></button>
-            <div className="text-[10px] font-mono w-16 text-center uppercase tracking-tighter">{days[0].getDate()}–{days[6].getDate()} {['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][weekStart.getMonth()]}</div>
-            <button onClick={() => setWeekStart(prev => { const d = new Date(prev); d.setDate(d.getDate() + 7); return d; })} className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[#7a7a7a]"><ChevronRight size={16} /></button>
-          </div>
-          <button onClick={() => setShowSettings(true)} className="w-9 h-9 border border-white/10 rounded-lg flex items-center justify-center bg-white/5"><Settings size={18} /></button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-[28px_repeat(7,1fr)] border-b border-white/5 bg-[#0d0d0d]">
-        <div />
-        {days.map(d => {
-          const isToday = ds(d) === todayStr;
-          return (
-            <div key={d.getTime()} className={`flex flex-col items-center py-1 ${isToday ? 'text-[var(--yellow)]' : 'text-[#7a7a7a]'}`}>
-              <div className="text-[7px] font-mono uppercase leading-none mb-1">{['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div>
-              <div className="text-[15px] font-bebas leading-none">{d.getDate()}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex-1 grid grid-cols-[28px_repeat(7,1fr)] gap-[2px] bg-[#0d0d0d] p-[2px] overflow-hidden">
-        {RECORDING_HOURS.map(h => (
-          <React.Fragment key={h}>
-            <div className={`flex items-center justify-end pr-1.5 text-[9px] font-mono ${h === nowHour ? 'text-[var(--yellow)] font-bold' : 'text-[#7a7a7a]'}`}>{h}</div>
-            {days.map(d => {
-              const dstr = ds(d);
-              const cellData = data[dstr]?.slots?.[h];
-              const isNow = dstr === todayStr && h === nowHour;
-              return (
-                <div 
-                  key={`${dstr}-${h}`}
-                  onClick={() => onCellClick(d, h)}
-                  style={{ background: cellData?.level ? `var(--lv${cellData.level})` : '#0d1117' }}
-                  className={`rounded-[2px] relative border-[5px] border-[#0d0d0d] cursor-pointer transition-transform active:scale-95 ${isNow ? 'ring-2 ring-[var(--yellow)] z-10' : ''}`}
-                >
-                  {cellData?.note && <div className="absolute bottom-0.5 right-0.5 w-[3px] h-[3px] bg-white/60 rounded-full shadow-sm" />}
-                </div>
-              );
-            })}
-          </React.Fragment>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const StatsView = ({ weekStart, setWeekStart, data, setShowSettings }) => {
-  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    return d;
-  }), [weekStart]);
-
-  let weekSum = 0, weekCount = 0;
-  const dayStats = days.map(d => {
-    const dstr = ds(d);
-    const slots = data[dstr]?.slots || {};
-    let sum = 0, count = 0;
-    const memos = [];
-    Object.entries(slots).forEach(([h, s]) => {
-      if (s.level) { sum += s.level; count++; }
-      if (s.note) memos.push({ h, lv: s.level, txt: s.note });
-    });
-    const avg = count > 0 ? sum / count : null;
-    if (avg) { weekSum += avg; weekCount++; }
-    return { date: d, avg, memos };
+function switchTab(t){
+  ST.currentTab=t; 
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${t}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${t}`).classList.add('active');
+  if(t==='summary') renderSummary(); else if(t==='month') renderMonth(); else renderWeek();
+}
+function openDetail(d,h){
+  ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`;
+  document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||'';
+  const r=document.getElementById('intensity-row'); r.innerHTML='';
+  [5,4,3,2,1].forEach(lv=>{
+    const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':'');
+    b.style.background=`var(--lv${lv})`; b.onclick=()=>{ if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:lv}; openDetail(d,h); };
+    r.appendChild(b);
   });
-  const weekAvg = weekCount > 0 ? weekSum / weekCount : 0;
+  document.getElementById('detail-panel').classList.add('open');
+}
+function saveAndClose(){
+  const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n;
+  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); 
+  document.getElementById('detail-panel').classList.remove('open'); 
+  switchTab(ST.currentTab);
+  syncToSheets(); 
+}
+function clearAndClose(){
+  if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); }
+  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+  document.getElementById('detail-panel').classList.remove('open'); 
+  switchTab(ST.currentTab);
+  syncToSheets(); 
+}
+function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); renderWeek(); }
+function changeWeek(delta){ ST.weekStart = new Date(ST.weekStart); ST.weekStart.setDate(ST.weekStart.getDate() + delta * 7); renderWeek(); }
+function changeStatsWeek(dir){ ST.statsWeekStart.setDate(ST.statsWeekStart.getDate()+dir*7); renderSummary(); }
+function changeMonth(dir){ ST.viewMonth.setMonth(ST.viewMonth.getMonth()+dir); renderMonth(); }
+function openSettings(){ renderSettings(); document.getElementById('settings-panel').classList.add('open'); }
+function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); renderWeek(); }
 
-  return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-3 flex justify-between items-center">
-        <div className="text-2xl font-bebas tracking-wider leading-none">STATS</div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => setWeekStart(prev => { const d = new Date(prev); d.setDate(d.getDate() - 7); return d; })} className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[#7a7a7a]"><ChevronLeft size={16} /></button>
-          <div className="text-[10px] font-mono w-16 text-center uppercase tracking-tighter">{days[0].getDate()}–{days[6].getDate()}</div>
-          <button onClick={() => setWeekStart(prev => { const d = new Date(prev); d.setDate(d.getDate() + 7); return d; })} className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[#7a7a7a]"><ChevronRight size={16} /></button>
-          <button onClick={() => setShowSettings(true)} className="ml-2 w-9 h-9 border border-white/10 rounded-lg flex items-center justify-center bg-white/5"><Settings size={18} /></button>
-        </div>
-      </div>
+function renderSettings(){
+  document.getElementById('sync-url').value = ST.syncUrl;
+  const g=document.getElementById('theme-grid'); g.innerHTML='';
+  THEMES.forEach(th=>{
+    const isAct=ST.themeId===th.id;
+    const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':'');
+    card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`;
+    card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); switchTab(ST.currentTab); };
+    g.appendChild(card);
+  });
+}
+window.addEventListener('resize', ()=>renderWeek());
 
-      <div className="bg-[#181818] p-5 border-b-2 border-[var(--lv5)] flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-col">
-            <span className="text-[8px] font-mono text-[#7a7a7a] tracking-widest uppercase mb-1">Weekly Performance</span>
-            <span className="text-5xl font-bebas leading-none" style={{ color: `var(--lv${Math.round(weekAvg) || 1})` }}>
-              {weekAvg.toFixed(2)}<span className="text-xs text-[#7a7a7a] ml-1">AVG</span>
-            </span>
-          </div>
-          <div className="w-12 h-12 rounded-lg shadow-2xl" style={{ backgroundColor: `var(--lv${Math.round(weekAvg) || 1})` }} />
-        </div>
-        <div className="grid grid-cols-7 gap-1.5">
-          {dayStats.map((s, i) => (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <div className="w-full aspect-square rounded-md flex items-center justify-center font-bebas text-sm" style={{ background: s.avg ? `var(--lv${Math.round(s.avg)})` : '#0d1117', color: s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff' }}>
-                {s.avg ? s.avg.toFixed(1) : '-'}
-              </div>
-              <span className="text-[7px] font-mono text-[#7a7a7a]">{['S','M','T','W','T','F','S'][s.date.getDay()]}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-24">
-        {dayStats.filter(s => s.memos.length > 0).map((s, i) => (
-          <div key={i} className="bg-[#181818] p-4 rounded-xl border-l-4" style={{ borderLeftColor: `var(--lv${Math.round(s.avg) || 1})` }}>
-            <div className="flex justify-between items-end mb-2">
-              <span className="font-bebas text-lg opacity-60 leading-none">{['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} {s.date.getDate()}</span>
-              <span className="font-bebas text-2xl leading-none" style={{ color: `var(--lv${Math.round(s.avg) || 1})` }}>{s.avg?.toFixed(2) || '--'}</span>
-            </div>
-            <div className="space-y-1.5 border-t border-white/5 pt-2">
-              {s.memos.map((m, j) => (
-                <div key={j} className="text-[11px] leading-relaxed">
-                  <span className="font-mono font-bold mr-2 opacity-40">[{m.h}:00]</span>
-                  <span className="mr-2" style={{ color: `var(--lv${m.lv})` }}>●</span>
-                  <span className="opacity-90">{m.txt}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-        {dayStats.every(s => s.memos.length === 0) && (
-          <div className="text-center py-20 opacity-30 font-mono text-xs">NO LOGS FOUND THIS WEEK</div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const MonthView = ({ viewMonth, setViewMonth, data, setShowSettings, onJump, getAiSummary, aiAnalysis, isAiLoading }) => {
-  const start = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
-  const end = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0);
-  const startOffset = (start.getDay() + 6) % 7;
-
-  const days = [];
-  const allMemos = [];
-  let monthSum = 0, monthCount = 0;
-
-  for (let d = 1; d <= end.getDate(); d++) {
-    const cur = new Date(start.getFullYear(), start.getMonth(), d);
-    const dstr = ds(cur);
-    const slots = data[dstr]?.slots || {};
-    let sum = 0, count = 0;
-    Object.entries(slots).forEach(([h, s]) => {
-      if (s.level) { sum += s.level; count++; }
-      if (s.note) allMemos.push(`Day ${d} (${h}:00): ${s.note}`);
-    });
-    const avg = count > 0 ? sum / count : null;
-    if (avg) { monthSum += avg; monthCount++; }
-    days.push({ date: cur, avg });
-  }
-
-  const monthAvg = monthCount > 0 ? monthSum / monthCount : 0;
-
-  return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-3 flex justify-between items-center">
-        <div className="text-2xl font-bebas tracking-wider leading-none">MONTHLY</div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => setViewMonth(prev => { const d = new Date(prev); d.setMonth(d.getMonth() - 1); return d; })} className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[#7a7a7a]"><ChevronLeft size={16} /></button>
-          <div className="text-[10px] font-mono w-24 text-center uppercase tracking-tight">{['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][viewMonth.getMonth()]} {viewMonth.getFullYear()}</div>
-          <button onClick={() => setViewMonth(prev => { const d = new Date(prev); d.setMonth(d.getMonth() + 1); return d; })} className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center text-[#7a7a7a]"><ChevronRight size={16} /></button>
-          <button onClick={() => setShowSettings(true)} className="ml-2 w-9 h-9 border border-white/10 rounded-lg flex items-center justify-center bg-white/5"><Settings size={18} /></button>
-        </div>
-      </div>
-
-      <div className="bg-[#181818] p-5 border-b-2 border-[var(--lv5)]">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex flex-col">
-            <span className="text-[8px] font-mono text-[#7a7a7a] tracking-widest uppercase mb-1">Monthly Overview</span>
-            <span className="text-5xl font-bebas leading-none" style={{ color: `var(--lv${Math.round(monthAvg) || 1})` }}>
-              {monthAvg.toFixed(2)}
-            </span>
-          </div>
-          <button 
-            onClick={() => getAiSummary(allMemos)}
-            disabled={isAiLoading || allMemos.length === 0}
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg flex items-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-30"
-          >
-            <Sparkles size={14} className={isAiLoading ? 'animate-spin' : ''} />
-            <span className="text-[10px] font-bebas tracking-widest">AI ANALYSIS</span>
-          </button>
-        </div>
-        {aiAnalysis && (
-          <div className="mt-2 text-[11px] leading-relaxed bg-white/5 p-3 rounded-lg border border-white/5 italic opacity-80 max-h-24 overflow-y-auto">
-            {aiAnalysis}
-          </div>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 pb-24">
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {['M','T','W','T','F','S','S'].map(d => <div key={d} className="text-center text-[8px] font-mono opacity-30">{d}</div>)}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: startOffset }).map((_, i) => <div key={`off-${i}`} />)}
-          {days.map((s, i) => (
-            <div 
-              key={i} 
-              onClick={() => onJump(s.date)}
-              className="aspect-square rounded-md relative flex items-center justify-center font-bebas text-lg cursor-pointer transition-transform active:scale-95"
-              style={{ background: s.avg ? `var(--lv${Math.round(s.avg)})` : '#131313', color: s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff' }}
-            >
-              <span className="absolute top-1 left-1 text-[8px] font-mono opacity-40">{s.date.getDate()}</span>
-              {s.avg ? s.avg.toFixed(1) : ''}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DetailModal = ({ cell, existing, onSave, onClear, onClose }) => {
-  const [level, setLevel] = useState(existing?.level || 0);
-  const [note, setNote] = useState(existing?.note || '');
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-[#131313] rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex items-baseline gap-3">
-            <div className="text-6xl font-bebas leading-none">{cell.date.getDate()}</div>
-            <div className="text-2xl font-bebas text-[var(--yellow)]">{cell.hour}:00</div>
-          </div>
-          <button onClick={onClose} className="p-2 text-[#4a4a4a]"><X size={24} /></button>
-        </div>
-
-        <div className="flex gap-2 mb-6">
-          {[5, 4, 3, 2, 1].map(lvl => (
-            <button 
-              key={lvl}
-              onClick={() => setLevel(lvl)}
-              style={{ backgroundColor: `var(--lv${lvl})` }}
-              className={`flex-1 aspect-square rounded-xl transition-all ${level === lvl ? 'ring-4 ring-white scale-110' : 'opacity-40'}`}
-            />
-          ))}
-        </div>
-
-        <textarea 
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="今の状態やメモ..."
-          className="w-full h-32 bg-[#181818] border border-white/10 rounded-2xl p-4 text-sm outline-none focus:border-[var(--yellow)] transition-colors resize-none mb-6"
-        />
-
-        <div className="flex gap-3">
-          <button onClick={onClear} className="flex-1 py-4 flex items-center justify-center gap-2 border border-white/10 rounded-2xl font-bebas tracking-widest text-[#7a7a7a] hover:bg-white/5 active:bg-white/10 transition-colors">
-            <Trash2 size={18} /> CLEAR
-          </button>
-          <button 
-            onClick={() => onSave(level, note)}
-            disabled={level === 0}
-            className="flex-[2] py-4 flex items-center justify-center gap-2 bg-[var(--lv4)] rounded-2xl font-bebas tracking-[0.3em] text-white disabled:opacity-30 active:brightness-110 transition-all"
-          >
-            <Save size={18} /> SAVE LOG
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const SettingsPanel = ({ themeId, onThemeChange, onClose, onManualSync }) => (
-  <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-    <div className="relative w-full max-w-md bg-[#131313] rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[80vh]">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bebas tracking-wider leading-none">SETTINGS</h2>
-        <button onClick={onClose} className="p-2 text-[#4a4a4a]"><X size={24} /></button>
-      </div>
-
-      <div className="mb-8">
-        <div className="text-[8px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-4">Cloud Synchronization</div>
-        <button onClick={onManualSync} className="w-full py-4 bg-[var(--yellow)] text-black rounded-xl font-bebas tracking-[0.2em] flex items-center justify-center gap-2 active:brightness-95 transition-all">
-          FORCE MANUAL SYNC
-        </button>
-        <p className="text-[8px] text-[#4a4a4a] text-center mt-2 font-mono uppercase">URL IS PRE-CONFIGURED BY NIMOGRAM SQUAD</p>
-      </div>
-
-      <div className="text-[8px] font-mono text-[#4a4a4a] uppercase tracking-widest mb-4 border-t border-white/5 pt-6">Color Palette Themes</div>
-      <div className="grid grid-cols-2 gap-3">
-        {THEMES.map(th => (
-          <button 
-            key={th.id}
-            onClick={() => onThemeChange(th.id)}
-            className={`p-3 rounded-xl border transition-all flex flex-col gap-2 ${themeId === th.id ? 'bg-[#181818] border-[var(--lv4)]' : 'bg-transparent border-white/5'}`}
-          >
-            <div className="flex h-3 gap-0.5 w-full">
-              {th.lv.map((c, i) => <div key={i} className="flex-1 rounded-[1px]" style={{ backgroundColor: c }} />)}
-            </div>
-            <span className="text-[9px] font-mono uppercase tracking-tighter text-left leading-none">{th.name}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-export default App;
+renderWeek();
+syncToSheets(); 
+</script>
+</body>
+</html>
