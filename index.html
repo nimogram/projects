@@ -101,10 +101,43 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .tab-btn::after{content:'';position:absolute;bottom:12px;width:0;height:2px;background:var(--yellow);border-radius:2px;transition: width 0.3s var(--ease-out)}
 .tab-btn.active::after{width:24px}
 
+/* ── REVIEW BUTTON (Floating) ── */
+.review-fab {
+  position: fixed;
+  bottom: calc(84px + env(safe-area-inset-bottom, 20px));
+  right: 20px;
+  width: 72px;
+  height: 38px;
+  background: var(--lv5);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  z-index: 110;
+  box-shadow: 0 4px 15px rgba(0, 255, 163, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-weight: bold;
+}
+.review-fab:active { transform: scale(0.9); opacity: 0.8; }
+
 /* ── PANELS ── */
 .panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(0,0,0,0.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
 .panel.open{transform:translateX(0)}
 .panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto; background: var(--bg); height: 100%; position: relative;}
+
+/* Semi-transparent Review Panel Style */
+.review-panel-inner {
+    background: rgba(13, 13, 13, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-left: 1px solid var(--border2);
+}
 
 .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
 .detail-date-box { display: flex; flex-direction: column; }
@@ -127,6 +160,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .memo-input{width:100%;min-height:120px;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:16px;border-radius:12px;margin-bottom:24px;outline:none; resize: none;}
 .memo-input::placeholder { color: var(--muted); }
+
+.kpt-input { min-height: 80px; margin-bottom: 16px; }
 
 .save-btn{width:100%; padding:20px; background:var(--lv4); color:#fff; border:none; font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:0.4em; border-radius:12px; cursor:pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.1s; font-weight: bold;}
 .save-btn:active{transform:scale(0.98); opacity:0.9;}
@@ -204,6 +239,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   </div>
   <div id="stats-dashboard" class="stats-dashboard"></div>
   <div class="summary-container" id="summary-content"></div>
+  <button class="review-fab" onclick="openReview('wkly')">REVIEW</button>
 </div>
 
 <div id="screen-month" class="screen">
@@ -222,6 +258,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   </div>
   <div id="month-dashboard" class="stats-dashboard"></div>
   <div class="summary-container" id="month-content"></div>
+  <button class="review-fab" onclick="openReview('month')">REVIEW</button>
 </div>
 
 <nav class="tab-nav">
@@ -230,6 +267,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="tab-btn" id="tab-month" onclick="switchTab('month')">MONTH</button>
 </nav>
 
+<!-- ── DETAIL PANEL ── -->
 <div id="detail-panel" class="panel"><div class="panel-inner">
   <button class="settings-btn" onclick="closeDetail()" style="position: absolute; top: 40px; right: 20px;">✕</button>
   <div class="detail-header">
@@ -251,6 +289,32 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="clear-btn" onclick="clearAndClose()" style="width:100%; background:transparent; border:none; color:var(--muted); font-family:'Bebas Neue',sans-serif; letter-spacing:0.2em; font-size:12px; margin-top:24px; cursor:pointer; opacity: 0.6;">CLEAR DATA</button>
 </div></div>
 
+<!-- ── REVIEW PANEL (Right Slide KPT) ── -->
+<div id="review-panel" class="panel"><div class="panel-inner review-panel-inner">
+  <button class="settings-btn" onclick="closeReview()" style="position: absolute; top: 40px; right: 20px;">✕</button>
+  <div class="detail-header">
+    <div class="detail-date-box">
+      <div class="detail-label-top">Review</div>
+      <div id="r-period-title" class="detail-day-num" style="font-size: 48px;">WKLY</div>
+      <div id="r-period-sub" class="detail-full-date">INSIGHT & KPT</div>
+    </div>
+  </div>
+
+  <div class="section-label" style="color: var(--lv5);">KEEP (継続したい成功要因)</div>
+  <textarea id="review-keep" class="memo-input kpt-input" placeholder="良かったこと、続けること"></textarea>
+
+  <div class="section-label" style="color: #ff4444;">PROBLEM (改善が必要な課題)</div>
+  <textarea id="review-problem" class="memo-input kpt-input" placeholder="課題、障害、反省点"></textarea>
+
+  <div class="section-label" style="color: var(--yellow);">TRY (次へのアクション)</div>
+  <textarea id="review-try" class="memo-input kpt-input" placeholder="次に試すこと、具体的な行動"></textarea>
+
+  <button class="save-btn" onclick="saveReview()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    SAVE REVIEW
+  </button>
+</div></div>
+
 <div id="settings-panel" class="panel"><div class="panel-inner">
   <button class="settings-btn" onclick="closeSettings()" style="position: absolute; top: 40px; right: 20px;">✕</button>
   <div class="settings-header"><div class="settings-title">SETTINGS</div></div>
@@ -270,7 +334,6 @@ const RECORDING_HOURS = 12;
 const GAP = 2;
 const TIME_COL_PX = 28;
 
-// Local-time based date string builder to avoid timezone issues
 function ds(d) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -289,7 +352,8 @@ let ST = {
   themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
   isLightMode: localStorage.getItem('nimo-v6-lightmode') === 'true',
   syncUrl: localStorage.getItem('nimo-v6-sync-url') || '',
-  currentTab: 'week'
+  currentTab: 'week',
+  reviewType: 'wkly' // 'wkly' or 'month'
 };
 
 if(ST.isLightMode) document.body.classList.add('light-mode');
@@ -493,6 +557,37 @@ function saveAndClose(){
     document.getElementById('detail-panel').classList.remove('open'); 
     refreshTab(); syncToSheets(); 
 }
+
+// --- REVIEW PANEL LOGIC ---
+function openReview(type) {
+    ST.reviewType = type;
+    const key = type === 'wkly' ? `review-w-${ds(ST.statsWeekStart)}` : `review-m-${ST.viewMonth.getFullYear()}-${ST.viewMonth.getMonth() + 1}`;
+    const reviewData = ST.data[key] || { keep: '', problem: '', try: '' };
+    
+    document.getElementById('r-period-title').textContent = type.toUpperCase();
+    document.getElementById('review-keep').value = reviewData.keep || '';
+    document.getElementById('review-problem').value = reviewData.problem || '';
+    document.getElementById('review-try').value = reviewData.try || '';
+    
+    document.getElementById('review-panel').classList.add('open');
+}
+
+function saveReview() {
+    const type = ST.reviewType;
+    const key = type === 'wkly' ? `review-w-${ds(ST.statsWeekStart)}` : `review-m-${ST.viewMonth.getFullYear()}-${ST.viewMonth.getMonth() + 1}`;
+    
+    ST.data[key] = {
+        keep: document.getElementById('review-keep').value,
+        problem: document.getElementById('review-problem').value,
+        try: document.getElementById('review-try').value
+    };
+    
+    localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+    document.getElementById('review-panel').classList.remove('open');
+    syncToSheets();
+}
+
+function closeReview() { document.getElementById('review-panel').classList.remove('open'); }
 
 function clearAndClose(){ 
     if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; } 
