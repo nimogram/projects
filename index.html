@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- PWA: スマホで独立したアプリとして動作させる設定 -->
+<!-- PWA設定: スマホで独立したアプリとして動作 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MOOD LOG">
+<meta name="apple-mobile-web-app-title" content="NIMOGRAM">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0d0d">
 
@@ -21,7 +21,6 @@
 
 /* ── THEME VARIABLES ── */
 :root {
-  /* SCREENSHOT ACCURATE EMERALD PALETTE (VIBRANT) */
   --lv5:#00ffa3;--lv4:#00d18b;--lv3:#00a36c;--lv2:#00754d;--lv1:#00472e;
   --empty:#0d1117; --yellow:#ffff00;
   --bg:#0d0d0d;--surface:#131313;--card:#181818;
@@ -29,7 +28,6 @@
   --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
   --gap:2px;
   --time-col:28px;
-  
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --anim-speed: 0.3s;
 }
@@ -52,6 +50,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
 
 .week-nav-container { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
+.week-nav{display:flex;align-items:center;gap:6px}
 .week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase}
 
 .nav-btn{width:22px;height:22px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition: all 0.2s;}
@@ -75,8 +74,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .week-cell:active{transform:scale(0.9); z-index: 5;}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
-/* Glow Animations (Surrounding Aura) */
-.lv-1 { box-shadow: 0 0 12px 1px var(--lv1) !important; }
+/* Glow Animations */
+.lv-1 { box-shadow: 0 0 10px 1px var(--lv1) !important; }
 .lv-5 { box-shadow: 0 0 16px 2px var(--lv5) !important; }
 
 /* ── DASHBOARDS ── */
@@ -88,25 +87,55 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .dash-unit{font-size:12px;color:var(--muted2);margin-left:4px}
 
 .summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
-.stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5); animation: cardIn 0.5s var(--ease-out) forwards; border: 1px solid var(--border);}
+.stat-card{background:var(--card);border-radius:12px;padding:16px 20px;margin-bottom:16px;border-left:4px solid var(--lv5); animation: cardIn 0.5s var(--ease-out) forwards; border: 1px solid var(--border);}
+.stat-title { font-family:'Bebas Neue',sans-serif; font-size:18px; margin-bottom:4px; }
+.day-memo-list { font-size:11px; line-height:1.6; color:var(--text); opacity:0.95; }
+
 @keyframes cardIn {
   from { opacity: 0; transform: translateX(-10px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* ── TAB NAVIGATION ── */
-.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100;height:calc(56px + env(safe-area-inset-bottom, 20px))}
-.tab-btn{flex:1;padding:0;border:none;background:transparent;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:0.12em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition: all 0.3s var(--ease-out);position:relative}
-.tab-btn.active{color:var(--yellow);transform:scale(1.1)}
-.tab-btn::after{content:'';position:absolute;bottom:10px;width:0;height:2px;background:var(--yellow);border-radius:2px;transition: width 0.3s var(--ease-out)}
-.tab-btn.active::after{width:28px}
+/* ── TAB NAVIGATION (Simplified Labels) ── */
+.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100;height:calc(64px + env(safe-area-inset-bottom, 20px))}
+.tab-btn{flex:1;padding:0;border:none;background:transparent;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.12em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition: all 0.3s var(--ease-out);position:relative;opacity:0.6}
+.tab-btn.active{color:var(--yellow);opacity:1;transform:translateY(-2px)}
+.tab-btn::after{content:'';position:absolute;bottom:12px;width:0;height:2px;background:var(--yellow);border-radius:2px;transition: width 0.3s var(--ease-out)}
+.tab-btn.active::after{width:24px}
 
 /* ── PANELS ── */
-.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
+.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(0,0,0,0.7); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
 .panel.open{transform:translateX(0)}
-.panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto; background: var(--bg); height: 100%; border-left: 1px solid var(--border2); position: relative;}
+.panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto; background: var(--bg); height: 100%; position: relative;}
 
-.settings-header { text-align: center; margin-bottom: 32px; }
+.detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+.detail-date-box { display: flex; flex-direction: column; }
+.detail-label-top { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--lv5); display: flex; align-items: center; gap: 4px; margin-bottom: 4px; text-transform: uppercase;}
+.detail-label-top::before { content: '●'; font-size: 8px; }
+.detail-day-num { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 0.9; color: var(--text); }
+.detail-full-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted2); text-transform: uppercase; margin-top: 4px; }
+.detail-time-val { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--lv5); margin-top: -4px; }
+
+.section-label { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted2); margin-bottom: 12px; letter-spacing: 0.05em; }
+
+/* Intensity Selector */
+.intensity-container { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 20px 16px; margin-bottom: 24px; position: relative; overflow: hidden; }
+.intensity-container::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--lv4); opacity: 0.8; }
+.intensity-row { display: flex; justify-content: space-between; gap: 8px; }
+.intensity-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.lv-btn { width: 100%; aspect-ratio: 1; border-radius: 6px; border: none; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+.lv-btn.act { outline: 3px solid #fff; outline-offset: -3px; transform: scale(1.05); }
+.lv-label { font-family: 'Bebas Neue', sans-serif; font-size: 9px; color: var(--muted2); letter-spacing: 0.05em; text-transform: uppercase; }
+.lv-btn.act + .lv-label { color: var(--text); font-weight: bold; }
+
+.memo-input{width:100%;min-height:120px;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:16px;border-radius:12px;margin-bottom:24px;outline:none; resize: none;}
+.memo-input::placeholder { color: var(--muted); }
+
+.save-btn{width:100%; padding:20px; background:var(--lv4); color:#fff; border:none; font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:0.4em; border-radius:12px; cursor:pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.1s; font-weight: bold;}
+.save-btn:active{transform:scale(0.98); opacity:0.9;}
+
+/* ── SETTINGS ── */
+.settings-header { text-align: left; margin-bottom: 32px; }
 .settings-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 0.1em; color: var(--text); }
 
 .mode-toggle-area { margin-bottom: 32px; padding: 16px; background: var(--surface); border-radius: 12px; border: 1px solid var(--border2); }
@@ -116,11 +145,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .toggle-dot { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: 0.3s; }
 .toggle-switch.active .toggle-dot { left: 27px; }
 
-.memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none;}
-.action-row{display:flex;gap:10px}
-.clear-btn{flex:1;padding:18px;background:transparent;border:1px solid var(--border2);color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer;}
-.save-btn{flex:2;padding:18px;background:var(--lv5);color:#000;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-weight: bold;}
-
 .theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px; margin-top:10px;}
 .theme-card{border:1px solid var(--border2);border-radius:8px;padding:8px;cursor:pointer;background:var(--surface); transition: all 0.2s;}
 .theme-card.active{border-color:var(--lv5);box-shadow:0 0 0 1px var(--lv5); transform: scale(1.05);}
@@ -128,8 +152,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .theme-swatch{flex:1;height:100%;}
 .theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase; text-align: left; opacity: 0.8;}
 
-.day-memo-list { font-size: 12px; line-height: 1.6; }
-.day-memo-list b { font-family: 'DM Mono', monospace; font-size: 10px; opacity: 0.8; margin-right: 4px; }
+.sync-box { margin-bottom: 32px; }
+.manual-sync-btn { width: 100%; padding: 18px; background: var(--lv5); color: #000; border: none; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.2em; border-radius: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
 
 .alert-box{background:rgba(128,128,128,0.1); border:1px solid var(--border2); padding:12px; border-radius:8px; margin-top:12px; font-size:12px; color:var(--text); line-height:1.5;}
 
@@ -210,36 +234,40 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </nav>
 
 <div id="detail-panel" class="panel"><div class="panel-inner">
-  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div id="d-day" style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1">15</div><div id="d-hour" style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:32px">08:00</div></div><button class="settings-btn" onclick="closeDetail()">✕</button></div>
-  <div class="intensity-row" id="intensity-row" style="margin-bottom:20px"></div>
-  <textarea id="memo-input" class="memo-input" placeholder="今の状態やメモ..."></textarea>
-  <div class="action-row">
-    <button class="clear-btn" onclick="clearAndClose()">CLEAR</button>
-    <button class="save-btn" onclick="saveAndClose()" style="background:var(--lv4); color:#fff;">SAVE LOG</button>
+  <button class="settings-btn" onclick="closeDetail()" style="position: absolute; top: 40px; right: 20px;">✕</button>
+  <div class="detail-header">
+    <div class="detail-date-box">
+      <div class="detail-label-top">Log</div>
+      <div id="d-day-num" class="detail-day-num">--</div>
+      <div id="d-time-val" class="detail-time-val">--:--</div>
+      <div id="d-full-date" class="detail-full-date">--- . --- ----</div>
+    </div>
   </div>
+
+  <div class="section-label">コンディション強度</div>
+  <div class="intensity-container">
+    <div class="intensity-row" id="intensity-row"></div>
+  </div>
+
+  <div class="section-label">メモ</div>
+  <textarea id="memo-input" class="memo-input" placeholder="今の気分や記録など"></textarea>
+
+  <button class="save-btn" onclick="saveAndClose()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    SAVE
+  </button>
+  <button class="clear-btn" onclick="clearAndClose()" style="width:100%; background:transparent; border:none; color:var(--muted); font-family:'Bebas Neue',sans-serif; letter-spacing:0.2em; font-size:12px; margin-top:24px; cursor:pointer; opacity: 0.6;">CLEAR DATA</button>
 </div></div>
 
 <div id="settings-panel" class="panel"><div class="panel-inner">
   <button class="settings-btn" onclick="closeSettings()" style="position: absolute; top: 40px; right: 20px;">✕</button>
-  <div class="settings-header">
-    <div class="settings-title">SETTINGS</div>
-  </div>
-  
-  <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;margin-bottom:8px">Cloud Sync (GAS URL)</div>
-  <div style="margin-bottom:24px">
+  <div class="settings-header"><div class="settings-title">SETTINGS</div></div>
+  <div class="sync-box">
+    <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;margin-bottom:8px">Cloud Sync (GAS URL)</div>
     <input type="text" id="sync-url" class="settings-input" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:12px;border-radius:8px;margin-bottom:15px;outline:none" placeholder="https://script.google.com/macros/s/.../exec">
-    <button id="btn-sync" class="save-btn" style="width:100%;" onclick="syncToSheets()">MANUAL SYNC</button>
+    <button id="btn-sync" class="manual-sync-btn" onclick="syncToSheets()">MANUAL SYNC</button>
   </div>
-
-  <div class="mode-toggle-area">
-    <div class="mode-toggle-row">
-      <div style="font-size:14px; font-weight:600;">White / Light Mode</div>
-      <div class="toggle-switch" id="mode-toggle" onclick="toggleMode()">
-        <div class="toggle-dot"></div>
-      </div>
-    </div>
-  </div>
-
+  <div class="mode-toggle-area"><div class="mode-toggle-row"><div style="font-size:14px; font-weight:600;">White / Light Mode</div><div class="toggle-switch" id="mode-toggle" onclick="toggleMode()"><div class="toggle-dot"></div></div></div></div>
   <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;margin-bottom:12px">Themes</div>
   <div id="theme-grid" class="theme-grid"></div>
 </div></div>
@@ -265,7 +293,6 @@ let ST = {
   currentTab: 'week'
 };
 
-// --- UI MODES ---
 if(ST.isLightMode) document.body.classList.add('light-mode');
 window.onload = () => {
   if(ST.isLightMode) document.getElementById('mode-toggle')?.classList.add('active');
@@ -290,7 +317,6 @@ async function typeValue(id, value) {
   for (let char of str) { el.innerHTML += char; await new Promise(r => setTimeout(r, 80)); }
 }
 
-// --- INTERNAL INSIGHT LOGIC ---
 function getInternalInsight(avg, levelCounts, period = 'week') {
     if (avg === 0) return "まだ記録がありません。ログを溜めていきましょうですよ。";
     let advice = "";
@@ -304,7 +330,6 @@ function getInternalInsight(avg, levelCounts, period = 'week') {
     return `${period === 'week' ? '💎 週間' : '🌙 月間'}レポ：${trend} 平均は${avg.toFixed(2)}。${advice}`;
 }
 
-// --- CLOUD SYNC ---
 async function syncToSheets() {
   const url = document.getElementById('sync-url').value || ST.syncUrl;
   if (!url) return;
@@ -334,7 +359,6 @@ async function syncToSheets() {
   }, 3000);
 }
 
-// --- RENDERERS ---
 function applyTheme(){
   const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
   const root=document.documentElement;
@@ -396,11 +420,7 @@ function renderSummary(){
   });
   const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
 
-  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" id="wkly-avg-val" style="color: var(--lv${Math.round(weekAvg) || 1})">0.00<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="alert-box">${getInternalInsight(weekAvg, levelCounts, 'week')}</div><div class="dash-daily-row" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px;">${dayStats.map(s => {
-    const lv = Math.round(s.avg);
-    const glowClass = lv === 5 ? 'lv-5' : (lv === 1 ? 'lv-1' : '');
-    return `<div style="text-align:center;"><div class="${glowClass}" style="aspect-ratio:1; background:${s.avg ? `var(--lv${lv})` : 'var(--empty)'}; border-radius:4px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:22px; color:${lv > 3 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div style="font-size:7px; color:var(--muted2); font-family:'DM Mono',monospace;">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`;
-  }).join('')}</div>`;
+  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" id="wkly-avg-val" style="color: var(--lv${Math.round(weekAvg) || 1})">0.00<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="alert-box">${getInternalInsight(weekAvg, levelCounts, 'week')}</div><div class="dash-daily-row" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px;">${dayStats.map(s => `<div style="text-align:center;"><div style="aspect-ratio:1; background:${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; border-radius:4px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:12px; color:${(Math.round(s.avg)||0)>2?'#000':'#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div style="font-size:7px; color:var(--muted2); font-family:'DM Mono',monospace;">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>`;
   typeValue('wkly-avg-val', weekAvg);
 
   container.innerHTML = dayStats.filter(s => s.notes.length > 0).map((s, idx) => `
@@ -440,18 +460,56 @@ function renderMonth(){
   for(let i=0;i<offset;i++) html += `<div></div>`;
   dailyStats.forEach(s => {
     const lv = Math.round(s.avg);
-    const glowClass = lv === 5 ? 'lv-5' : (lv === 1 ? 'lv-1' : '');
-    html += `<div class="${glowClass}" style="aspect-ratio:1; background:${s.avg ? `var(--lv${lv})` : 'var(--empty)'}; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:22px; color:${lv > 3 ? '#000' : '#fff'}; position:relative; cursor:pointer;" onclick="jumpToWeek('${new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), s.d).toISOString()}')"><span style="position:absolute; top:2px; left:2px; font-size:7px; opacity:0.5;">${s.d}</span>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
+    const glow = lv === 5 ? 'lv-5' : (lv === 1 ? 'lv-1' : '');
+    html += `<div class="${glow}" style="aspect-ratio:1; background:${s.avg ? `var(--lv${lv})` : 'var(--empty)'}; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:16px; color:${lv>3?'#000':'#fff'}; position:relative; cursor:pointer;" onclick="jumpToWeek('${new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), s.d).toISOString()}')"><span style="position:absolute; top:2px; left:2px; font-size:7px; opacity:0.5;">${s.d}</span>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
   });
   container.innerHTML = html + `</div>`;
 }
 
-// --- ACTIONS ---
 function switchTab(t){ ST.currentTab=t; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(`screen-${t}`).classList.add('active'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(`tab-${t}`).classList.add('active'); refreshTab(); }
 function refreshTab() { if(ST.currentTab==='summary') renderSummary(); else if(ST.currentTab==='month') renderMonth(); else renderWeek(); }
-function openDetail(d,h){ ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`; document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||''; const r=document.getElementById('intensity-row'); r.innerHTML=''; [5,4,3,2,1].forEach(lv=>{ const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':''); b.style.background=`var(--lv${lv})`; b.onclick=()=>{ if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:lv}; openDetail(d,h); }; r.appendChild(b); }); document.getElementById('detail-panel').classList.add('open'); }
-function saveAndClose(){ const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); refreshTab(); syncToSheets(); }
-function clearAndClose(){ if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; } localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); refreshTab(); syncToSheets(); }
+
+function openDetail(d,h){ 
+    ST.selDs=ds(d); ST.selHour=h; 
+    document.getElementById('d-day-num').textContent=d.getDate(); 
+    document.getElementById('d-time-val').textContent=`${h.toString().padStart(2,'0')}:00`; 
+    const month = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][d.getMonth()];
+    const dow = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
+    document.getElementById('d-full-date').textContent=`${dow} . ${month} ${d.getFullYear()}`;
+    document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||''; 
+    const r=document.getElementById('intensity-row'); r.innerHTML=''; 
+    const levels = [ {lv:5, label:'PEAK'}, {lv:4, label:'GOOD'}, {lv:3, label:'FAIR'}, {lv:2, label:'LOW'}, {lv:1, label:'BAD'} ];
+    levels.forEach(item=>{ 
+        const wrapper = document.createElement('div'); wrapper.className = 'intensity-item';
+        const b=document.createElement('button'); 
+        b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===item.lv?' act':''); 
+        b.style.background=`var(--lv${item.lv})`; 
+        b.onclick=()=>{ 
+            if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; 
+            ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:item.lv}; 
+            openDetail(d,h); 
+        }; 
+        const label = document.createElement('div'); label.className = 'lv-label'; label.textContent = item.label;
+        wrapper.appendChild(b); wrapper.appendChild(label); r.appendChild(wrapper); 
+    }); 
+    document.getElementById('detail-panel').classList.add('open'); 
+}
+
+function saveAndClose(){ 
+    const n=document.getElementById('memo-input').value; 
+    if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n; 
+    localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); 
+    document.getElementById('detail-panel').classList.remove('open'); 
+    refreshTab(); syncToSheets(); 
+}
+
+function clearAndClose(){ 
+    if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; } 
+    localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); 
+    document.getElementById('detail-panel').classList.remove('open'); 
+    refreshTab(); syncToSheets(); 
+}
+
 function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); renderWeek(); }
 function changeWeek(delta){ ST.weekStart = new Date(ST.weekStart); ST.weekStart.setDate(ST.weekStart.getDate() + delta * 7); renderWeek(); }
 function changeStatsWeek(dir){ ST.statsWeekStart.setDate(ST.statsWeekStart.getDate()+dir*7); renderSummary(); }
@@ -466,11 +524,8 @@ function renderSettings(){
     const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':''); 
     card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`; 
     card.onclick=()=>{ 
-      ST.themeId=th.id; 
-      localStorage.setItem('nimo-v6-theme-id',th.id); 
-      applyTheme(); 
-      renderSettings(); 
-      refreshTab(); 
+      ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); 
+      applyTheme(); renderSettings(); refreshTab(); 
     }; 
     g.appendChild(card); 
   }); 
@@ -478,7 +533,6 @@ function renderSettings(){
 function jumpToWeek(dateIso) { const d = new Date(dateIso); ST.weekStart = monday(d); switchTab('week'); }
 function calcCellSize(){ return Math.max(Math.min(Math.floor((window.innerWidth-TIME_COL_PX-20)/7), Math.floor((window.innerHeight-250)/RECORDING_HOURS)), 15); }
 
-// --- THEME DATA (Screenshot Accurate 20 Themes) ---
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00ffa3','#00d18b','#00a36c','#00754d','#00472e'], hi:'#00ffa3'},
   {id:'sky', name:'Sky', lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], hi:'#bae6fd'},
