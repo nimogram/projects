@@ -128,6 +128,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .theme-swatch{flex:1;height:100%;}
 .theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase; text-align: left; opacity: 0.8;}
 
+.day-memo-list { font-size: 12px; line-height: 1.6; }
+.day-memo-list b { font-family: 'DM Mono', monospace; font-size: 10px; opacity: 0.8; margin-right: 4px; }
+
 .alert-box{background:rgba(128,128,128,0.1); border:1px solid var(--border2); padding:12px; border-radius:8px; margin-top:12px; font-size:12px; color:var(--text); line-height:1.5;}
 
 @keyframes pulseSync {
@@ -396,7 +399,7 @@ function renderSummary(){
   dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" id="wkly-avg-val" style="color: var(--lv${Math.round(weekAvg) || 1})">0.00<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="alert-box">${getInternalInsight(weekAvg, levelCounts, 'week')}</div><div class="dash-daily-row" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px;">${dayStats.map(s => {
     const lv = Math.round(s.avg);
     const glowClass = lv === 5 ? 'lv-5' : (lv === 1 ? 'lv-1' : '');
-    return `<div style="text-align:center;"><div class="${glowClass}" style="aspect-ratio:1; background:${s.avg ? `var(--lv${lv})` : 'var(--empty)'}; border-radius:4px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:18px; color:${lv > 3 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div style="font-size:7px; color:var(--muted2); font-family:'DM Mono',monospace;">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`;
+    return `<div style="text-align:center;"><div class="${glowClass}" style="aspect-ratio:1; background:${s.avg ? `var(--lv${lv})` : 'var(--empty)'}; border-radius:4px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:22px; color:${lv > 3 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div style="font-size:7px; color:var(--muted2); font-family:'DM Mono',monospace;">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`;
   }).join('')}</div>`;
   typeValue('wkly-avg-val', weekAvg);
 
@@ -438,7 +441,7 @@ function renderMonth(){
   dailyStats.forEach(s => {
     const lv = Math.round(s.avg);
     const glowClass = lv === 5 ? 'lv-5' : (lv === 1 ? 'lv-1' : '');
-    html += `<div class="${glowClass}" style="aspect-ratio:1; background:${s.avg ? `var(--lv${lv})` : 'var(--empty)'}; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:18px; color:${lv > 3 ? '#000' : '#fff'}; position:relative; cursor:pointer;" onclick="jumpToWeek('${new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), s.d).toISOString()}')"><span style="position:absolute; top:2px; left:2px; font-size:7px; opacity:0.5;">${s.d}</span>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
+    html += `<div class="${glowClass}" style="aspect-ratio:1; background:${s.avg ? `var(--lv${lv})` : 'var(--empty)'}; border-radius:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:22px; color:${lv > 3 ? '#000' : '#fff'}; position:relative; cursor:pointer;" onclick="jumpToWeek('${new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), s.d).toISOString()}')"><span style="position:absolute; top:2px; left:2px; font-size:7px; opacity:0.5;">${s.d}</span>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
   });
   container.innerHTML = html + `</div>`;
 }
