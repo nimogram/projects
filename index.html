@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 
-<!-- PWA設定: スマホで独立したアプリとして動作 -->
+<!-- PWA設定 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -50,7 +50,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
 
 .week-nav-container { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
-.week-nav{display:flex;align-items:center;gap:6px}
 .week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase}
 
 .nav-btn{width:22px;height:22px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition: all 0.2s;}
@@ -74,7 +73,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .week-cell:active{transform:scale(0.9); z-index: 5;}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
-/* Glow Animations */
 .lv-1 { box-shadow: 0 0 10px 1px var(--lv1) !important; }
 .lv-5 { box-shadow: 0 0 16px 2px var(--lv5) !important; }
 
@@ -96,7 +94,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* ── TAB NAVIGATION (Simplified Labels) ── */
+/* ── TAB NAVIGATION ── */
 .tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100;height:calc(64px + env(safe-area-inset-bottom, 20px))}
 .tab-btn{flex:1;padding:0;border:none;background:transparent;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.12em;cursor:pointer;display:flex;align-items:center;justify-content:center;transition: all 0.3s var(--ease-out);position:relative;opacity:0.6}
 .tab-btn.active{color:var(--yellow);opacity:1;transform:translateY(-2px)}
@@ -118,7 +116,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 .section-label { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted2); margin-bottom: 12px; letter-spacing: 0.05em; }
 
-/* Intensity Selector */
 .intensity-container { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 20px 16px; margin-bottom: 24px; position: relative; overflow: hidden; }
 .intensity-container::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--lv4); opacity: 0.8; }
 .intensity-row { display: flex; justify-content: space-between; gap: 8px; }
@@ -243,15 +240,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
       <div id="d-full-date" class="detail-full-date">--- . --- ----</div>
     </div>
   </div>
-
   <div class="section-label">コンディション強度</div>
-  <div class="intensity-container">
-    <div class="intensity-row" id="intensity-row"></div>
-  </div>
-
+  <div class="intensity-container"><div class="intensity-row" id="intensity-row"></div></div>
   <div class="section-label">メモ</div>
   <textarea id="memo-input" class="memo-input" placeholder="今の気分や記録など"></textarea>
-
   <button class="save-btn" onclick="saveAndClose()">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
     SAVE
@@ -278,7 +270,14 @@ const RECORDING_HOURS = 12;
 const GAP = 2;
 const TIME_COL_PX = 28;
 
-function ds(d){ return d.toISOString().split('T')[0]; }
+// Local-time based date string builder to avoid timezone issues
+function ds(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
 function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
 
 let rawSaved = JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}');
@@ -372,15 +371,12 @@ function renderWeek(){
   const todayDs = ds(now);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
   document.getElementById('week-range').textContent=`${days[0].getDate()}-${days[6].getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()]}`;
-  
   const grid=document.getElementById('grid-area'); grid.innerHTML='';
   grid.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
   grid.style.gridTemplateRows = `repeat(${RECORDING_HOURS}, ${sz}px)`;
-  
   const dowH=document.getElementById('dow-header');
   dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
   dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['MON','TUE','WED','THU','FRI','SAT','SUN'][(d.getDay()+6)%7]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
-
   for(let h=8; h<=19; h++){
     const tl=document.createElement('div'); tl.className='time-label'+(h===now.getHours()?' now-hour':''); tl.textContent=h; grid.appendChild(tl);
     days.forEach(d=>{
@@ -403,7 +399,6 @@ function renderSummary(){
   const container = document.getElementById('summary-content');
   const dash = document.getElementById('stats-dashboard');
   document.getElementById('stats-week-range').textContent=`${days[0].getDate()}-${days[6].getDate()}`;
-  
   let weekSum=0, weekCount=0, levelCounts={1:0,2:0,3:0,4:0,5:0};
   const dayStats = days.map(d => {
     const dstr = ds(d);
@@ -419,10 +414,8 @@ function renderSummary(){
     return { date:d, avg, notes:memoLogs };
   });
   const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
-
   dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" id="wkly-avg-val" style="color: var(--lv${Math.round(weekAvg) || 1})">0.00<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="alert-box">${getInternalInsight(weekAvg, levelCounts, 'week')}</div><div class="dash-daily-row" style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:8px;">${dayStats.map(s => `<div style="text-align:center;"><div style="aspect-ratio:1; background:${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; border-radius:4px; margin-bottom:4px; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:12px; color:${(Math.round(s.avg)||0)>2?'#000':'#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div style="font-size:7px; color:var(--muted2); font-family:'DM Mono',monospace;">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>`;
   typeValue('wkly-avg-val', weekAvg);
-
   container.innerHTML = dayStats.filter(s => s.notes.length > 0).map((s, idx) => `
     <div class="stat-card" style="border-left-color: var(--lv${Math.round(s.avg)||1}); animation-delay: ${idx*0.1}s;">
       <div style="font-size:10px; color:var(--muted2); font-family:'DM Mono',monospace; margin-bottom:8px;">${s.date.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]}</div>
@@ -436,7 +429,6 @@ function renderMonth(){
   const dash = document.getElementById('month-dashboard');
   const container = document.getElementById('month-content');
   document.getElementById('month-range').textContent = `${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][start.getMonth()]} ${start.getFullYear()}`;
-  
   let monthSum=0, monthCount=0, totalData=0, levelCounts={1:0,2:0,3:0,4:0,5:0};
   let dailyStats = [];
   for(let d=1; d<=end.getDate(); d++){
@@ -454,7 +446,6 @@ function renderMonth(){
   const totalAvg = monthCount > 0 ? (monthSum / monthCount) : 0;
   dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" id="month-avg-val" style="color: var(--lv${Math.round(totalAvg) || 1})">0.00<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div><div class="alert-box">${getInternalInsight(totalAvg, levelCounts, 'month')}</div>`;
   typeValue('month-avg-val', totalAvg);
-
   let html = `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap: 4px; padding: 10px 0;">`;
   const offset = (start.getDay()+6)%7;
   for(let i=0;i<offset;i++) html += `<div></div>`;
@@ -516,6 +507,7 @@ function changeStatsWeek(dir){ ST.statsWeekStart.setDate(ST.statsWeekStart.getDa
 function changeMonth(dir){ ST.viewMonth.setMonth(ST.viewMonth.getMonth()+dir); renderMonth(); }
 function openSettings(){ renderSettings(); document.getElementById('settings-panel').classList.add('open'); }
 function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); renderWeek(); }
+
 function renderSettings(){ 
   document.getElementById('sync-url').value = ST.syncUrl; 
   const g=document.getElementById('theme-grid'); g.innerHTML=''; 
@@ -530,6 +522,7 @@ function renderSettings(){
     g.appendChild(card); 
   }); 
 }
+
 function jumpToWeek(dateIso) { const d = new Date(dateIso); ST.weekStart = monday(d); switchTab('week'); }
 function calcCellSize(){ return Math.max(Math.min(Math.floor((window.innerWidth-TIME_COL_PX-20)/7), Math.floor((window.innerHeight-250)/RECORDING_HOURS)), 15); }
 
