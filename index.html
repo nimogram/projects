@@ -28,22 +28,32 @@
   --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
   --gap:2px;
   --time-col:28px;
+  
+  /* Micro-animations */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --anim-speed: 0.3s;
 }
 
 html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
 
-.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-.screen.active{display:flex}
+.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;opacity:0;transform:translateY(8px);transition: opacity var(--anim-speed) var(--ease-out), transform var(--anim-speed) var(--ease-out);}
+.screen.active{display:flex;opacity:1;transform:translateY(0)}
 
 /* ── HEADER ── */
 .week-header{flex-shrink:0;background:var(--bg);padding-top:env(safe-area-inset-top,36px)}
-.week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 12px 10px}
+.week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 10px; position: relative;}
 .week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
-.header-right{display:flex;align-items:center;gap:12px}
+
+.week-nav-container { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
 .week-nav{display:flex;align-items:center;gap:6px}
 .week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase}
-.nav-btn{width:28px;height:28px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
-.settings-btn{width:38px;height:38px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+
+.nav-btn{width:22px;height:22px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition: all 0.2s;}
+.nav-btn:active{transform:scale(0.85); background:var(--border2);}
+
+.header-right{display:flex;align-items:center;gap:12px}
+.settings-btn{width:38px;height:38px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition: all 0.2s;}
+.settings-btn:active{transform:scale(0.9); opacity:0.7;}
 
 .dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
 .dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
@@ -51,11 +61,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
 .dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
 
-/* ── GRID: 5px 境界線デザイン ── */
+/* ── GRID ── */
 .grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
 .time-label.now-hour{color:var(--yellow);font-weight:700}
-.week-cell{border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;position:relative;border:5px solid var(--bg)}
+.week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition: transform 0.1s var(--ease-out), background 0.3s; position:relative; border:4px solid var(--bg)}
+.week-cell:active{transform:scale(0.9); z-index: 5;}
 .week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
 
 /* ── DASHBOARDS ── */
@@ -67,53 +78,53 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .dash-unit{font-size:12px;color:var(--muted2);margin-left:4px}
 
 .dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
-.dash-day-block{display:flex;flex-direction:column;align-items:center;gap:4px}
 .dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
 .dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
 
 .summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
-.stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5)}
-.alert-box{background:rgba(255,255,0,0.1);border:1px solid var(--yellow);padding:12px;border-radius:8px;margin-top:12px;font-size:12px;color:var(--text);line-height:1.5}
-.day-memo-list{margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); font-size:11px; color:var(--text); opacity:0.9; line-height:1.6;}
-
-/* Monthly Grid Specific */
-.month-calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 0; }
-.month-day-cell { 
-    aspect-ratio: 1; border-radius: 4px; position: relative; display: flex; align-items: center; justify-content: center; 
-    font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    background: var(--empty);
-    cursor: pointer;
-    transition: transform 0.1s;
+.stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5); animation: cardIn 0.5s var(--ease-out) forwards;}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-.month-day-num { position: absolute; top: 4px; left: 4px; font-size: 8px; font-family: 'DM Mono', monospace; opacity: 0.6; }
 
-/* ── TAB NAVIGATION ── */
-.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100}
-.tab-btn{flex:1;padding:15px 0;border:none;background:transparent;color:var(--muted2);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
-.tab-btn.active{color:var(--yellow)}
+/* ── NEW MINIMAL TAB NAVIGATION ── */
+.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100;height:calc(64px + env(safe-area-inset-bottom, 20px))}
+.tab-btn{flex:1;padding:0;border:none;background:transparent;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.15em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition: all 0.3s var(--ease-out);position:relative;opacity:0.6}
+.tab-btn.active{color:var(--yellow);opacity:1;transform:translateY(-2px)}
+.tab-btn::after{content:'';position:absolute;bottom:12px;width:0;height:2px;background:var(--yellow);border-radius:2px;transition: width 0.3s var(--ease-out)}
+.tab-btn.active::after{width:20px}
+.tab-btn span:first-child { font-size: 11px; font-family: 'DM Mono', monospace; text-transform: uppercase; margin-bottom: -2px; }
 
 /* ── PANELS ── */
-.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(10,10,10,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
+.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(10,10,10,0.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
 .panel.open{transform:translateX(0)}
 .panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
-.intensity-row{display:flex;gap:6px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px}.lv-btn.act{border:2.5px solid var(--text);transform:translateY(-3px)}
-.memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none}
+.intensity-row{display:flex;gap:6px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px; transition: transform 0.2s;}.lv-btn.act{border:2.5px solid var(--text);transform:translateY(-5px)}
+.memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none; transition: border-color 0.3s;}
+.memo-input:focus{border-color:var(--yellow);}
 
 .action-row{display:flex;gap:10px}
 .clear-btn{flex:1;padding:18px;background:transparent;border:1px solid var(--border2);color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer;transition:all 0.2s}
-.clear-btn:active{background:rgba(255,255,255,0.05)}
-.save-btn{flex:2;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer}
+.clear-btn:active{background:rgba(255,255,255,0.05); transform:scale(0.98);}
+.save-btn{flex:2;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
+.save-btn:active{transform:scale(0.98); opacity:0.9;}
 
 /* ── SETTINGS ── */
-.settings-input{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:12px;border-radius:4px;margin-bottom:15px;outline:none}
-.sync-btn{width:100%;padding:15px;background:var(--yellow);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.2em;cursor:pointer;margin-bottom:20px}
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px; margin-top:10px;}
+.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card); transition: all 0.2s;}
+.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4); transform: scale(1.05);}
+.theme-swatches{display:flex;gap:2px;margin-bottom:6px; height:12px; overflow:hidden;}
+.theme-swatch{flex:1;height:100%;border-radius:1px;}
+.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;}
 
-.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card)}
-.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4)}
-.theme-swatches{display:flex;gap:2px;margin-bottom:6px}
-.theme-swatch{flex:1;height:12px;border-radius:1px}
-.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase}
+/* Animations */
+@keyframes pulseSync {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.syncing-dot { animation: pulseSync 1s infinite; }
 </style>
 </head>
 <body>
@@ -121,10 +132,19 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 <div id="screen-week" class="screen active">
   <div class="week-header">
     <div class="week-top">
-      <div><div style="font-family:'DM Mono',monospace;font-size:7px;letter-spacing:0.4em;color:var(--lv4)">NIMOGRAM</div><div class="week-title">Weekly Matrix</div></div>
+      <div class="week-title">MOOD LOG</div>
+      <div class="week-nav-container">
+        <div class="week-nav">
+          <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
+          <div class="week-range" id="week-range">—</div>
+          <button class="nav-btn" onclick="changeWeek(1)">›</button>
+        </div>
+      </div>
       <div class="header-right">
-        <div id="auto-sync-indicator" style="font-family:'DM Mono',monospace; font-size:7px; color:var(--muted2); display:flex; align-items:center; gap:4px;"><span id="sync-dot" style="width:4px; height:4px; border-radius:50%; background:var(--muted2);"></span><span id="sync-text">IDLE</span></div>
-        <div class="week-nav"><button class="nav-btn" onclick="changeWeek(-1)">‹</button><div class="week-range" id="week-range">—</div><button class="nav-btn" onclick="changeWeek(1)">›</button></div>
+        <div id="auto-sync-indicator" style="font-family:'DM Mono',monospace; font-size:7px; color:var(--muted2); display:flex; align-items:center; gap:4px;">
+            <span id="sync-dot" style="width:4px; height:4px; border-radius:50%; background:var(--muted2);"></span>
+            <span id="sync-text">IDLE</span>
+        </div>
         <button class="settings-btn" onclick="openSettings()">⚙</button>
       </div>
     </div>
@@ -136,8 +156,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 <div id="screen-summary" class="screen">
   <div class="week-header">
     <div class="week-top">
-        <div class="week-title">STATS</div>
-        <div class="week-nav"><button class="nav-btn" onclick="changeStatsWeek(-1)">‹</button><div class="week-range" id="stats-week-range">—</div><button class="nav-btn" onclick="changeStatsWeek(1)">›</button></div>
+        <div class="week-title">WKLY</div>
+        <div class="week-nav-container">
+            <div class="week-nav">
+                <button class="nav-btn" onclick="changeStatsWeek(-1)">‹</button>
+                <div class="week-range" id="stats-week-range">—</div>
+                <button class="nav-btn" onclick="changeStatsWeek(1)">›</button>
+            </div>
+        </div>
         <button class="settings-btn" onclick="openSettings()">⚙</button>
     </div>
   </div>
@@ -149,10 +175,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <div class="week-header">
     <div class="week-top">
       <div class="week-title">MONTHLY</div>
-      <div class="header-right">
-        <div class="week-nav"><button class="nav-btn" onclick="changeMonth(-1)">‹</button><div class="week-range" id="month-range">—</div><button class="nav-btn" onclick="changeMonth(1)">›</button></div>
-        <button class="settings-btn" onclick="openSettings()">⚙</button>
+      <div class="week-nav-container">
+          <div class="week-nav">
+              <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+              <div class="week-range" id="month-range">—</div>
+              <button class="nav-btn" onclick="changeMonth(1)">›</button>
+          </div>
       </div>
+      <button class="settings-btn" onclick="openSettings()">⚙</button>
     </div>
   </div>
   <div id="month-dashboard" class="stats-dashboard"></div>
@@ -160,11 +190,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <nav class="tab-nav">
-  <button class="tab-btn active" id="tab-week" onclick="switchTab('week')"><span>▦</span><span>Grid</span></button>
-  <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')"><span>📊</span><span>Stats</span></button>
-  <button class="tab-btn" id="tab-month" onclick="switchTab('month')"><span>📅</span><span>Month</span></button>
+  <button class="tab-btn active" id="tab-week" onclick="switchTab('week')"><span>MODE</span><span>GRID</span></button>
+  <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')"><span>VIEW</span><span>WKLY</span></button>
+  <button class="tab-btn" id="tab-month" onclick="switchTab('month')"><span>LOG</span><span>MONTH</span></button>
 </nav>
 
+<!-- Panels omitted for brevity as they remain same, keeping the logic for functional app -->
 <div id="detail-panel" class="panel"><div class="panel-inner">
   <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div id="d-day" style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1">15</div><div id="d-hour" style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:32px">08:00</div></div><button class="settings-btn" onclick="closeDetail()">✕</button></div>
   <div class="intensity-row" id="intensity-row" style="margin-bottom:20px"></div>
@@ -177,15 +208,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
 <div id="settings-panel" class="panel"><div class="panel-inner">
   <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div class="week-title">Settings</div><button class="settings-btn" onclick="closeSettings()">✕</button></div>
-  
-  <div style="margin-bottom:20px">
+  <div style="margin-bottom:24px">
     <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Cloud Sync (GAS URL)</div>
-    <input type="text" id="sync-url" class="settings-input" placeholder="https://script.google.com/macros/s/.../exec">
-    <button id="btn-sync" class="sync-btn" onclick="syncToSheets()">MANUAL SYNC</button>
-    <div id="sync-status" style="font-size:10px; text-align:center; color:var(--muted2); line-height:1.4;"></div>
+    <input type="text" id="sync-url" class="settings-input" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:12px;border-radius:8px;margin-bottom:15px;outline:none" placeholder="https://script.google.com/macros/s/.../exec">
+    <button id="btn-sync" class="sync-btn" style="width:100%;padding:15px;background:var(--yellow);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.2em;cursor:pointer;margin-bottom:10px;" onclick="syncToSheets()">MANUAL SYNC</button>
   </div>
-
-  <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Themes</div>
+  <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Color Themes</div>
   <div id="theme-grid" class="theme-grid"></div>
 </div></div>
 
@@ -194,10 +222,6 @@ const RECORDING_HOURS = 12;
 const GAP = 2;
 const TIME_COL_PX = 28;
 
-/**
- * ニモさんの戦略：日付キーの標準化 (YYYY-MM-DD)
- * 修正：月を+1し、常に2桁でパディングすることで整合性を保ちます。
- */
 function ds(d){
     const year = d.getFullYear();
     const month = (d.getMonth() + 1).toString().padStart(2, '0');
@@ -205,31 +229,19 @@ function ds(d){
     return `${year}-${month}-${date}`;
 }
 
-/**
- * 参謀：データ浄化装置 (Sanitizer)
- * 壊れた形式のキー（Mon Mar 30... や 2026-2-30等）を正しい YYYY-MM-DD に修復します。
- */
 function sanitizeData(raw) {
     const clean = {};
     for (let key in raw) {
         let cleanKey = key;
-        // 1. 不正な文字列キー (Mon Mar 30 202 など) の修復
         if (isNaN(Date.parse(key)) === false && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
             cleanKey = ds(new Date(key));
-        } 
-        // 2. 以前のバグ (2026-2-30 などパディング不足) の修復
-        else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(key) && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+        } else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(key) && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
             const parts = key.split('-');
-            const d = new Date(parts[0], parts[1], parts[2]); // 注意：JSのDateコンストラクタは月が0始まり
-            // ここでは元のキー文字列から推測して再構築
             cleanKey = `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
         }
-
-        // マージ処理
         if (!clean[cleanKey]) {
             clean[cleanKey] = raw[key];
         } else {
-            // 重複がある場合は中身を統合
             clean[cleanKey].slots = Object.assign({}, clean[cleanKey].slots, raw[key].slots);
             if (raw[key].memo) clean[cleanKey].memo = raw[key].memo;
         }
@@ -242,13 +254,11 @@ let ST = {
   weekStart: monday(new Date()),
   statsWeekStart: monday(new Date()),
   viewMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  data: sanitizeData(rawSaved), // 起動時に浄化を実行
+  data: sanitizeData(rawSaved), 
   themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
   syncUrl: localStorage.getItem('nimo-v6-sync-url') || '',
   currentTab: 'week'
 };
-// 浄化後のデータを即時保存
-localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
 
 function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
 
@@ -276,7 +286,8 @@ function renderWeek(){
   const todayDs = ds(now);
   const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
   
-  document.getElementById('week-range').textContent=`${days[0].getDate()}–${days[6].getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()]}`;
+  const monthName = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()];
+  document.getElementById('week-range').textContent=`${monthName} ${days[0].getDate()}-${days[6].getDate()}`;
   
   const grid=document.getElementById('grid-area'); grid.innerHTML='';
   grid.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
@@ -284,7 +295,7 @@ function renderWeek(){
   
   const dowH=document.getElementById('dow-header');
   dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
-  dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
+  dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['MON','TUE','WED','THU','FRI','SAT','SUN'][ (d.getDay() + 6) % 7 ]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
 
   for(let h=8; h<=19; h++){
     const tl=document.createElement('div'); tl.className='time-label'+(h===now.getHours()?' now-hour':''); tl.textContent=h; grid.appendChild(tl);
@@ -294,7 +305,7 @@ function renderWeek(){
       const cell=document.createElement('div');
       cell.className='week-cell'+(dstr===todayDs && h===now.getHours()?' now-cell':'');
       cell.style.cssText=`height:${sz}px;background:${lv?`var(--lv${lv})`:'var(--empty)'}`;
-      if(ST.data[dstr]?.slots?.[h]?.note) cell.innerHTML='<div style="width:3px;height:3px;background:#fff;border-radius:50%;position:absolute;bottom:2px;right:2px"></div>';
+      if(ST.data[dstr]?.slots?.[h]?.note) cell.innerHTML='<div style="width:3px;height:3px;background:rgba(255,255,255,0.4);border-radius:50%;position:absolute;bottom:2px;right:2px"></div>';
       cell.onclick=()=>openDetail(d,h);
       grid.appendChild(cell);
     });
@@ -304,58 +315,28 @@ function renderWeek(){
 async function syncToSheets() {
   const urlEl = document.getElementById('sync-url');
   const url = urlEl && urlEl.value ? urlEl.value : ST.syncUrl;
-  const statusEl = document.getElementById('sync-status');
   const dot = document.getElementById('sync-dot');
   const text = document.getElementById('sync-text');
-  
   if (!url) return;
-
   ST.syncUrl = url;
   localStorage.setItem('nimo-v6-sync-url', url);
-
-  if(dot) dot.style.background = "var(--yellow)";
-  if(text) text.textContent = "SYNCING...";
-  
+  dot.classList.add('syncing-dot');
+  dot.style.background = "var(--yellow)";
+  text.textContent = "SYNCING...";
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'sync', data: ST.data })
-    });
-    
+    const response = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'sync', data: ST.data }) });
     const resText = await response.text();
     let result;
-    try {
-        result = JSON.parse(resText);
-    } catch(e) {
-        if(dot) dot.style.background = "var(--lv4)";
-        if(text) text.textContent = "SENT";
-        return;
-    }
-
+    try { result = JSON.parse(resText); } catch(e) { result = null; }
     if (result && result.data) {
-      // 受信したデータも即座に浄化してからマージ
-      const cleanIncoming = sanitizeData(result.data);
-      ST.data = Object.assign({}, cleanIncoming, ST.data);
+      ST.data = Object.assign({}, sanitizeData(result.data), ST.data);
       localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
-      if(dot) dot.style.background = "var(--lv5)";
-      if(text) text.textContent = "UPDATED";
-      
-      if(ST.currentTab === 'summary') renderSummary();
-      else if(ST.currentTab === 'month') renderMonth();
-      else renderWeek();
-    } else {
-      if(dot) dot.style.background = "var(--lv4)";
-      if(text) text.textContent = "OK";
-    }
-  } catch (err) { 
-      if(dot) dot.style.background = "#ff4444";
-      if(text) text.textContent = "ERROR";
-  }
-  
-  setTimeout(() => {
-    if(dot) dot.style.background = "var(--muted2)";
-    if(text) text.textContent = "IDLE";
-  }, 3000);
+      dot.style.background = "var(--lv5)";
+      text.textContent = "UPDATED";
+      refreshTab();
+    } else { dot.style.background = "var(--lv4)"; text.textContent = "OK"; }
+  } catch (err) { dot.style.background = "#ff4444"; text.textContent = "ERROR"; }
+  setTimeout(() => { dot.classList.remove('syncing-dot'); dot.style.background = "var(--muted2)"; text.textContent = "IDLE"; }, 3000);
 }
 
 function renderSummary(){
@@ -363,9 +344,8 @@ function renderSummary(){
   const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.statsWeekStart);d.setDate(d.getDate()+i);return d;});
   const container = document.getElementById('summary-content');
   const dash = document.getElementById('stats-dashboard');
-  
-  document.getElementById('stats-week-range').textContent=`${days[0].getDate()}–${days[6].getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.statsWeekStart.getMonth()]}`;
-
+  const monthName = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.statsWeekStart.getMonth()];
+  document.getElementById('stats-week-range').textContent=`${monthName} ${days[0].getDate()}-${days[6].getDate()}`;
   let weekSum=0, weekCount=0;
   const dayStats = days.map(d => {
     const dstr = ds(d);
@@ -375,21 +355,17 @@ function renderSummary(){
     for(let h=8; h<=19; h++) {
         const s = slots[h];
         if(s && s.level){ sum += s.level; count++; }
-        if(s && s.note && s.note.trim() !== '') {
-            memoLogs.push({h: h, lv: s.level || 0, txt: s.note});
-        }
+        if(s && s.note && s.note.trim() !== '' && s.level !== 3) { memoLogs.push({h: h, lv: s.level || 0, txt: s.note}); }
     }
     const avg = count > 0 ? (sum/count) : null;
     if(avg) { weekSum += avg; weekCount++; }
     return { date: d, avg: avg, notes: memoLogs };
   });
   const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
-  
   dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="dash-daily-row">${dayStats.map(s => `<div class="dash-day-block"><div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>`;
-
-  let html = dayStats.filter(s => s.notes.length > 0).map(s => {
+  let html = dayStats.filter(s => s.notes.length > 0).map((s, idx) => {
     let memoHtml = `<div class="day-memo-list">${s.notes.map(n => `<div><b>[${n.h}:00]</b> <span style="color:var(--lv${n.lv})">●</span> ${n.txt}</div>`).join('')}</div>`;
-    return `<div class="stat-card" style="border-left-color: var(--lv${s.avg!==null?Math.round(s.avg):'1'})"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
+    return `<div class="stat-card" style="border-left-color: var(--lv${s.avg!==null?Math.round(s.avg):'1'}); animation-delay: ${idx * 0.1}s;"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
   }).join('');
   container.innerHTML = html || `<div style="text-align:center; padding:40px; color:var(--muted2); font-size:12px; font-family:'DM Mono',monospace;">NO MEMOS RECORDED THIS WEEK</div>`;
 }
@@ -401,11 +377,9 @@ function renderMonth(){
   const container = document.getElementById('month-content');
   const dash = document.getElementById('month-dashboard');
   document.getElementById('month-range').textContent = `${['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][start.getMonth()]} ${start.getFullYear()}`;
-  
   let monthSum = 0, monthCount = 0;
   let dailyStats = [];
   let monthMemos = [];
-
   for(let d=1; d<=end.getDate(); d++){
     const cur = new Date(start.getFullYear(), start.getMonth(), d);
     const dstr = ds(cur);
@@ -420,18 +394,16 @@ function renderMonth(){
     dailyStats.push({ date: cur, avg: avg });
   }
   const totalAvg = monthCount > 0 ? (monthSum / monthCount) : 0;
-  
-  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(totalAvg) || 1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div><div id="ai-summary-box" class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px; min-height:60px;">🌙 月間サマリ：<button onclick="getAiSummary()" style="background:var(--lv5); border:none; padding:4px 8px; border-radius:4px; font-size:10px; color:#000; font-weight:bold; cursor:pointer;">AIで分析する</button></div>`;
-  
+  dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(totalAvg) || 1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div><div id="ai-summary-box" class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px; min-height:60px; font-size:12px; color:var(--text); line-height:1.5;">🌙 月間サマリ：<button onclick="getAiSummary()" style="background:var(--lv5); border:none; padding:4px 8px; border-radius:4px; font-size:10px; color:#000; font-weight:bold; cursor:pointer; transition: transform 0.2s;">AIで分析する</button></div>`;
   const startOffset = (start.getDay() + 6) % 7; 
   let html = `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:8px;">`;
   ['M','T','W','T','F','S','S'].forEach(d => html += `<div style="text-align:center; font-size:8px; color:var(--muted); font-family:'DM Mono',monospace;">${d}</div>`);
-  html += `</div><div class="month-calendar-grid">`;
-  for(let i=0; i<startOffset; i++) html += `<div class="month-day-cell" style="opacity:0"></div>`;
+  html += `</div><div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 0;">`;
+  for(let i=0; i<startOffset; i++) html += `<div style="aspect-ratio:1; opacity:0"></div>`;
   dailyStats.forEach(s => {
     const bgColor = s.avg !== null ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)';
     const textColor = s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff';
-    html += `<div class="month-day-cell" style="background:${bgColor}; color:${textColor}" onclick="jumpToWeek('${s.date.toISOString()}')"><div class="month-day-num">${s.date.getDate()}</div>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
+    html += `<div style="aspect-ratio:1; border-radius:4px; position:relative; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:18px; color:${textColor}; background:${bgColor}; cursor:pointer; transition:transform 0.2s;" onclick="jumpToWeek('${s.date.toISOString()}')"><div style="position:absolute; top:4px; left:4px; font-size:8px; font-family:'DM Mono',monospace; opacity:0.6;">${s.date.getDate()}</div>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
   });
   html += `</div>`;
   container.innerHTML = html;
@@ -441,43 +413,22 @@ function renderMonth(){
 async function getAiSummary() {
   const box = document.getElementById('ai-summary-box');
   const memos = window.lastMonthMemos || [];
-  if (memos.length === 0) { box.innerHTML = "🌙 月間サマリ：今月はまだメモが記録されていないようですですよ。"; return; }
+  if (memos.length === 0) { box.innerHTML = "🌙 月間サマリ：データ不足ですよ。"; return; }
   box.innerHTML = "⌛ AI参謀がログを精査しています...";
-  
   const apiKey = ""; 
   const prompt = `あなたはニモさんの秘書兼参謀です。以下の1ヶ月間の記録を分析し、仕事・健康・メンタル傾向を総括してください。愛情深く冷静な口調（〜ですよ）で200文字程度で回答してください。\nメモ：\n${memos.join('\n')}`;
-
   const fetchWithRetry = async (url, options, retries = 5, backoff = 1000) => {
-    try {
-      const res = await fetch(url, options);
-      if (!res.ok && retries > 0) throw new Error(res.status);
-      return res;
-    } catch (err) {
-      if (retries === 0) throw err;
-      await new Promise(resolve => setTimeout(resolve, backoff));
-      return fetchWithRetry(url, options, retries - 1, backoff * 2);
-    }
+    try { const res = await fetch(url, options); if (!res.ok && retries > 0) throw new Error(res.status); return res; } catch (err) { if (retries === 0) throw err; await new Promise(resolve => setTimeout(resolve, backoff)); return fetchWithRetry(url, options, retries - 1, backoff * 2); }
   };
-
   try {
-    const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
+    const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
     const result = await response.json();
     const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
     box.innerHTML = `🌙 月間サマリ：${text}`;
-  } catch (err) { 
-    box.innerHTML = "🌙 月間サマリ：分析中にエラーが発生しました。時間を置いて再度お試しくださいですよ。"; 
-  }
+  } catch (err) { box.innerHTML = "🌙 分析エラーですよ。"; }
 }
 
-function jumpToWeek(dateIso) {
-  const d = new Date(dateIso);
-  ST.weekStart = monday(d);
-  switchTab('week');
-}
+function jumpToWeek(dateIso) { const d = new Date(dateIso); ST.weekStart = monday(d); switchTab('week'); }
 
 const THEMES = [
   {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
@@ -502,59 +453,19 @@ const THEMES = [
   {id:'ge', name:'GE Style', lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], hi:'#16a34a'}
 ];
 
-function switchTab(t){
-  ST.currentTab=t; 
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(`screen-${t}`).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`tab-${t}`).classList.add('active');
-  if(t==='summary') renderSummary(); else if(t==='month') renderMonth(); else renderWeek();
-}
-function openDetail(d,h){
-  ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`;
-  document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||'';
-  const r=document.getElementById('intensity-row'); r.innerHTML='';
-  [5,4,3,2,1].forEach(lv=>{
-    const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':'');
-    b.style.background=`var(--lv${lv})`; b.onclick=()=>{ if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:lv}; openDetail(d,h); };
-    r.appendChild(b);
-  });
-  document.getElementById('detail-panel').classList.add('open');
-}
-function saveAndClose(){
-  const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n;
-  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); 
-  document.getElementById('detail-panel').classList.remove('open'); 
-  switchTab(ST.currentTab);
-  syncToSheets(); 
-}
-function clearAndClose(){
-  if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); }
-  localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
-  document.getElementById('detail-panel').classList.remove('open'); 
-  switchTab(ST.currentTab);
-  syncToSheets(); 
-}
+function switchTab(t){ ST.currentTab=t; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(`screen-${t}`).classList.add('active'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(`tab-${t}`).classList.add('active'); refreshTab(); }
+function refreshTab() { const t = ST.currentTab; if(t==='summary') renderSummary(); else if(t==='month') renderMonth(); else renderWeek(); }
+function openDetail(d,h){ ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`; document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||''; const r=document.getElementById('intensity-row'); r.innerHTML=''; [5,4,3,2,1].forEach(lv=>{ const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':''); b.style.background=`var(--lv${lv})`; b.onclick=()=>{ if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:lv}; openDetail(d,h); }; r.appendChild(b); }); document.getElementById('detail-panel').classList.add('open'); }
+function saveAndClose(){ const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); refreshTab(); syncToSheets(); }
+function clearAndClose(){ if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; } localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); refreshTab(); syncToSheets(); }
 function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); renderWeek(); }
 function changeWeek(delta){ ST.weekStart = new Date(ST.weekStart); ST.weekStart.setDate(ST.weekStart.getDate() + delta * 7); renderWeek(); }
 function changeStatsWeek(dir){ ST.statsWeekStart.setDate(ST.statsWeekStart.getDate()+dir*7); renderSummary(); }
 function changeMonth(dir){ ST.viewMonth.setMonth(ST.viewMonth.getMonth()+dir); renderMonth(); }
 function openSettings(){ renderSettings(); document.getElementById('settings-panel').classList.add('open'); }
 function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); renderWeek(); }
-
-function renderSettings(){
-  document.getElementById('sync-url').value = ST.syncUrl;
-  const g=document.getElementById('theme-grid'); g.innerHTML='';
-  THEMES.forEach(th=>{
-    const isAct=ST.themeId===th.id;
-    const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':'');
-    card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`;
-    card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); switchTab(ST.currentTab); };
-    g.appendChild(card);
-  });
-}
+function renderSettings(){ document.getElementById('sync-url').value = ST.syncUrl; const g=document.getElementById('theme-grid'); g.innerHTML=''; THEMES.forEach(th=>{ const isAct=ST.themeId===th.id; const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':''); card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`; card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); refreshTab(); }; g.appendChild(card); }); }
 window.addEventListener('resize', ()=>renderWeek());
-
 renderWeek();
 syncToSheets(); 
 </script>
