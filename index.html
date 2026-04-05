@@ -172,9 +172,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 .save-review-btn { font-weight: 400 !important; }
 
 /* Review Logs Area */
-.review-logs-summary { margin-bottom: 32px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 2px solid var(--lv5); font-size: 10px; max-height: 150px; overflow-y: auto; }
-.review-log-item { margin-bottom: 8px; line-height: 1.4; opacity: 0.85; }
-.review-log-item span { margin-right: 6px; font-weight: bold; }
+.review-logs-summary { margin-bottom: 24px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 2px solid var(--lv5); font-size: 10px; max-height: 120px; overflow-y: auto; }
+.review-log-item { margin-bottom: 6px; line-height: 1.4; opacity: 0.85; }
+.review-log-item span { margin-right: 4px; font-weight: bold; }
 
 /* ── SETTINGS ── */
 .settings-header { text-align: left; margin-bottom: 32px; }
@@ -299,7 +299,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
   <button class="clear-btn" onclick="clearAndClose()" style="width:100%; background:transparent; border:none; color:var(--muted); font-family:'Bebas Neue',sans-serif; letter-spacing:0.2em; font-size:12px; margin-top:24px; cursor:pointer; opacity: 0.6;">CLEAR DATA</button>
 </div></div>
 
-<!-- ── REVIEW PANEL (Right Slide KPT / Improved Transparency) ── -->
+<!-- ── REVIEW PANEL (Right Slide KPT / Glass style) ── -->
 <div id="review-panel" class="panel"><div class="panel-inner review-panel-inner">
   <button class="settings-btn" onclick="closeReview()" style="position: absolute; top: 40px; right: 20px;">✕</button>
   <div class="detail-header">
@@ -320,6 +320,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 
   <div class="section-label" style="color: #00d2ff;">TRY (次へのアクション)</div>
   <textarea id="review-try" class="memo-input kpt-input" placeholder="次に試すこと、具体的な行動"></textarea>
+
+  <!-- 10X REVIEW SECTION (Lime Green) -->
+  <div class="section-label" style="color: #bef264;">10X振り返り</div>
+  <div class="section-label" style="padding-left:10px; font-size:10px; opacity:0.8; margin-bottom:8px;">├── 最も10Xだった行動</div>
+  <textarea id="review-10x-action" class="memo-input kpt-input" style="min-height: 60px;" placeholder="非連続な成長に繋がった行動"></textarea>
+  <div class="section-label" style="padding-left:10px; font-size:10px; opacity:0.8; margin-bottom:8px;">└── 来週（来月）の10Xアクション</div>
+  <textarea id="review-10x-next" class="memo-input kpt-input" style="min-height: 60px;" placeholder="成果を10倍にするための次の一手"></textarea>
 
   <button class="save-btn save-review-btn" onclick="saveReview()">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -574,11 +581,15 @@ function saveAndClose(){
 function openReview(type) {
     ST.reviewType = type;
     const key = type === 'wkly' ? `review-w-${ds(ST.statsWeekStart)}` : `review-m-${ST.viewMonth.getFullYear()}-${ST.viewMonth.getMonth() + 1}`;
-    const reviewData = ST.data[key] || { keep: '', problem: '', try: '' };
+    const reviewData = ST.data[key] || { keep: '', problem: '', try: '', tenXAction: '', tenXNext: '' };
     document.getElementById('r-period-title').textContent = type.toUpperCase();
     document.getElementById('review-keep').value = reviewData.keep || '';
     document.getElementById('review-problem').value = reviewData.problem || '';
     document.getElementById('review-try').value = reviewData.try || '';
+    
+    // Load 10X fields
+    document.getElementById('review-10x-action').value = reviewData.tenXAction || '';
+    document.getElementById('review-10x-next').value = reviewData.tenXNext || '';
     
     // Extract LV1 and LV5 logs for the current period
     const logArea = document.getElementById('review-logs-summary');
@@ -632,7 +643,9 @@ function saveReview() {
     ST.data[key] = {
         keep: document.getElementById('review-keep').value,
         problem: document.getElementById('review-problem').value,
-        try: document.getElementById('review-try').value
+        try: document.getElementById('review-try').value,
+        tenXAction: document.getElementById('review-10x-action').value,
+        tenXNext: document.getElementById('review-10x-next').value
     };
     localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
     document.getElementById('review-panel').classList.remove('open');
