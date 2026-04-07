@@ -7,8 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NIMOGRAM">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0d0d">
+
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
 
 <title>NIMOGRAM LOG</title>
 <style>
@@ -19,62 +22,81 @@
   --lv5:#00ffa3;--lv4:#00d18b;--lv3:#00a36c;--lv2:#00754d;--lv1:#00472e;
   --empty:#0d1117; --yellow:#ffff00;
   --bg:#0d0d0d;--surface:#131313;--card:#181818;
-  --border:rgba(255,255,255,0.07);--muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
   --gap:2px; --time-col:28px; --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --anim-speed: 0.3s;
 }
 
-html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100dvh;overflow:hidden;position:fixed}
+body.light-mode {
+  --bg:#f2f2f7;--surface:#ffffff;--card:#ffffff;
+  --empty:#e5e5ea; --yellow:#f59e0b;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
+  --muted:#aeaeb2;--muted2:#8e8e93;--text:#1c1c1e;
+}
+
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100dvh;overflow:hidden;position:fixed; transition: background 0.3s, color 0.3s;}
 
 /* Screens */
-.screen{display:none;flex-direction:column;height:100dvh;opacity:0;transform:translateY(8px);transition:0.3s var(--ease-out)}
+.screen{display:none;flex-direction:column;height:100dvh;overflow:hidden;opacity:0;transform:translateY(8px);transition: opacity var(--anim-speed) var(--ease-out), transform var(--anim-speed) var(--ease-out);}
 .screen.active{display:flex;opacity:1;transform:translateY(0)}
 
-/* Header */
 .week-header{flex-shrink:0;padding-top:env(safe-area-inset-top,36px);background:var(--bg)}
 .week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 10px;position:relative}
 .week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;line-height:1}
+
 .week-nav{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px}
-.nav-btn{width:36px;height:36px;border:0.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#fff;border-radius:50%;font-size:20px}
-.week-range{font-family:'DM Mono',monospace;font-size:10px;min-width:64px;text-align:center}
+.nav-btn{width:36px;height:36px;border:0.5px solid var(--border2);background:rgba(255,255,255,0.02);color:#fff;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;transition: all 0.2s; cursor:pointer}
+.nav-btn:active{transform:scale(0.85); background:var(--border2);}
+.week-range{font-family:'DM Mono',monospace;font-size:10px;min-width:64px;text-align:center;text-transform:uppercase}
 
-.sync-status{display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
-#sync-dot{width:4px;height:4px;border-radius:50%;background:var(--muted2)}
+.sync-status{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
+#sync-dot{width:5px;height:5px;border-radius:50%;background:var(--muted2);transition: background 0.3s;}
+@keyframes pulseSync { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+.syncing-dot { animation: pulseSync 0.8s infinite; }
 
-/* Grid */
-.dow-header{display:grid;gap:var(--gap);border-bottom:0.5px solid var(--border)}
+/* Grid System */
+.dow-header{display:grid;gap:var(--gap);border-bottom:0.5px solid var(--border);background:var(--bg)}
 .dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
-.dow-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
+.dow-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2);text-transform:uppercase}
 .dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--muted2)}
 .dow-col.today .dow-date-num{color:var(--yellow)}
 
-.grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden}
+.grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
 .time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
-.week-cell{border-radius:3px;cursor:pointer;position:relative;border:4px solid var(--bg)}
+.week-cell{border-radius:3px;cursor:pointer;position:relative;border:4px solid var(--bg);transition: background 0.2s, transform 0.1s;}
+.week-cell:active{transform:scale(0.95)}
 
-/* Stats & Reviews */
-.stats-dashboard{background:var(--card);padding:20px;border-bottom:2px solid var(--lv5)}
-.dash-value{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1}
+.lv-1 { box-shadow: 0 0 8px var(--lv1) inset; }
+.lv-5 { box-shadow: 0 0 12px var(--lv5) inset; }
+
+/* Dashboards */
+.stats-dashboard{background:var(--card);padding:20px;border-bottom:2px solid var(--lv5);box-shadow: 0 4px 20px rgba(0,0,0,0.2)}
+.dash-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
+.dash-value{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--text)}
 .summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
-.stat-card{background:var(--card);border-radius:12px;padding:16px 20px;margin-bottom:16px;border-left:4px solid var(--lv5);border:1px solid var(--border)}
+.stat-card{background:var(--card);border-radius:12px;padding:16px 20px;margin-bottom:16px;border-left:4px solid var(--lv5);border:1px solid var(--border);animation: cardIn 0.5s var(--ease-out) forwards;}
+@keyframes cardIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
-/* Tabs */
-.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);height:calc(64px + env(safe-area-inset-bottom, 20px))}
-.tab-btn{flex:1;background:transparent;border:none;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:18px;opacity:0.6}
-.tab-btn.active{color:var(--yellow);opacity:1}
+/* Tab Navigation */
+.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);height:calc(64px + env(safe-area-inset-bottom, 20px));z-index:100}
+.tab-btn{flex:1;background:transparent;border:none;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.1em;opacity:0.6;transition: 0.3s var(--ease-out);cursor:pointer}
+.tab-btn.active{color:var(--yellow);opacity:1;transform:translateY(-2px)}
 
-/* Review Panel (Glass blue) */
-.panel{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);transform:translateX(100%);transition:0.4s var(--ease-out)}
+/* Panels */
+.panel{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transform:translateX(100%);transition:0.4s var(--ease-out)}
 .panel.open{transform:translateX(0)}
-.panel-inner{padding:44px 20px;max-width:430px;margin:0 auto;background:var(--bg);height:100%;position:relative}
-.review-inner { background:rgba(10,20,50,0.15) !important; backdrop-filter:blur(24px) !important }
+.panel-inner{padding:44px 20px 64px;max-width:430px;margin:0 auto;background:var(--bg);height:100%;position:relative;overflow-y:auto}
+.review-inner { background:rgba(10,20,50,0.15) !important; border-left: 1px solid rgba(255,255,255,0.05) }
 
-.memo-input{width:100%;background:var(--surface);border:1px solid var(--border);color:#fff;padding:16px;border-radius:12px;margin-bottom:20px;font-size:14px;resize:none}
-.save-btn{width:100%;padding:20px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:20px;border-radius:12px;font-weight:bold}
+.memo-input{width:100%;background:var(--surface);border:1px solid var(--border);color:#fff;padding:16px;border-radius:12px;margin-bottom:20px;font-size:14px;resize:none;outline:none;font-family:'DM Sans',sans-serif}
+.save-btn{width:100%;padding:20px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:20px;border-radius:12px;font-weight:bold;cursor:pointer;transition: transform 0.1s;}
+.save-btn:active{transform:scale(0.98)}
 
-.review-fab{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,20px));right:20px;width:72px;height:38px;background:var(--lv5);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-weight:bold;box-shadow:0 4px 15px rgba(0,255,163,0.4)}
+.review-fab{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,20px));right:20px;width:72px;height:38px;background:var(--lv5);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-weight:bold;box-shadow:0 4px 15px rgba(0,255,163,0.4);z-index:120;display:flex;align-items:center;justify-content:center;cursor:pointer}
 </style>
 </head>
-<body>
+<body class="dark-mode">
 
 <div id="screen-week" class="screen active">
   <div class="week-header">
@@ -95,8 +117,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <div id="screen-summary" class="screen">
-  <div class="week-header"><div class="week-top"><div class="week-title">WKLY</div></div></div>
-  <div class="stats-dashboard"><div class="dash-value" id="wkly-avg">0.00</div></div>
+  <div class="week-header"><div class="week-top"><div class="week-title">WKLY REPORT</div></div></div>
+  <div class="stats-dashboard">
+    <div class="dash-label">Weekly Average</div>
+    <div class="dash-value" id="wkly-avg">0.00</div>
+  </div>
   <div class="summary-container" id="summary-content"></div>
   <button class="review-fab" onclick="openReview('wkly')">REVIEW</button>
 </div>
@@ -108,29 +133,36 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div>
 
 <nav class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('week')">GRID</button>
-  <button class="tab-btn" onclick="switchTab('summary')">WKLY</button>
-  <button class="tab-btn" onclick="switchTab('month')">MONTH</button>
+  <button class="tab-btn active" id="tab-week" onclick="switchTab('week')">GRID</button>
+  <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')">WKLY</button>
+  <button class="tab-btn" id="tab-month" onclick="switchTab('month')">MONTH</button>
 </nav>
 
-<!-- Panels -->
+<!-- Details Panel -->
 <div id="detail-panel" class="panel"><div class="panel-inner">
-  <div class="week-title" id="d-title" style="margin-bottom:20px">DETAIL</div>
-  <div id="intensity-row" style="display:flex;gap:8px;margin-bottom:20px"></div>
-  <textarea id="memo-input" class="memo-input" placeholder="Notes..."></textarea>
-  <button class="save-btn" onclick="saveDetail()">SAVE</button>
-  <button onclick="closePanel()" style="width:100%;margin-top:12px;background:none;border:none;color:var(--muted2)">CLOSE</button>
+  <div class="week-title" id="d-title" style="margin-bottom:24px; font-size:32px">DETAIL</div>
+  <div id="intensity-row" style="display:flex;gap:10px;margin-bottom:24px"></div>
+  <div class="dash-label" style="margin-bottom:12px">MEMO</div>
+  <textarea id="memo-input" class="memo-input" placeholder="今の気分や出来事など..."></textarea>
+  <button class="save-btn" onclick="saveDetail()">SAVE LOG</button>
+  <button onclick="closePanel()" style="width:100%;margin-top:20px;background:none;border:none;color:var(--muted2);font-family:'Bebas Neue',sans-serif;letter-spacing:0.2em;font-size:12px;cursor:pointer">CLOSE</button>
 </div></div>
 
+<!-- Review Panel -->
 <div id="review-panel" class="panel"><div class="panel-inner review-inner">
-  <div class="week-title" id="r-title" style="margin-bottom:20px">REVIEW</div>
-  <div class="summary-container" id="review-logs" style="height:100px;margin-bottom:20px;padding:0"></div>
-  <textarea id="r-keep" class="memo-input" placeholder="KEEP" style="min-height:80px"></textarea>
-  <textarea id="r-prob" class="memo-input" placeholder="PROBLEM" style="min-height:80px"></textarea>
-  <textarea id="r-try" class="memo-input" placeholder="TRY" style="min-height:80px"></textarea>
-  <textarea id="r-10x" class="memo-input" placeholder="10X ACTION" style="min-height:60px;border-color:#bef264"></textarea>
-  <textarea id="r-next" class="memo-input" placeholder="NEXT 10X" style="min-height:60px;border-color:#bef264"></textarea>
-  <button class="save-btn" onclick="saveReview()">SAVE REVIEW</button>
+  <div class="week-title" id="r-title" style="margin-bottom:24px; font-size:32px">REVIEW</div>
+  <div class="dash-label" style="color:var(--lv5)">KEEP</div>
+  <textarea id="r-keep" class="memo-input" placeholder="良かったこと、続けること"></textarea>
+  <div class="dash-label" style="color:#ff4444">PROBLEM</div>
+  <textarea id="r-prob" class="memo-input" placeholder="反省点、課題"></textarea>
+  <div class="dash-label" style="color:#00d2ff">TRY</div>
+  <textarea id="r-try" class="memo-input" placeholder="次へのアクション"></textarea>
+  <div class="dash-label" style="color:#bef264">10X ACTION</div>
+  <textarea id="r-10x" class="memo-input" placeholder="最も10Xだった行動"></textarea>
+  <div class="dash-label" style="color:#bef264">NEXT 10X</div>
+  <textarea id="r-next" class="memo-input" placeholder="来週/来月の10Xアクション"></textarea>
+  <button class="save-btn" onclick="saveReview()" style="background:#bef264; color:#000">SAVE REVIEW</button>
+  <button onclick="closePanel()" style="width:100%;margin-top:20px;background:none;border:none;color:var(--muted2);font-family:'Bebas Neue',sans-serif;letter-spacing:0.2em;font-size:12px;cursor:pointer">CLOSE</button>
 </div></div>
 
 <script>
@@ -144,7 +176,9 @@ function monday(d){ const t=new Date(d); t.setHours(0,0,0,0); const dw=t.getDay(
 let ST = {
   weekStart: monday(new Date()),
   data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
-  currentTab: 'week'
+  currentTab: 'week',
+  selDs: '',
+  selH: 0
 };
 
 window.onload = async () => {
@@ -156,7 +190,7 @@ window.onload = async () => {
 async function fetchCloudData() {
     const dot = document.getElementById('sync-dot');
     const text = document.getElementById('sync-text');
-    if(dot) dot.style.background = "var(--yellow)";
+    if(dot) { dot.style.background = "var(--yellow)"; dot.classList.add('syncing-dot'); }
     if(text) text.textContent = "LOADING...";
     try {
         const res = await fetch(GAS_URL);
@@ -174,12 +208,12 @@ async function fetchCloudData() {
               }
             }
             localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
-            if(dot) dot.style.background = "var(--lv5)";
+            if(dot) { dot.style.background = "var(--lv5)"; dot.classList.remove('syncing-dot'); }
             if(text) text.textContent = "IDLE";
             refreshTab();
         }
     } catch(e) {
-        if(dot) dot.style.background = "#ff4444";
+        if(dot) { dot.style.background = "#ff4444"; dot.classList.remove('syncing-dot'); }
         if(text) text.textContent = "OFFLINE";
     }
 }
@@ -211,7 +245,11 @@ function renderWeek() {
   
   const dowH = document.getElementById('dow-header');
   dowH.style.gridTemplateColumns = `28px repeat(7, 1fr)`;
-  dowH.innerHTML = '<div></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['MON','TUE','WED','THU','FRI','SAT','SUN'][(d.getDay()+6)%7]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
+  dowH.innerHTML = '<div></div>' + days.map(d => `
+    <div class="dow-col ${ds(d)===todayDs?'today':''}">
+      <div class="dow-name">${['MON','TUE','WED','THU','FRI','SAT','SUN'][(d.getDay()+6)%7]}</div>
+      <div class="dow-date-num">${d.getDate()}</div>
+    </div>`).join('');
 
   for(let h=8; h<=19; h++) {
     const tl = document.createElement('div'); tl.className='time-label'; tl.textContent=h; grid.appendChild(tl);
@@ -220,8 +258,11 @@ function renderWeek() {
       const lv = ST.data[dstr]?.slots?.[h]?.level;
       const cell = document.createElement('div');
       cell.className = 'week-cell';
+      if(lv) cell.classList.add(`lv-${lv}`);
       cell.style.background = lv ? `var(--lv${lv})` : 'var(--empty)';
-      if(ST.data[dstr]?.slots?.[h]?.note) cell.innerHTML = '<div style="position:absolute;bottom:2px;right:2px;width:3px;height:3px;background:rgba(255,255,255,0.4);border-radius:50%"></div>';
+      if(ST.data[dstr]?.slots?.[h]?.note) {
+        cell.innerHTML = '<div style="position:absolute;bottom:2px;right:2px;width:3px;height:3px;background:rgba(255,255,255,0.4);border-radius:50%"></div>';
+      }
       cell.onclick = () => openDetail(d, h);
       grid.appendChild(cell);
     });
@@ -240,7 +281,11 @@ function renderSummary() {
       if(s.level) { dSum+=s.level; dCnt++; sum+=s.level; count++; }
       if(s.note) dMemos.push(`<div><span style="color:var(--lv${s.level})">●</span><b>[${h}:00]</b> ${s.note}</div>`);
     });
-    if(dMemos.length) html += `<div class="stat-card"><b>${d.getDate()}日 ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</b><div style="font-size:11px;opacity:0.9;margin-top:8px">${dMemos.join('')}</div></div>`;
+    if(dMemos.length) html += `
+      <div class="stat-card" style="border-left-color: var(--lv${dCnt ? Math.round(dSum/dCnt) : 1})">
+        <b>${d.getDate()}日 ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</b>
+        <div style="font-size:11px;opacity:0.9;margin-top:8px; line-height:1.6">${dMemos.join('')}</div>
+      </div>`;
   });
   document.getElementById('wkly-avg').textContent = count ? (sum/count).toFixed(2) : "0.00";
   document.getElementById('summary-content').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--muted2)">NO MEMOS</div>';
@@ -255,7 +300,10 @@ function renderMonth() {
     const slots = ST.data[dstr]?.slots || {};
     let s=0, c=0; Object.values(slots).forEach(v=>{if(v.level){s+=v.level;c++}});
     const avg = c ? Math.round(s/c) : 0;
-    html += `<div style="aspect-ratio:1;background:${avg?`var(--lv${avg})`:'var(--empty)'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:${avg>3?'#000':'#fff'}">${d}</div>`;
+    html += `
+      <div style="aspect-ratio:1;background:${avg?`var(--lv${avg})`:'var(--empty)'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:${avg>3?'#000':'#fff'}">
+        ${d}
+      </div>`;
   }
   document.getElementById('month-content').innerHTML = html + '</div>';
 }
@@ -266,7 +314,7 @@ function switchTab(t) {
   document.getElementById(`screen-${t}`).classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.remove('active');
-    if(b.textContent.toLowerCase().includes(t.substring(0,3))) b.classList.add('active');
+    if(b.id === `tab-${t}`) b.classList.add('active');
   });
   refreshTab();
 }
@@ -284,15 +332,21 @@ function openDetail(d, h) {
   const row = document.getElementById('intensity-row'); row.innerHTML = '';
   [5,4,3,2,1].forEach(l => {
     const b = document.createElement('button');
-    b.style.cssText = `flex:1;height:44px;background:var(--lv${l});border:${ST.data[ST.selDs]?.slots?.[h]?.level===l?'2px solid #fff':'none'};border-radius:8px`;
-    b.onclick = () => { if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:l}; openDetail(d, h); };
+    b.style.cssText = `flex:1;height:48px;background:var(--lv${l});border:${ST.data[ST.selDs]?.slots?.[h]?.level===l?'3px solid #fff':'none'};border-radius:10px;cursor:pointer;transition:transform 0.1s`;
+    b.onclick = () => { 
+      if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; 
+      ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:l}; 
+      openDetail(d, h); 
+    };
     row.appendChild(b);
   });
   document.getElementById('detail-panel').classList.add('open');
 }
 
 function saveDetail() {
-  if(ST.data[ST.selDs]?.slots?.[ST.selH]) ST.data[ST.selDs].slots[ST.selH].note = document.getElementById('memo-input').value;
+  if(ST.data[ST.selDs]?.slots?.[ST.selH]) {
+    ST.data[ST.selDs].slots[ST.selH].note = document.getElementById('memo-input').value;
+  }
   localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
   closePanel(); refreshTab(); syncToSheets();
 }
@@ -325,7 +379,7 @@ function saveReview() {
 
 function closePanel() { document.querySelectorAll('.panel').forEach(p => p.classList.remove('open')); }
 function changeWeek(delta) { ST.weekStart.setDate(ST.weekStart.getDate() + delta*7); renderWeek(); }
-function calcCellSize(){ return Math.max(Math.min(Math.floor((window.innerWidth-40)/7), 44), 15); }
+function calcCellSize(){ return Math.max(Math.min(Math.floor((window.innerWidth-40)/7), 48), 15); }
 window.onresize = renderWeek;
 </script>
 </body>
