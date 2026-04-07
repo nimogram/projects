@@ -89,7 +89,7 @@
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 80px; height: 40px; background: var(--lv5); color: #000; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: bold; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
 
         /* Stats Cards */
-        .summary-card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px; border-left: 4px solid var(--lv5); border: 1px solid var(--border); border-left: 4px solid var(--lv5); }
+        .summary-card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px; border-left: 4px solid var(--lv5); border: 1px solid var(--border); }
         .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 10px; }
         .log-item { font-size: 12px; line-height: 1.6; margin-bottom: 4px; }
         .log-item b { color: var(--lv5); margin-right: 6px; }
@@ -311,7 +311,7 @@
                 if (s.note) dLogs.push(`<div class="log-item"><b>[${h}:00]</b> ${s.note}</div>`);
             });
             if (dLogs.length) {
-                html += `<div class="summary-card">
+                html += `<div class="summary-card" style="border-left-color: var(--lv${dCnt ? Math.round(dSum/dCnt) : 1})">
                     <div class="card-date">${d.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div>
                     <div>${dLogs.join('')}</div>
                 </div>`;
@@ -361,11 +361,12 @@
 
     function openReview(type) {
         ST.revType = type;
+        // Review用のキー生成 (GAS側のReviewSummaryシートに対応させる)
         const key = `review-${type==='wkly'?'w':'m'}-${ST.weekStart.getFullYear()}-${type==='wkly'? Math.ceil(ST.weekStart.getDate()/7) : ST.weekStart.getMonth()+1}`;
         const r = ST.data[key] || {};
         document.getElementById('r-title').textContent = type.toUpperCase();
         document.getElementById('r-keep').value = r.keep||'';
-        document.getElementById('r-prob').value = r.prob||'';
+        document.getElementById('r-prob').value = r.problem||''; // GAS側のキー 'problem' に合わせる
         document.getElementById('r-try').value = r.try||'';
         document.getElementById('panel-review').classList.add('open');
     }
@@ -380,7 +381,7 @@
         const key = `review-${ST.revType==='wkly'?'w':'m'}-${ST.weekStart.getFullYear()}-${ST.revType==='wkly'? Math.ceil(ST.weekStart.getDate()/7) : ST.weekStart.getMonth()+1}`;
         ST.data[key] = {
             keep: document.getElementById('r-keep').value,
-            prob: document.getElementById('r-prob').value,
+            problem: document.getElementById('r-prob').value, // GAS側の 'problem' キーを使用
             try: document.getElementById('r-try').value
         };
         localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
