@@ -21,17 +21,15 @@
 
 /* ── THEME VARIABLES ── */
 :root {
-  --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
-  --empty:#0d1117; --yellow:#ffff00;
-  --bg:#0d0d0d;--surface:#131313;--card:#181818;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
-  --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
-  --gap:2px;
-  --time-col:28px;
-  
-  /* Micro-animations */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --anim-speed: 0.3s;
+ --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
+ --empty:#0d1117; --yellow:#ffff00;
+ --bg:#0d0d0d;--surface:#131313;--card:#181818;
+ --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+ --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
+ --gap:2px;
+ --time-col:28px;
+ --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+ --anim-speed: 0.3s;
 }
 
 html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
@@ -88,7 +86,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
  to { opacity: 1; transform: translateX(0); }
 }
 
-/* ── NEW MINIMAL TAB NAVIGATION ── */
+/* ── TAB NAVIGATION ── */
 .tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100;height:calc(64px + env(safe-area-inset-bottom, 20px))}
 .tab-btn{flex:1;padding:0;border:none;background:transparent;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.15em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition: all 0.3s var(--ease-out);position:relative;opacity:0.6}
 .tab-btn.active{color:var(--yellow);opacity:1;transform:translateY(-2px)}
@@ -217,6 +215,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 </div></div>
 
 <script>
+// ニモさんの最新GAS URL
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyUSkMWv6L3r2WxJfCXzTX7v5etbYtnPc0nuVoTQeJq1PItiQadSVnvP__LLvbbDnz8gQ/exec";
 const RECORDING_HOURS = 12; 
 const GAP = 2;
 const TIME_COL_PX = 28;
@@ -255,7 +255,7 @@ let ST = {
  viewMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
  data: sanitizeData(rawSaved), 
  themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
- syncUrl: localStorage.getItem('nimo-v6-sync-url') || 'https://script.google.com/macros/s/AKfycbyUSkMWv6L3r2WxJfCXzTX7v5etbYtnPc0nuVoTQeJq1PItiQadSVnvP__LLvbbDnz8gQ/exec',
+ syncUrl: localStorage.getItem('nimo-v6-sync-url') || GAS_URL,
  currentTab: 'week'
 };
 
