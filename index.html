@@ -21,17 +21,17 @@
 
 /* ── THEME VARIABLES ── */
 :root {
- --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
- --empty:#0d1117; --yellow:#ffff00;
- --bg:#0d0d0d;--surface:#131313;--card:#181818;
- --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
- --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
- --gap:2px;
- --time-col:28px;
- 
- /* Micro-animations */
- --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
- --anim-speed: 0.3s;
+  --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
+  --empty:#0d1117; --yellow:#ffff00;
+  --bg:#0d0d0d;--surface:#131313;--card:#181818;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
+  --gap:2px;
+  --time-col:28px;
+  
+  /* Micro-animations */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --anim-speed: 0.3s;
 }
 
 html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
@@ -156,7 +156,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
 <div id="screen-summary" class="screen">
  <div class="week-header">
  <div class="week-top">
- <div class="week-title">WKLY</div>
+ <div class="week-title">STATS</div>
  <div class="week-nav-container">
  <div class="week-nav">
  <button class="nav-btn" onclick="changeStatsWeek(-1)">‹</button>
@@ -195,7 +195,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-seri
  <button class="tab-btn" id="tab-month" onclick="switchTab('month')"><span>LOG</span><span>MONTH</span></button>
 </nav>
 
-<!-- Panels omitted for brevity as they remain same, keeping the logic for functional app -->
 <div id="detail-panel" class="panel"><div class="panel-inner">
  <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div id="d-day" style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1">15</div><div id="d-hour" style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:32px">08:00</div></div><button class="settings-btn" onclick="closeDetail()">✕</button></div>
  <div class="intensity-row" id="intensity-row" style="margin-bottom:20px"></div>
@@ -256,7 +255,7 @@ let ST = {
  viewMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
  data: sanitizeData(rawSaved), 
  themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
- syncUrl: localStorage.getItem('nimo-v6-sync-url') || '',
+ syncUrl: localStorage.getItem('nimo-v6-sync-url') || 'https://script.google.com/macros/s/AKfycbyUSkMWv6L3r2WxJfCXzTX7v5etbYtnPc0nuVoTQeJq1PItiQadSVnvP__LLvbbDnz8gQ/exec',
  currentTab: 'week'
 };
 
@@ -270,7 +269,8 @@ function applyTheme(){
 }
 
 function calcCellSize(){
- const headerH = document.querySelector('.week-header').offsetHeight;
+ const headerEl = document.querySelector('.week-header');
+ const headerH = headerEl ? headerEl.offsetHeight : 120;
  const navH = 80;
  const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
  const cellW = Math.floor(availW / 7);
@@ -289,11 +289,11 @@ function renderWeek(){
  const monthName = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()];
  document.getElementById('week-range').textContent=`${monthName} ${days[0].getDate()}-${days[6].getDate()}`;
  
- const grid=document.getElementById('grid-area'); grid.innerHTML='';
+ const grid=document.getElementById('grid-area'); if(!grid) return; grid.innerHTML='';
  grid.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
  grid.style.gridTemplateRows = `repeat(${RECORDING_HOURS}, ${sz}px)`;
  
- const dowH=document.getElementById('dow-header');
+ const dowH=document.getElementById('dow-header'); if(!dowH) return;
  dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
  dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['MON','TUE','WED','THU','FRI','SAT','SUN'][ (d.getDay() + 6) % 7 ]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
 
@@ -312,6 +312,28 @@ function renderWeek(){
  }
 }
 
+async function fetchCloudData() {
+ if (!ST.syncUrl) return;
+ const dot = document.getElementById('sync-dot');
+ const text = document.getElementById('sync-text');
+ if(dot) { dot.style.background = "var(--yellow)"; }
+ if(text) text.textContent = "LOADING...";
+ try {
+ const response = await fetch(ST.syncUrl);
+ const result = await response.json();
+ if (result && result.data) {
+ ST.data = sanitizeData(Object.assign({}, ST.data, result.data));
+ localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+ if(dot) dot.style.background = "var(--lv5)";
+ if(text) text.textContent = "IDLE";
+ refreshTab();
+ }
+ } catch (e) {
+ if(dot) dot.style.background = "#ff4444";
+ if(text) text.textContent = "OFFLINE";
+ }
+}
+
 async function syncToSheets() {
  const urlEl = document.getElementById('sync-url');
  const url = urlEl && urlEl.value ? urlEl.value : ST.syncUrl;
@@ -324,17 +346,10 @@ async function syncToSheets() {
  dot.style.background = "var(--yellow)";
  text.textContent = "SYNCING...";
  try {
- const response = await fetch(url, { method: 'POST', body: JSON.stringify({ action: 'sync', data: ST.data }) });
- const resText = await response.text();
- let result;
- try { result = JSON.parse(resText); } catch(e) { result = null; }
- if (result && result.data) {
- ST.data = Object.assign({}, sanitizeData(result.data), ST.data);
- localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
- dot.style.background = "var(--lv5)";
- text.textContent = "UPDATED";
- refreshTab();
- } else { dot.style.background = "var(--lv4)"; text.textContent = "OK"; }
+ await fetch(url, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'sync', data: ST.data }) });
+ if(dot) dot.style.background = "var(--lv4)";
+ if(text) text.textContent = "SENT";
+ setTimeout(fetchCloudData, 1000);
  } catch (err) { dot.style.background = "#ff4444"; text.textContent = "ERROR"; }
  setTimeout(() => { dot.classList.remove('syncing-dot'); dot.style.background = "var(--muted2)"; text.textContent = "IDLE"; }, 3000);
 }
@@ -362,10 +377,10 @@ function renderSummary(){
  return { date: d, avg: avg, notes: memoLogs };
  });
  const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
- dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="dash-daily-row">${dayStats.map(s => `<div class="dash-day-block"><div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>`;
+ if(dash) dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="dash-daily-row">${dayStats.map(s => `<div class="dash-day-block"><div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>`;
  let html = dayStats.filter(s => s.notes.length > 0).map((s, idx) => {
  let memoHtml = `<div class="day-memo-list">${s.notes.map(n => `<div><b>[${n.h}:00]</b> <span style="color:var(--lv${n.lv})">●</span> ${n.txt}</div>`).join('')}</div>`;
- return `<div class="stat-card" style="border-left-color: var(--lv${s.avg!==null?Math.round(s.avg):'1'}); animation-delay: ${idx * 0.1}s;"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
+ return `<div class="stat-card" style="border-left-color: var(--lv${s.avg!==null?Math.round(s.avg):'1'}); animation-delay: ${idx * 0.1}s;"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'}; font-family:'Bebas Neue',sans-serif; font-size:24px;">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
  }).join('');
  container.innerHTML = html || `<div style="text-align:center; padding:40px; color:var(--muted2); font-size:12px; font-family:'DM Mono',monospace;">NO MEMOS RECORDED THIS WEEK</div>`;
 }
@@ -453,7 +468,7 @@ const THEMES = [
  {id:'ge', name:'GE Style', lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], hi:'#16a34a'}
 ];
 
-function switchTab(t){ ST.currentTab=t; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(`screen-${t}`).classList.add('active'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.getElementById(`tab-${t}`).classList.add('active'); refreshTab(); }
+function switchTab(t){ ST.currentTab=t; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); const target = document.getElementById(`screen-${t}`); if(target) target.classList.add('active'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); const btn = document.getElementById(`tab-${t}`); if(btn) btn.classList.add('active'); refreshTab(); }
 function refreshTab() { const t = ST.currentTab; if(t==='summary') renderSummary(); else if(t==='month') renderMonth(); else renderWeek(); }
 function openDetail(d,h){ ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`; document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||''; const r=document.getElementById('intensity-row'); r.innerHTML=''; [5,4,3,2,1].forEach(lv=>{ const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':''); b.style.background=`var(--lv${lv})`; b.onclick=()=>{ if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:lv}; openDetail(d,h); }; r.appendChild(b); }); document.getElementById('detail-panel').classList.add('open'); }
 function saveAndClose(){ const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); refreshTab(); syncToSheets(); }
@@ -467,7 +482,7 @@ function closeSettings(){ document.getElementById('settings-panel').classList.re
 function renderSettings(){ document.getElementById('sync-url').value = ST.syncUrl; const g=document.getElementById('theme-grid'); g.innerHTML=''; THEMES.forEach(th=>{ const isAct=ST.themeId===th.id; const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':''); card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`; card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); refreshTab(); }; g.appendChild(card); }); }
 window.addEventListener('resize', ()=>renderWeek());
 renderWeek();
-syncToSheets(); 
+fetchCloudData();
 </script>
 </body>
 </html>
