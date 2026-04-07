@@ -1,496 +1,412 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>NIMOGRAM LOG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
 
-<!-- PWA: スマホで独立したアプリとして動作させる設定 -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MOOD LOG">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0d0d0d">
+        :root {
+            --lv5: #00ffa3; --lv4: #00d18b; --lv3: #00a36c; --lv2: #00754d; --lv1: #00472e;
+            --empty: #0d1117; --yellow: #ffff00;
+            --bg: #0d0d0d; --surface: #131313; --card: #181818;
+            --border: rgba(255,255,255,0.07); --text: #ffffff; --muted: #7a7a7a;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/matrix.png">
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
 
-<title>NIMOGRAM LOG</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;forced-color-adjust:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        /* Screens */
+        .screen { display: none; flex-direction: column; height: 100dvh; opacity: 0; transform: translateY(8px); transition: 0.3s var(--ease); }
+        .screen.active { display: flex; opacity: 1; transform: translateY(0); }
 
-/* ── THEME VARIABLES ── */
-:root {
- --lv5:#00e5a0;--lv4:#00b87a;--lv3:#007a50;--lv2:#004d32;--lv1:#001a12;
- --empty:#0d1117; --yellow:#ffff00;
- --bg:#0d0d0d;--surface:#131313;--card:#181818;
- --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
- --muted:#4a4a4a;--muted2:#7a7a7a;--text:#ffffff;
- --gap:2px;
- --time-col:28px;
- --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
- --anim-speed: 0.3s;
-}
+        /* Header (368.png Style) */
+        header { flex-shrink: 0; padding-top: env(safe-area-inset-top, 36px); background: var(--bg); border-bottom: 1px solid var(--border); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; position: relative; }
+        .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.1em; line-height: 1; color: var(--text); }
+        
+        .week-nav { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .nav-arrow { background: none; border: none; color: var(--muted); font-size: 10px; cursor: pointer; padding: 2px 10px; }
+        .range-label { font-family: 'DM Mono', monospace; font-size: 10px; color: #fff; text-transform: uppercase; }
 
-html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;height:100%;width:100%;margin:0 auto;overflow:hidden;position:fixed}
+        .status-box { display: flex; align-items: center; gap: 5px; font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); }
+        .status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--muted); }
+        .status-dot.syncing { background: var(--yellow); animation: blink 1s infinite; }
+        .status-dot.online { background: var(--lv5); box-shadow: 0 0 5px var(--lv5); }
+        @keyframes blink { 50% { opacity: 0.3; } }
+        
+        .settings-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-.screen{display:none;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;opacity:0;transform:translateY(8px);transition: opacity var(--anim-speed) var(--ease-out), transform var(--anim-speed) var(--ease-out);}
-.screen.active{display:flex;opacity:1;transform:translateY(0)}
+        /* Grid Section */
+        .dow-row { display: grid; grid-template-columns: 32px repeat(7, 1fr); padding: 4px 8px; gap: 3px; }
+        .dow-label { text-align: center; font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; }
+        .dow-label.today { color: var(--lv5); font-weight: bold; }
 
-/* ── HEADER ── */
-.week-header{flex-shrink:0;background:var(--bg);padding-top:env(safe-area-inset-top,36px)}
-.week-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 10px; position: relative;}
-.week-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:0.08em;color:var(--text);line-height:1}
+        .scroll-area { flex: 1; overflow-y: auto; padding: 4px 8px 100px; }
+        .grid-matrix { display: grid; grid-template-columns: 32px repeat(7, 1fr); gap: 3px; }
+        .time-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+        
+        .cell { aspect-ratio: 1; border-radius: 3px; background: var(--empty); cursor: pointer; transition: 0.2s; position: relative; border: 1px solid rgba(255,255,255,0.02); }
+        .cell:active { transform: scale(0.9); }
+        .cell.has-note::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 3px; height: 3px; background: rgba(255,255,255,0.4); border-radius: 50%; }
 
-.week-nav-container { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; }
-.week-nav{display:flex;align-items:center;gap:6px}
-.week-range{font-family:'DM Mono',monospace;font-size:10px;color:var(--text);min-width:64px;text-align:center;text-transform:uppercase}
+        /* Intensity Styles with 368.png Glow */
+        .lv-5 { background: var(--lv5) !important; box-shadow: 0 0 16px var(--lv5) !important; z-index: 1; }
+        .lv-4 { background: var(--lv4) !important; }
+        .lv-3 { background: var(--lv3) !important; }
+        .lv-2 { background: var(--lv2) !important; }
+        .lv-1 { background: var(--lv1) !important; box-shadow: 0 0 8px var(--lv1); }
 
-.nav-btn{width:22px;height:22px;border:0.5px solid var(--border2);background:transparent;color:var(--muted2);border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition: all 0.2s;}
-.nav-btn:active{transform:scale(0.85); background:var(--border2);}
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
+        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; position: relative; opacity: 0.6; }
+        .nav-item.active { color: var(--lv5); opacity: 1; }
+        .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 20px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
-.header-right{display:flex;align-items:center;gap:12px}
-.settings-btn{width:38px;height:38px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition: all 0.2s;}
-.settings-btn:active{transform:scale(0.9); opacity:0.7;}
+        /* Review Panel (352.png/354.png Style) */
+        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
+        .panel.open { transform: translateY(0); }
+        .panel-header { padding: 40px 24px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .close-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .panel-body { flex: 1; padding: 0 24px 40px; overflow-y: auto; }
 
-.dow-header{display:grid;gap:var(--gap);padding:0;border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0}
-.dow-col{display:flex;flex-direction:column;align-items:center;padding:4px 0 5px}
-.dow-name{font-family:'DM Mono',monospace;font-size:7px;text-transform:uppercase;color:var(--muted2)}
-.dow-date-num{font-family:'Bebas Neue',sans-serif;font-size:15px;line-height:1.1;color:var(--muted2)}
-.dow-col.today .dow-name,.dow-col.today .dow-date-num{color:var(--yellow)}
+        .review-label-top { color: var(--lv5); font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .review-label-top::before { content: '●'; font-size: 8px; }
+        .review-title { font-family: 'Bebas Neue', sans-serif; font-size: 42px; line-height: 1; margin-bottom: 4px; }
+        .review-subtitle { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 30px; letter-spacing: 0.1em; }
 
-/* ── GRID ── */
-.grid-area{flex:1;display:grid;gap:var(--gap);padding:var(--gap) 0;overflow:hidden;width:100%}
-.time-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted2);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
-.time-label.now-hour{color:var(--yellow);font-weight:700}
-.week-cell{border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition: transform 0.1s var(--ease-out), background 0.3s; position:relative; border:4px solid var(--bg)}
-.week-cell:active{transform:scale(0.9); z-index: 5;}
-.week-cell.now-cell{box-shadow:0 0 0 2px var(--yellow); z-index: 10;}
+        .input-section { margin-bottom: 24px; }
+        .input-label { font-family: 'DM Sans', sans-serif; font-size: 11px; margin-bottom: 12px; display: block; font-weight: 500; }
+        .memo-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 12px; color: #fff; padding: 16px; font-size: 14px; min-height: 100px; resize: none; outline: none; }
+        
+        .save-review-btn { width: 100%; padding: 20px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; letter-spacing: 0.2em; box-shadow: 0 8px 20px rgba(0,255,163,0.3); }
 
-/* ── DASHBOARDS ── */
-.stats-dashboard{background:var(--card);padding:20px;margin-bottom:15px;border-bottom:2px solid var(--lv5);display:flex;flex-direction:column;gap:15px}
-.dash-main{display:flex;justify-content:space-between;align-items:center}
-.dash-score-box{display:flex;flex-direction:column}
-.dash-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
-.dash-value{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;color:var(--text)}
-.dash-unit{font-size:12px;color:var(--muted2);margin-left:4px}
+        /* Floating Review Button (351.png Style) */
+        .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 80px; height: 40px; background: var(--lv5); color: #000; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: bold; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
 
-.dash-daily-row{display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;width:100%}
-.dash-box{width:100%;aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;font-weight:900}
-.dash-day-name{font-family:'DM Mono',monospace;font-size:7px;color:var(--muted2)}
-
-.summary-container{flex:1;overflow-y:auto;padding:0 20px 120px}
-.stat-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border-left:4px solid var(--lv5); animation: cardIn 0.5s var(--ease-out) forwards;}
-@keyframes cardIn {
- from { opacity: 0; transform: translateX(-10px); }
- to { opacity: 1; transform: translateX(0); }
-}
-
-/* ── TAB NAVIGATION ── */
-.tab-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,10,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:0.5px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom, 20px);z-index:100;height:calc(64px + env(safe-area-inset-bottom, 20px))}
-.tab-btn{flex:1;padding:0;border:none;background:transparent;color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.15em;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition: all 0.3s var(--ease-out);position:relative;opacity:0.6}
-.tab-btn.active{color:var(--yellow);opacity:1;transform:translateY(-2px)}
-.tab-btn::after{content:'';position:absolute;bottom:12px;width:0;height:2px;background:var(--yellow);border-radius:2px;transition: width 0.3s var(--ease-out)}
-.tab-btn.active::after{width:20px}
-.tab-btn span:first-child { font-size: 11px; font-family: 'DM Mono', monospace; text-transform: uppercase; margin-bottom: -2px; }
-
-/* ── PANELS ── */
-.panel{position:fixed; inset:0; z-index:150; overflow-y:auto; background:rgba(10,10,10,0.45); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)}
-.panel.open{transform:translateX(0)}
-.panel-inner{padding:44px 20px 64px; max-width:430px; margin:0 auto}
-.intensity-row{display:flex;gap:6px}.lv-btn{width:100%;aspect-ratio:1;border:1px solid rgba(128,128,128,0.15);cursor:pointer;border-radius:5px; transition: transform 0.2s;}.lv-btn.act{border:2.5px solid var(--text);transform:translateY(-5px)}
-.memo-input{width:100%;min-height:120px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-size:14px;padding:12px;border-radius:8px;margin-bottom:16px;outline:none; transition: border-color 0.3s;}
-.memo-input:focus{border-color:var(--yellow);}
-
-.action-row{display:flex;gap:10px}
-.clear-btn{flex:1;padding:18px;background:transparent;border:1px solid var(--border2);color:var(--muted2);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer;transition:all 0.2s}
-.clear-btn:active{background:rgba(255,255,255,0.05); transform:scale(0.98);}
-.save-btn{flex:2;padding:18px;background:var(--lv4);color:#fff;border:none;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:0.4em;border-radius:8px;cursor:pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);}
-.save-btn:active{transform:scale(0.98); opacity:0.9;}
-
-/* ── SETTINGS ── */
-.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px; margin-top:10px;}
-.theme-card{border:0.5px solid var(--border2);border-radius:8px;padding:9px 8px;cursor:pointer;background:var(--card); transition: all 0.2s;}
-.theme-card.active{border-color:var(--lv4);box-shadow:0 0 0 1px var(--lv4); transform: scale(1.05);}
-.theme-swatches{display:flex;gap:2px;margin-bottom:6px; height:12px; overflow:hidden;}
-.theme-swatch{flex:1;height:100%;border-radius:1px;}
-.theme-name{font-family:'DM Mono',monospace;font-size:8px;color:var(--text);letter-spacing:0.06em;text-transform:uppercase;}
-
-/* Animations */
-@keyframes pulseSync {
- 0% { transform: scale(1); opacity: 1; }
- 50% { transform: scale(1.5); opacity: 0.5; }
- 100% { transform: scale(1); opacity: 1; }
-}
-.syncing-dot { animation: pulseSync 1s infinite; }
-</style>
+        /* Stats Cards */
+        .summary-card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px; border-left: 4px solid var(--lv5); border: 1px solid var(--border); border-left: 4px solid var(--lv5); }
+        .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 10px; }
+        .log-item { font-size: 12px; line-height: 1.6; margin-bottom: 4px; }
+        .log-item b { color: var(--lv5); margin-right: 6px; }
+    </style>
 </head>
 <body>
 
+<!-- Grid Screen -->
 <div id="screen-week" class="screen active">
- <div class="week-header">
- <div class="week-top">
- <div class="week-title">MOOD LOG</div>
- <div class="week-nav-container">
- <div class="week-nav">
- <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
- <div class="week-range" id="week-range">—</div>
- <button class="nav-btn" onclick="changeWeek(1)">›</button>
- </div>
- </div>
- <div class="header-right">
- <div id="auto-sync-indicator" style="font-family:'DM Mono',monospace; font-size:7px; color:var(--muted2); display:flex; align-items:center; gap:4px;">
- <span id="sync-dot" style="width:4px; height:4px; border-radius:50%; background:var(--muted2);"></span>
- <span id="sync-text">IDLE</span>
- </div>
- <button class="settings-btn" onclick="openSettings()">⚙</button>
- </div>
- </div>
- <div id="dow-header" class="dow-header"></div>
- </div>
- <div id="grid-area" class="grid-area"></div>
+    <header>
+        <div class="header-top">
+            <div class="app-title">MOOD LOG</div>
+            <div class="week-nav">
+                <button class="nav-arrow" onclick="moveWeek(-1)">▲</button>
+                <div class="range-label" id="week-range">-- . --</div>
+                <button class="nav-arrow" onclick="moveWeek(1)">▼</button>
+            </div>
+            <div class="header-right">
+                <div class="status-box">
+                    <div id="sync-dot" class="status-dot"></div>
+                    <span id="sync-text">IDLE</span>
+                </div>
+                <button class="settings-btn" onclick="manualSync()">⚙</button>
+            </div>
+        </div>
+        <div class="dow-row" id="dow-header"></div>
+    </header>
+    <div class="scroll-area">
+        <div class="grid-matrix" id="grid-area"></div>
+    </div>
 </div>
 
+<!-- Weekly Summary Screen -->
 <div id="screen-summary" class="screen">
- <div class="week-header">
- <div class="week-top">
- <div class="week-title">STATS</div>
- <div class="week-nav-container">
- <div class="week-nav">
- <button class="nav-btn" onclick="changeStatsWeek(-1)">‹</button>
- <div class="week-range" id="stats-week-range">—</div>
- <button class="nav-btn" onclick="changeStatsWeek(1)">›</button>
- </div>
- </div>
- <button class="settings-btn" onclick="openSettings()">⚙</button>
- </div>
- </div>
- <div id="stats-dashboard" class="stats-dashboard"></div>
- <div class="summary-container" id="summary-content"></div>
+    <header><div class="header-top"><div class="app-title">WKLY</div></div></header>
+    <div style="padding: 24px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between;">
+        <div>
+            <div class="review-subtitle">Weekly Performance</div>
+            <div class="review-title" id="wkly-avg" style="font-size: 64px;">0.00</div>
+        </div>
+        <div style="background: var(--lv5); width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 0 15px var(--lv5);"></div>
+    </div>
+    <div class="scroll-area" id="summary-content"></div>
+    <button class="review-fab" onclick="openReview('wkly')">REVIEW</button>
 </div>
 
+<!-- Monthly Summary Screen -->
 <div id="screen-month" class="screen">
- <div class="week-header">
- <div class="week-top">
- <div class="week-title">MONTHLY</div>
- <div class="week-nav-container">
- <div class="week-nav">
- <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
- <div class="week-range" id="month-range">—</div>
- <button class="nav-btn" onclick="changeMonth(1)">›</button>
- </div>
- </div>
- <button class="settings-btn" onclick="openSettings()">⚙</button>
- </div>
- </div>
- <div id="month-dashboard" class="stats-dashboard"></div>
- <div class="summary-container" id="month-content"></div>
+    <header><div class="header-top"><div class="app-title">MONTH</div></div></header>
+    <div style="padding: 24px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between;">
+        <div>
+            <div class="review-subtitle">Monthly Performance</div>
+            <div class="review-title" id="month-avg" style="font-size: 64px;">0.00</div>
+        </div>
+        <div style="background: var(--lv5); width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 0 15px var(--lv5);"></div>
+    </div>
+    <div class="scroll-area" id="month-content"></div>
+    <button class="review-fab" onclick="openReview('month')">REVIEW</button>
 </div>
 
-<nav class="tab-nav">
- <button class="tab-btn active" id="tab-week" onclick="switchTab('week')"><span>MODE</span><span>GRID</span></button>
- <button class="tab-btn" id="tab-summary" onclick="switchTab('summary')"><span>VIEW</span><span>WKLY</span></button>
- <button class="tab-btn" id="tab-month" onclick="switchTab('month')"><span>LOG</span><span>MONTH</span></button>
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <button class="nav-item active" id="tab-week" onclick="switchTab('week')">GRID</button>
+    <button class="nav-item" id="tab-summary" onclick="switchTab('summary')">WKLY</button>
+    <button class="nav-item" id="tab-month" onclick="switchTab('month')">MONTH</button>
 </nav>
 
-<div id="detail-panel" class="panel"><div class="panel-inner">
- <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div><div id="d-day" style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1">15</div><div id="d-hour" style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:32px">08:00</div></div><button class="settings-btn" onclick="closeDetail()">✕</button></div>
- <div class="intensity-row" id="intensity-row" style="margin-bottom:20px"></div>
- <textarea id="memo-input" class="memo-input" placeholder="今の状態やメモ..."></textarea>
- <div class="action-row">
- <button class="clear-btn" onclick="clearAndClose()">CLEAR</button>
- <button class="save-btn" onclick="saveAndClose()">SAVE LOG</button>
- </div>
-</div></div>
+<!-- Detail Panel -->
+<div id="panel-detail" class="panel">
+    <div class="panel-header">
+        <div>
+            <div class="review-title" id="d-time">00:00</div>
+            <div class="review-subtitle" id="d-date">-- . -- . ----</div>
+        </div>
+        <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+    <div class="panel-body">
+        <div class="review-subtitle" style="margin-bottom: 12px;">Intensity</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 24px;" id="intensity-row"></div>
+        <div class="review-subtitle" style="margin-bottom: 12px;">Memo</div>
+        <textarea id="memo-input" class="memo-input" placeholder="今の気分やログを記録..."></textarea>
+        <button class="save-review-btn" onclick="saveDetail()">SAVE TO CLOUD</button>
+    </div>
+</div>
 
-<div id="settings-panel" class="panel"><div class="panel-inner">
- <div style="display:flex;justify-content:space-between;margin-bottom:20px"><div class="week-title">Settings</div><button class="settings-btn" onclick="closeSettings()">✕</button></div>
- <div style="margin-bottom:24px">
- <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Cloud Sync (GAS URL)</div>
- <input type="text" id="sync-url" class="settings-input" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-size:12px;padding:12px;border-radius:8px;margin-bottom:15px;outline:none" placeholder="https://script.google.com/macros/s/.../exec">
- <button id="btn-sync" class="sync-btn" style="width:100%;padding:15px;background:var(--yellow);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:0.2em;cursor:pointer;margin-bottom:10px;" onclick="syncToSheets()">MANUAL SYNC</button>
- </div>
- <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Color Themes</div>
- <div id="theme-grid" class="theme-grid"></div>
-</div></div>
+<!-- Review Panel (352.png/354.png Style) -->
+<div id="panel-review" class="panel">
+    <div class="panel-header">
+        <div>
+            <div class="review-label-top">Review</div>
+            <div class="review-title" id="r-title">WKLY</div>
+            <div class="review-subtitle">INSIGHT & KPT</div>
+        </div>
+        <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+    <div class="panel-body">
+        <div class="input-section">
+            <span class="input-label" style="color: var(--lv5);">KEEP (継続したい成功要因)</span>
+            <textarea id="r-keep" class="memo-input" placeholder="良かったこと、続けること"></textarea>
+        </div>
+        <div class="input-section">
+            <span class="input-label" style="color: #ff4444;">PROBLEM (改善が必要な課題)</span>
+            <textarea id="r-prob" class="memo-input" placeholder="課題、障害、反省点"></textarea>
+        </div>
+        <div class="input-section">
+            <span class="input-label" style="color: #00d2ff;">TRY (次へのアクション)</span>
+            <textarea id="r-try" class="memo-input" placeholder="次に試すこと、具体的な行動"></textarea>
+        </div>
+        <button class="save-review-btn" onclick="saveReview()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            SAVE REVIEW
+        </button>
+    </div>
+</div>
 
 <script>
-// ニモさんの最新GAS URL (2026-04-08 更新)
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwQhmP_J5Yi81BOjyn8ZaSyrqF5_s5lvf6GGL0dWNYv9F60mWJsWYNc2oIk1_nH9hvQhw/exec";
-const RECORDING_HOURS = 12; 
-const GAP = 2;
-const TIME_COL_PX = 28;
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyUSkMWv6L3r2WxJfCXzTX7v5etbYtnPc0nuVoTQeJq1PItiQadSVnvP__LLvbbDnz8gQ/exec";
+    
+    function ds(d) { return d.toISOString().split('T')[0]; }
+    function monday(d){ const t=new Date(d); t.setHours(0,0,0,0); const dw=t.getDay(); t.setDate(t.getDate()+(dw===0?-6:1-dw)); return t; }
 
-function ds(d){
- const year = d.getFullYear();
- const month = (d.getMonth() + 1).toString().padStart(2, '0');
- const date = d.getDate().toString().padStart(2, '0');
- return `${year}-${month}-${date}`;
-}
+    let ST = {
+        weekStart: monday(new Date()),
+        data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
+        tab: 'week',
+        selDs: '', selH: 0, revType: ''
+    };
 
-function sanitizeData(raw) {
- const clean = {};
- for (let key in raw) {
- let cleanKey = key;
- if (isNaN(Date.parse(key)) === false && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
- cleanKey = ds(new Date(key));
- } else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(key) && !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
- const parts = key.split('-');
- cleanKey = `${parts[0]}-${parts[1].padStart(2,'0')}-${parts[2].padStart(2,'0')}`;
- }
- if (!clean[cleanKey]) {
- clean[cleanKey] = raw[key];
- } else {
- if (raw[key].slots) {
-   if (!clean[cleanKey].slots) clean[cleanKey].slots = {};
-   clean[cleanKey].slots = Object.assign({}, clean[cleanKey].slots, raw[key].slots);
- }
- if (raw[key].memo) clean[cleanKey].memo = raw[key].memo;
- // レビュー項目の統合
- const reviewFields = ['keep', 'problem', 'try', 'tenXAction', 'tenXNext'];
- reviewFields.forEach(f => { if(raw[key][f]) clean[cleanKey][f] = raw[key][f]; });
- }
- }
- return clean;
-}
+    window.onload = async () => {
+        renderWeek();
+        await fetchCloudData();
+        refreshTab();
+    };
 
-let rawSaved = JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}');
-let ST = {
- weekStart: monday(new Date()),
- statsWeekStart: monday(new Date()),
- viewMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
- data: sanitizeData(rawSaved), 
- themeId: localStorage.getItem('nimo-v6-theme-id') || 'emerald',
- syncUrl: localStorage.getItem('nimo-v6-sync-url') || GAS_URL,
- currentTab: 'week'
-};
+    async function fetchCloudData() {
+        const dot = document.getElementById('sync-dot');
+        const text = document.getElementById('sync-text');
+        dot.className = "status-dot syncing";
+        text.textContent = "LOADING...";
+        try {
+            const res = await fetch(GAS_URL);
+            const result = await res.json();
+            if (result.data) {
+                // クラウドデータを優先的に深くマージ
+                for (let key in result.data) {
+                    if (key.startsWith('review-')) {
+                        ST.data[key] = Object.assign({}, ST.data[key] || {}, result.data[key]);
+                    } else {
+                        if (!ST.data[key]) ST.data[key] = { slots: {} };
+                        ST.data[key].slots = Object.assign({}, result.data[key].slots, ST.data[key].slots);
+                    }
+                }
+                localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+                dot.className = "status-dot online";
+                text.textContent = "IDLE";
+                refreshTab();
+            }
+        } catch(e) {
+            dot.className = "status-dot";
+            text.textContent = "OFFLINE";
+        }
+    }
 
-function monday(d){const t=new Date(d);t.setHours(0,0,0,0);const dw=t.getDay();t.setDate(t.getDate()+(dw===0?-6:1-dw));return t;}
+    async function syncToSheets() {
+        document.getElementById('sync-text').textContent = "SYNCING...";
+        document.getElementById('sync-dot').className = "status-dot syncing";
+        try {
+            await fetch(GAS_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({ action: 'sync', data: ST.data }) 
+            });
+            setTimeout(fetchCloudData, 1200);
+        } catch(e) { console.error(e); }
+    }
 
-function applyTheme(){
- const th=THEMES.find(t=>t.id===ST.themeId)||THEMES[0];
- const root=document.documentElement;
- th.lv.forEach((c,i)=>root.style.setProperty(`--lv${5-i}`,c));
- root.style.setProperty('--yellow', th.hi || th.lv[0]);
-}
+    function renderWeek() {
+        const now = new Date();
+        const todayDs = ds(now);
+        const days = Array.from({length:7}, (_,i) => { const d=new Date(ST.weekStart); d.setDate(d.getDate()+i); return d; });
+        
+        const monthNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        document.getElementById('week-range').textContent = `${days[0].getDate()}-${days[6].getDate()} ${monthNames[ST.weekStart.getMonth()]}`;
+        
+        const header = document.getElementById('dow-header');
+        header.innerHTML = '<div></div>' + days.map(d => `
+            <div class="dow-label ${ds(d)===todayDs?'today':''}">
+                ${['MON','TUE','WED','THU','FRI','SAT','SUN'][(d.getDay()+6)%7]}<br>${d.getDate()}
+            </div>`).join('');
 
-function calcCellSize(){
- const headerEl = document.querySelector('.week-header');
- const headerH = headerEl ? headerEl.offsetHeight : 120;
- const navH = 80;
- const availW = window.innerWidth - TIME_COL_PX - (GAP * 8);
- const cellW = Math.floor(availW / 7);
- const availH = window.innerHeight - headerH - navH - (GAP * RECORDING_HOURS);
- const cellH = Math.floor(availH / RECORDING_HOURS);
- return Math.max(Math.min(cellW, cellH), 12);
-}
+        const grid = document.getElementById('grid-area');
+        grid.innerHTML = '';
+        for (let h=8; h<=19; h++) {
+            const tl = document.createElement('div');
+            tl.className = 'time-label'; tl.textContent = h;
+            grid.appendChild(tl);
+            days.forEach(d => {
+                const dstr = ds(d);
+                const lv = ST.data[dstr]?.slots?.[h]?.level;
+                const cell = document.createElement('div');
+                cell.className = 'cell' + (lv ? ` lv-${lv}` : '');
+                if (ST.data[dstr]?.slots?.[h]?.note) cell.classList.add('has-note');
+                cell.onclick = () => openDetail(d, h);
+                grid.appendChild(cell);
+            });
+        }
+    }
 
-function renderWeek(){
- applyTheme();
- const sz = calcCellSize();
- const now = new Date();
- const todayDs = ds(now);
- const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.weekStart);d.setDate(d.getDate()+i);return d;});
- 
- const monthName = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.weekStart.getMonth()];
- document.getElementById('week-range').textContent=`${monthName} ${days[0].getDate()}-${days[6].getDate()}`;
- 
- const grid=document.getElementById('grid-area'); if(!grid) return; grid.innerHTML='';
- grid.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
- grid.style.gridTemplateRows = `repeat(${RECORDING_HOURS}, ${sz}px)`;
- 
- const dowH=document.getElementById('dow-header'); if(!dowH) return;
- dowH.style.gridTemplateColumns = `${TIME_COL_PX}px repeat(7, 1fr)`;
- dowH.innerHTML = '<div class="dow-spacer"></div>' + days.map(d => `<div class="dow-col ${ds(d)===todayDs?'today':''}"><div class="dow-name">${['MON','TUE','WED','THU','FRI','SAT','SUN'][ (d.getDay() + 6) % 7 ]}</div><div class="dow-date-num">${d.getDate()}</div></div>`).join('');
+    function renderSummary() {
+        const days = Array.from({length:7}, (_,i) => { const d=new Date(ST.weekStart); d.setDate(d.getDate()+i); return d; });
+        let sum=0, count=0, html='';
+        days.forEach(d => {
+            const dstr = ds(d);
+            const slots = ST.data[dstr]?.slots || {};
+            let dSum=0, dCnt=0, dLogs=[];
+            Object.keys(slots).forEach(h => {
+                const s = slots[h];
+                if (s.level) { dSum+=s.level; dCnt++; sum+=s.level; count++; }
+                if (s.note) dLogs.push(`<div class="log-item"><b>[${h}:00]</b> ${s.note}</div>`);
+            });
+            if (dLogs.length) {
+                html += `<div class="summary-card">
+                    <div class="card-date">${d.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div>
+                    <div>${dLogs.join('')}</div>
+                </div>`;
+            }
+        });
+        document.getElementById('wkly-avg').textContent = count ? (sum/count).toFixed(2) : "0.00";
+        document.getElementById('summary-content').innerHTML = html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO LOGS</div>';
+    }
 
- for(let h=8; h<=19; h++){
- const tl=document.createElement('div'); tl.className='time-label'+(h===now.getHours()?' now-hour':''); tl.textContent=h; grid.appendChild(tl);
- days.forEach(d=>{
- const dstr=ds(d);
- const lv=ST.data[dstr]?.slots?.[h]?.level;
- const cell=document.createElement('div');
- cell.className='week-cell'+(dstr===todayDs && h===now.getHours()?' now-cell':'');
- cell.style.cssText=`height:${sz}px;background:${lv?`var(--lv${lv})`:'var(--empty)'}`;
- if(ST.data[dstr]?.slots?.[h]?.note) cell.innerHTML='<div style="width:3px;height:3px;background:rgba(255,255,255,0.4);border-radius:50%;position:absolute;bottom:2px;right:2px"></div>';
- cell.onclick=()=>openDetail(d,h);
- grid.appendChild(cell);
- });
- }
-}
+    function renderMonth() {
+        const start = new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1);
+        const end = new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth()+1, 0);
+        let html = '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:5px;">';
+        let totalSum = 0, totalCount = 0;
+        for (let d=1; d<=end.getDate(); d++) {
+            const dstr = ds(new Date(start.getFullYear(), start.getMonth(), d));
+            const slots = ST.data[dstr]?.slots || {};
+            let s=0, c=0; Object.values(slots).forEach(v => { if(v.level){s+=v.level; c++} });
+            const avg = c ? (s/c) : 0;
+            if (avg > 0) { totalSum += avg; totalCount++; }
+            html += `<div class="cell ${avg?`lv-${Math.round(avg)}`:''}" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:16px; color:${avg>3?'#000':'#fff'}">${d}</div>`;
+        }
+        document.getElementById('month-avg').textContent = totalCount ? (totalSum/totalCount).toFixed(2) : "0.00";
+        document.getElementById('month-content').innerHTML = html + '</div>';
+    }
 
-async function fetchCloudData() {
- if (!ST.syncUrl) return;
- const dot = document.getElementById('sync-dot');
- const text = document.getElementById('sync-text');
- if(dot) { dot.style.background = "var(--yellow)"; }
- if(text) text.textContent = "LOADING...";
- try {
- const response = await fetch(ST.syncUrl);
- const result = await response.json();
- if (result && result.data) {
- // クラウド（シート）から来たデータをマージ
- ST.data = sanitizeData(Object.assign({}, ST.data, result.data));
- localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
- if(dot) dot.style.background = "var(--lv5)";
- if(text) text.textContent = "IDLE";
- refreshTab();
- }
- } catch (e) {
- if(dot) dot.style.background = "#ff4444";
- if(text) text.textContent = "OFFLINE";
- }
-}
+    function openDetail(d, h) {
+        ST.selDs = ds(d); ST.selH = h;
+        document.getElementById('d-time').textContent = `${h}:00`;
+        document.getElementById('d-date').textContent = ST.selDs;
+        document.getElementById('memo-input').value = ST.data[ST.selDs]?.slots?.[h]?.note || '';
+        const row = document.getElementById('intensity-row');
+        row.innerHTML = '';
+        [5,4,3,2,1].forEach(l => {
+            const btn = document.createElement('div');
+            btn.className = 'lv-btn' + (ST.data[ST.selDs]?.slots?.[h]?.level === l ? ' selected' : '');
+            btn.style.background = `var(--lv${l})`;
+            btn.onclick = () => {
+                if (!ST.data[ST.selDs]) ST.data[ST.selDs] = { slots: {} };
+                ST.data[ST.selDs].slots[h] = { ...ST.data[ST.selDs].slots[h], level: l };
+                openDetail(d, h);
+            };
+            row.appendChild(btn);
+        });
+        document.getElementById('panel-detail').classList.add('open');
+    }
 
-async function syncToSheets() {
- const urlEl = document.getElementById('sync-url');
- const url = urlEl && urlEl.value ? urlEl.value : ST.syncUrl;
- const dot = document.getElementById('sync-dot');
- const text = document.getElementById('sync-text');
- if (!url) return;
- ST.syncUrl = url;
- localStorage.setItem('nimo-v6-sync-url', url);
- dot.classList.add('syncing-dot');
- dot.style.background = "var(--yellow)";
- text.textContent = "SYNCING...";
- try {
- await fetch(url, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'sync', data: ST.data }) });
- if(dot) dot.style.background = "var(--lv4)";
- if(text) text.textContent = "SENT";
- // 保存後にシートからの最新データを再取得
- setTimeout(fetchCloudData, 1000);
- } catch (err) { dot.style.background = "#ff4444"; text.textContent = "ERROR"; }
- setTimeout(() => { dot.classList.remove('syncing-dot'); dot.style.background = "var(--muted2)"; text.textContent = "IDLE"; }, 3000);
-}
+    function openReview(type) {
+        ST.revType = type;
+        const key = `review-${type==='wkly'?'w':'m'}-${ST.weekStart.getFullYear()}-${type==='wkly'? Math.ceil(ST.weekStart.getDate()/7) : ST.weekStart.getMonth()+1}`;
+        const r = ST.data[key] || {};
+        document.getElementById('r-title').textContent = type.toUpperCase();
+        document.getElementById('r-keep').value = r.keep||'';
+        document.getElementById('r-prob').value = r.prob||'';
+        document.getElementById('r-try').value = r.try||'';
+        document.getElementById('panel-review').classList.add('open');
+    }
 
-function renderSummary(){
- applyTheme();
- const days=Array.from({length:7},(_,i)=>{const d=new Date(ST.statsWeekStart);d.setDate(d.getDate()+i);return d;});
- const container = document.getElementById('summary-content');
- const dash = document.getElementById('stats-dashboard');
- const monthName = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][ST.statsWeekStart.getMonth()];
- document.getElementById('stats-week-range').textContent=`${monthName} ${days[0].getDate()}-${days[6].getDate()}`;
- let weekSum=0, weekCount=0;
- const dayStats = days.map(d => {
- const dstr = ds(d);
- const slots = ST.data[dstr]?.slots || {};
- let sum=0, count=0;
- const memoLogs = []; 
- for(let h=8; h<=19; h++) {
- const s = slots[h];
- if(s && s.level){ sum += s.level; count++; }
- if(s && s.note && s.note.trim() !== '' && s.level !== 3) { memoLogs.push({h: h, lv: s.level || 0, txt: s.note}); }
- }
- const avg = count > 0 ? (sum/count) : null;
- if(avg) { weekSum += avg; weekCount++; }
- return { date: d, avg: avg, notes: memoLogs };
- });
- const weekAvg = weekCount > 0 ? (weekSum / weekCount) : 0;
- if(dash) dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Weekly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(weekAvg) || 1})">${weekAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(weekAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(weekAvg) || 0})44"></div></div><div class="dash-daily-row">${dayStats.map(s => `<div class="dash-day-block"><div class="dash-box" style="background: ${s.avg ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)'}; color: ${s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff'}">${s.avg ? s.avg.toFixed(1) : '-'}</div><div class="dash-day-name">${['S','M','T','W','T','F','S'][s.date.getDay()]}</div></div>`).join('')}</div>`;
- let html = dayStats.filter(s => s.notes.length > 0).map((s, idx) => {
- let memoHtml = `<div class="day-memo-list">${s.notes.map(n => `<div><b>[${n.h}:00]</b> <span style="color:var(--lv${n.lv})">●</span> ${n.txt}</div>`).join('')}</div>`;
- return `<div class="stat-card" style="border-left-color: var(--lv${s.avg!==null?Math.round(s.avg):'1'}); animation-delay: ${idx * 0.1}s;"><div class="stat-title">${['SUN','MON','TUE','WED','THU','FRI','SAT'][s.date.getDay()]} ${s.date.getDate()}</div><div class="stat-val" style="color:var(--lv${s.avg!==null?Math.round(s.avg):'1'})">${s.avg!==null?s.avg.toFixed(2):'--'}</div>${memoHtml}</div>`;
- }).join('');
- container.innerHTML = html || `<div style="text-align:center; padding:40px; color:var(--muted2); font-size:12px; font-family:'DM Mono',monospace;">NO MEMOS RECORDED THIS WEEK</div>`;
-}
+    function saveDetail() {
+        if (ST.data[ST.selDs]?.slots?.[ST.selH]) ST.data[ST.selDs].slots[ST.selH].note = document.getElementById('memo-input').value;
+        localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+        closePanel(); refreshTab(); syncToSheets();
+    }
 
-function renderMonth(){
- applyTheme();
- const start = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth(), 1);
- const end = new Date(ST.viewMonth.getFullYear(), ST.viewMonth.getMonth() + 1, 0);
- const container = document.getElementById('month-content');
- const dash = document.getElementById('month-dashboard');
- document.getElementById('month-range').textContent = `${['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][start.getMonth()]} ${start.getFullYear()}`;
- let monthSum = 0, monthCount = 0;
- let dailyStats = [];
- let monthMemos = [];
- for(let d=1; d<=end.getDate(); d++){
- const cur = new Date(start.getFullYear(), start.getMonth(), d);
- const dstr = ds(cur);
- const slots = ST.data[dstr]?.slots || {};
- let sum=0, count=0;
- for(let h=8; h<=19; h++) {
- if(slots[h]?.level){ sum += slots[h].level; count++; }
- if(slots[h]?.note) monthMemos.push(`Day ${d}: ${slots[h].note}`);
- }
- const avg = count > 0 ? (sum/count) : null;
- if(avg) { monthSum += avg; monthCount++; }
- dailyStats.push({ date: cur, avg: avg });
- }
- const totalAvg = monthCount > 0 ? (monthSum / monthCount) : 0;
- dash.innerHTML = `<div class="dash-main"><div class="dash-score-box"><div class="dash-label">Monthly Performance</div><div class="dash-value" style="color: var(--lv${Math.round(totalAvg) || 1})">${totalAvg.toFixed(2)}<span class="dash-unit">AVG</span></div></div><div style="width: 50px; height: 50px; background: var(--lv${Math.round(totalAvg) || 0}); border-radius: 8px; box-shadow: 0 0 15px var(--lv${Math.round(totalAvg) || 0})44"></div></div><div id="ai-summary-box" class="alert-box" style="background:rgba(255,255,255,0.05);border-color:var(--border2);margin-top:10px; min-height:60px; font-size:12px; color:var(--text); line-height:1.5;">🌙 月間サマリ：<button onclick="getAiSummary()" style="background:var(--lv5); border:none; padding:4px 8px; border-radius:4px; font-size:10px; color:#000; font-weight:bold; cursor:pointer; transition: transform 0.2s;">AIで分析する</button></div>`;
- const startOffset = (start.getDay() + 6) % 7; 
- let html = `<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:8px;">`;
- ['M','T','W','T','F','S','S'].forEach(d => html += `<div style="text-align:center; font-size:8px; color:var(--muted); font-family:'DM Mono',monospace;">${d}</div>`);
- html += `</div><div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 0;">`;
- for(let i=0; i<startOffset; i++) html += `<div style="aspect-ratio:1; opacity:0"></div>`;
- dailyStats.forEach(s => {
- const bgColor = s.avg !== null ? `var(--lv${Math.round(s.avg)})` : 'var(--empty)';
- const textColor = s.avg && Math.round(s.avg) > 2 ? '#000' : '#fff';
- html += `<div style="aspect-ratio:1; border-radius:4px; position:relative; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:18px; color:${textColor}; background:${bgColor}; cursor:pointer; transition:transform 0.2s;" onclick="jumpToWeek('${s.date.toISOString()}')"><div style="position:absolute; top:4px; left:4px; font-size:8px; font-family:'DM Mono',monospace; opacity:0.6;">${s.date.getDate()}</div>${s.avg ? s.avg.toFixed(1) : ''}</div>`;
- });
- html += `</div>`;
- container.innerHTML = html;
- window.lastMonthMemos = monthMemos;
-}
+    function saveReview() {
+        const key = `review-${ST.revType==='wkly'?'w':'m'}-${ST.weekStart.getFullYear()}-${ST.revType==='wkly'? Math.ceil(ST.weekStart.getDate()/7) : ST.weekStart.getMonth()+1}`;
+        ST.data[key] = {
+            keep: document.getElementById('r-keep').value,
+            prob: document.getElementById('r-prob').value,
+            try: document.getElementById('r-try').value
+        };
+        localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
+        closePanel(); syncToSheets();
+    }
 
-async function getAiSummary() {
- const box = document.getElementById('ai-summary-box');
- const memos = window.lastMonthMemos || [];
- if (memos.length === 0) { box.innerHTML = "🌙 月間サマリ：データ不足ですよ。"; return; }
- box.innerHTML = "⌛ AI参謀がログを精査しています...";
- const apiKey = ""; 
- const prompt = `あなたはニモさんの秘書兼参謀です。以下の1ヶ月間の記録を分析し、仕事・健康・メンタル傾向を総括してください。愛情深く冷静な口調（〜ですよ）で200文字程度で回答してください。\nメモ：\n${memos.join('\n')}`;
- const fetchWithRetry = async (url, options, retries = 5, backoff = 1000) => {
- try { const res = await fetch(url, options); if (!res.ok && retries > 0) throw new Error(res.status); return res; } catch (err) { if (retries === 0) throw err; await new Promise(resolve => setTimeout(resolve, backoff)); return fetchWithRetry(url, options, retries - 1, backoff * 2); }
- };
- try {
- const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
- const result = await response.json();
- const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
- box.innerHTML = `🌙 月間サマリ：${text}`;
- } catch (err) { box.innerHTML = "🌙 分析エラーですよ。"; }
-}
+    function switchTab(t) {
+        ST.tab = t;
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`screen-${t}`).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(b => {
+            b.classList.remove('active');
+            if (b.id === `tab-${t}`) b.classList.add('active');
+        });
+        refreshTab();
+    }
 
-function jumpToWeek(dateIso) { const d = new Date(dateIso); ST.weekStart = monday(d); switchTab('week'); }
+    function refreshTab() {
+        if (ST.tab === 'week') renderWeek();
+        else if (ST.tab === 'summary') renderSummary();
+        else renderMonth();
+    }
 
-const THEMES = [
- {id:'emerald', name:'Emerald', lv:['#00e5a0','#00b87a','#007a50','#004d32','#001a12'], hi:'#00e5a0'},
- {id:'sky', name:'Sky', lv:['#bae6fd','#7dd3fc','#0ea5e9','#0369a1','#0c4a6e'], hi:'#bae6fd'},
- {id:'yellow', name:'Yellow', lv:['#fde047','#facc15','#ca8a04','#78530a','#2e1f00'], hi:'#fde047'},
- {id:'whoop', name:'Recovery', lv:['#4ade80','#a3e635','#facc15','#f97316','#ef4444'], hi:'#4ade80'},
- {id:'aurora', name:'Aurora', lv:['#c4b5fd','#a78bfa','#7c3aed','#4c1d95','#1e0a40'], hi:'#c4b5fd'},
- {id:'mono', name:'Mono', lv:['#e0e0e0','#a0a0a0','#606060','#303030','#181818'], hi:'#e0e0e0'},
- {id:'pink', name:'Pink', lv:['#fce7f3','#fbcfe8','#f9a8d4','#ec4899','#831843'], hi:'#fce7f3'},
- {id:'red', name:'Red', lv:['#fca5a5','#ef4444','#b91c1c','#7f1d1d','#2d0000'], hi:'#fca5a5'},
- {id:'orange', name:'Orange', lv:['#fdba74','#f97316','#c2410c','#7c2d12','#2a1000'], hi:'#fdba74'},
- {id:'teal', name:'Teal', lv:['#5eead4','#14b8a6','#0f766e','#134e4a','#042f2e'], hi:'#5eead4'},
- {id:'indigo', name:'Indigo', lv:['#a5b4fc','#6366f1','#4338ca','#312e81','#1e1b4b'], hi:'#a5b4fc'},
- {id:'gold', name:'Gold', lv:['#fcd34d','#f59e0b','#b45309','#78350f','#1e1200'], hi:'#fcd34d'},
- {id:'lime', name:'Lime', lv:['#bef264','#84cc16','#4d7c0f','#1a3a05','#0a1600'], hi:'#bef264'},
- {id:'coral', name:'Coral', lv:['#fda4af','#f43f5e','#be123c','#881337','#2d0010'], hi:'#fda4af'},
- {id:'mint', name:'Mint', lv:['#a7f3d0','#6ee7b7','#10b981','#065f46','#022c22'], hi:'#a7f3d0'},
- {id:'navy', name:'Navy', lv:['#93c5fd','#60a5fa','#2563eb','#1e40af','#1e3a8a'], hi:'#93c5fd'},
- {id:'rose', name:'Rose', lv:['#fecdd3','#fda4af','#fb7185','#e11d48','#4c0519'], hi:'#fecdd3'},
- {id:'violet', name:'Violet', lv:['#e9d5ff','#c084fc','#a855f7','#7e22ce','#3b0764'], hi:'#e9d5ff'},
- {id:'brown', name:'Brown', lv:['#d6b896','#b08060','#8a5c36','#5c3316','#2a1500'], hi:'#d6b896'},
- {id:'ge', name:'GE Style', lv:['#16a34a','#65a30d','#eab308','#ea580c','#dc2626'], hi:'#16a34a'}
-];
-
-function switchTab(t){ ST.currentTab=t; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); const target = document.getElementById(`screen-${t}`); if(target) target.classList.add('active'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); const btn = document.getElementById(`tab-${t}`); if(btn) btn.classList.add('active'); refreshTab(); }
-function refreshTab() { const t = ST.currentTab; if(t==='summary') renderSummary(); else if(t==='month') renderMonth(); else renderWeek(); }
-function openDetail(d,h){ ST.selDs=ds(d); ST.selHour=h; document.getElementById('d-day').textContent=d.getDate(); document.getElementById('d-hour').textContent=`${h}:00`; document.getElementById('memo-input').value=ST.data[ST.selDs]?.slots?.[h]?.note||''; const r=document.getElementById('intensity-row'); r.innerHTML=''; [5,4,3,2,1].forEach(lv=>{ const b=document.createElement('button'); b.className='lv-btn'+(ST.data[ST.selDs]?.slots?.[h]?.level===lv?' act':''); b.style.background=`var(--lv${lv})`; b.onclick=()=>{ if(!ST.data[ST.selDs]) ST.data[ST.selDs]={slots:{}}; ST.data[ST.selDs].slots[h]={...ST.data[ST.selDs].slots[h], level:lv}; openDetail(d,h); }; r.appendChild(b); }); document.getElementById('detail-panel').classList.add('open'); }
-function saveAndClose(){ const n=document.getElementById('memo-input').value; if(ST.data[ST.selDs]?.slots?.[ST.selHour]) ST.data[ST.selDs].slots[ST.selHour].note=n; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); refreshTab(); syncToSheets(); }
-function clearAndClose(){ if(ST.data[ST.selDs]?.slots?.[ST.selHour]){ delete ST.data[ST.selDs].slots[ST.selHour]; } localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); document.getElementById('detail-panel').classList.remove('open'); refreshTab(); syncToSheets(); }
-function closeDetail(){ document.getElementById('detail-panel').classList.remove('open'); renderWeek(); }
-function changeWeek(delta){ ST.weekStart = new Date(ST.weekStart); ST.weekStart.setDate(ST.weekStart.getDate() + delta * 7); renderWeek(); }
-function changeStatsWeek(dir){ ST.statsWeekStart.setDate(ST.statsWeekStart.getDate()+dir*7); renderSummary(); }
-function changeMonth(dir){ ST.viewMonth.setMonth(ST.viewMonth.getMonth()+dir); renderMonth(); }
-function openSettings(){ renderSettings(); document.getElementById('settings-panel').classList.add('open'); }
-function closeSettings(){ document.getElementById('settings-panel').classList.remove('open'); renderWeek(); }
-function renderSettings(){ document.getElementById('sync-url').value = ST.syncUrl; const g=document.getElementById('theme-grid'); g.innerHTML=''; THEMES.forEach(th=>{ const isAct=ST.themeId===th.id; const card=document.createElement('div'); card.className='theme-card'+(isAct?' active':''); card.innerHTML=`<div class="theme-swatches">${th.lv.map(c=>`<div class="theme-swatch" style="background:${c}"></div>`).join('')}</div><div class="theme-name">${th.name}</div>`; card.onclick=()=>{ ST.themeId=th.id; localStorage.setItem('nimo-v6-theme-id',th.id); applyTheme(); renderSettings(); refreshTab(); }; g.appendChild(card); }); }
-window.addEventListener('resize', ()=>renderWeek());
-renderWeek();
-fetchCloudData();
+    function closePanel() { document.querySelectorAll('.panel').forEach(p => p.classList.remove('open')); }
+    function moveWeek(n) { ST.weekStart.setDate(ST.weekStart.getDate() + (n * 7)); renderWeek(); refreshTab(); }
+    function manualSync() { fetchCloudData(); }
 </script>
 </body>
 </html>
