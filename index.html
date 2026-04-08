@@ -12,12 +12,12 @@
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
 
         :root {
-            /* 331.png準拠 ライムグリーンパレット復元 */
-            --lv5: #bef264; 
-            --lv4: #a3e635; 
-            --lv3: #84cc16; 
-            --lv2: #65a30d; 
-            --lv1: #4d7c0f;
+            /* 331.png & 368.png 準拠パレット */
+            --lv5: #00ffa3; 
+            --lv4: #00d18b; 
+            --lv3: #00a36c; 
+            --lv2: #00754d; 
+            --lv1: #00472e;
             --empty: #0d1117; 
             --yellow: #ffff00;
             --bg: #0d0d0d; 
@@ -41,11 +41,9 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; position: relative; }
         .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.1em; line-height: 1; color: var(--text); }
         
-        /* Week Nav Horizontal Layout */
-        .week-nav { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; align-items: center; gap: 12px; }
-        .nav-arrow { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 2px 10px; display: flex; align-items: center; justify-content: center; }
-        .nav-arrow:active { color: #fff; }
-        .range-text { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: #fff; text-transform: uppercase; min-width: 60px; text-align: center; }
+        .week-nav { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-arrow { background: none; border: none; color: var(--muted); font-size: 10px; cursor: pointer; padding: 2px 10px; }
+        .range-text { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: #fff; text-transform: uppercase; }
 
         .header-right { display: flex; align-items: center; gap: 12px; }
         .sync-info { display: flex; align-items: center; gap: 5px; font-family: 'DM Mono', monospace; font-size: 7px; color: var(--muted); }
@@ -56,7 +54,7 @@
         
         .settings-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* Grid - 3px Border (368.png Adjusted) */
+        /* Grid - Thick Border (6px) */
         .dow-row { display: grid; grid-template-columns: 32px repeat(7, 1fr); padding: 0 8px; margin-bottom: 4px; }
         .dow-label { text-align: center; font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; }
         .dow-label.today { color: var(--lv5); font-weight: bold; }
@@ -65,41 +63,37 @@
         .grid-matrix { display: grid; grid-template-columns: 32px repeat(7, 1fr); gap: 0; }
         .time-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
         
-        /* Cell border set to 3px to match 368.png vibe */
-        .cell { aspect-ratio: 1; border-radius: 3px; background: var(--empty); cursor: pointer; transition: 0.2s; position: relative; border: 3px solid var(--bg); }
+        .cell { aspect-ratio: 1; border-radius: 3px; background: var(--empty); cursor: pointer; transition: 0.2s; position: relative; border: 6px solid var(--bg); }
         .cell:active { transform: scale(0.9); }
         .cell.has-note::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 3px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 50%; }
 
-        /* Intensity Glow (Restored to 331.png colors) */
-        .lv-5 { background: var(--lv5) !important; box-shadow: 0 0 20px 2px var(--lv5) !important; z-index: 1; }
+        /* Intensity Styles with 368.png Glow */
+        .lv-5 { background: var(--lv5) !important; box-shadow: 0 0 16px var(--lv5), inset 0 0 8px rgba(255,255,255,0.3) !important; z-index: 1; }
         .lv-4 { background: var(--lv4) !important; }
         .lv-3 { background: var(--lv3) !important; }
         .lv-2 { background: var(--lv2) !important; }
         .lv-1 { background: var(--lv1) !important; box-shadow: 0 0 8px var(--lv1); }
 
-        /* Animation: character reveal */
+        /* Score Animation */
         .char-reveal { display: inline-block; opacity: 0; transform: translateY(5px); animation: charIn 0.4s forwards; }
         @keyframes charIn { to { opacity: 1; transform: translateY(0); } }
 
-        /* Bottom Nav */
+        /* Bottom Navigation */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
         .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; position: relative; opacity: 0.6; }
         .nav-item.active { color: var(--lv5); opacity: 1; }
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 24px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
-        /* WKLY Summary (351.png Style) */
+        /* WKLY (351.png Style) */
         .stats-summary { padding: 24px 20px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .stats-main-score { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 0.8; color: var(--lv5); min-width: 140px; }
         .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); }
-        
-        .card-item { background: var(--card); border-radius: 12px; padding: 16px 20px; margin: 0 20px 12px; border-left: 4px solid var(--lv5); border: 1px solid var(--border); border-left-width: 4px; animation: cardIn 0.5s var(--ease) forwards; }
-        @keyframes cardIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+        .card-item { background: var(--card); border-radius: 12px; padding: 16px 20px; margin: 0 20px 12px; border-left: 4px solid var(--lv5); border: 1px solid var(--border); border-left-width: 4px; }
         .log-line { font-size: 12px; line-height: 1.8; margin-bottom: 4px; }
         .log-line b { color: var(--lv5); margin-right: 6px; }
 
-        /* Panels (350.png Style) */
-        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
+        /* Panels (350.png / 354.png Style) */
+        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
         .panel.open { transform: translateY(0); }
         .panel-content { padding: 44px 24px 64px; max-width: 430px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
         .panel-close { position: absolute; top: 30px; right: 20px; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -119,10 +113,10 @@
         .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 20px; font-size: 14px; resize: none; min-height: 120px; outline: none; margin-bottom: 24px; font-family: inherit; }
         .main-save-btn { width: 100%; padding: 20px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 8px 30px rgba(0,255,163,0.3); }
 
-        /* REVIEW FAB */
+        /* Floating REVIEW Button */
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 80px; height: 44px; background: var(--lv5); color: #000; border-radius: 10px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: bold; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; transition: 0.2s; }
 
-        /* Settings UI */
+        /* Settings View */
         .settings-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; }
     </style>
 </head>
@@ -134,9 +128,9 @@
         <div class="header-top">
             <div class="app-title">MOOD LOG</div>
             <div class="week-nav">
-                <button class="nav-arrow" onclick="moveWeek(-1)">‹</button>
+                <button class="nav-arrow" onclick="moveWeek(-1)">▲</button>
                 <div class="range-text" id="week-range">-- . --</div>
-                <button class="nav-arrow" onclick="moveWeek(1)">›</button>
+                <button class="nav-arrow" onclick="moveWeek(1)">▼</button>
             </div>
             <div class="header-right">
                 <div class="sync-info">
@@ -167,13 +161,14 @@
     <button class="review-fab" onclick="openReview('month')">REVIEW</button>
 </div>
 
+<!-- Navigation Bar -->
 <nav class="bottom-nav">
     <button class="nav-item active" id="tab-week" onclick="switchTab('week')">GRID</button>
     <button class="nav-item" id="tab-summary" onclick="switchTab('summary')">WKLY</button>
     <button class="nav-item" id="tab-month" onclick="switchTab('month')">MONTH</button>
 </nav>
 
-<!-- DETAIL -->
+<!-- LOG DETAIL -->
 <div id="panel-detail" class="panel">
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
@@ -200,7 +195,7 @@
             <textarea id="r-keep" class="memo-input" placeholder="継続したい成功要因"></textarea>
             <span class="label-top" style="color:#ff4444">PROBLEM</span>
             <textarea id="r-prob" class="memo-input" placeholder="改善が必要な課題"></textarea>
-            <span class="label-top" style="color:#00d2ff">TRY / 10X ACTION</span>
+            <span class="label-top" style="color:#00d2ff">TRY / 10X REFLECTION</span>
             <textarea id="r-try" class="memo-input" style="min-height:160px;" placeholder="次へのアクション & 10Xの振り返り"></textarea>
         </div>
         <button class="main-save-btn" onclick="saveReview()">SAVE REVIEW</button>
@@ -215,18 +210,27 @@
         <div class="detail-day-num" style="font-size: 42px;">SETTINGS</div>
         <div class="detail-full-date">CONFIG & SYNC</div>
         <div class="settings-item">
-            <div class="label-top">Google Apps Script URL</div>
+            <div class="label-top">GAS ENDPOINT</div>
             <input type="text" id="gas-url-input" style="width:100%; background:transparent; border:none; color:#fff; font-family:'DM Mono',monospace; font-size:10px; padding:10px 0; outline:none;" readonly>
         </div>
+        <div class="settings-item">
+            <div class="label-top">COLOR PREVIEW (331.png)</div>
+            <div style="display:flex; gap:4px; margin-top:10px;">
+                <div style="flex:1; height:24px; background:var(--lv1); border-radius:4px;"></div>
+                <div style="flex:1; height:24px; background:var(--lv2); border-radius:4px;"></div>
+                <div style="flex:1; height:24px; background:var(--lv3); border-radius:4px;"></div>
+                <div style="flex:1; height:24px; background:var(--lv4); border-radius:4px;"></div>
+                <div style="flex:1; height:24px; background:var(--lv5); border-radius:4px; box-shadow: 0 0 10px var(--lv5);"></div>
+            </div>
+        </div>
         <button class="main-save-btn" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="fetchCloudData()">MANUAL SYNC</button>
-        <div style="margin-top:auto; font-size:9px; color:var(--muted); text-align:center;">NIMOGRAM V6 // SAPPORO BASE</div>
     </div>
 </div>
 
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyUSkMWv6L3r2WxJfCXzTX7v5etbYtnPc0nuVoTQeJq1PItiQadSVnvP__LLvbbDnz8gQ/exec";
     
-    // JST Logic
+    // JST Logic (UTC+9)
     const getJSTDate = (date = new Date()) => {
         const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
         return new Date(utc + (9 * 60 * 60000));
@@ -296,10 +300,7 @@
                 text.textContent = "IDLE";
                 refreshTab();
             }
-        } catch(e) { 
-            dot.className = "status-dot"; 
-            text.textContent = "OFFLINE";
-        }
+        } catch(e) { dot.className = "status-dot"; text.textContent = "OFFLINE"; }
     }
 
     async function syncToSheets() {
