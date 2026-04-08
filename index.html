@@ -12,12 +12,12 @@
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap');
 
         :root {
-            /* 331.png準拠 カラーパレット */
-            --lv5: #00ffa3; 
-            --lv4: #00d18b; 
-            --lv3: #00a36c; 
-            --lv2: #00754d; 
-            --lv1: #00472e;
+            /* 331.png準拠 ライムグリーンパレット復元 */
+            --lv5: #bef264; 
+            --lv4: #a3e635; 
+            --lv3: #84cc16; 
+            --lv2: #65a30d; 
+            --lv1: #4d7c0f;
             --empty: #0d1117; 
             --yellow: #ffff00;
             --bg: #0d0d0d; 
@@ -41,9 +41,11 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; position: relative; }
         .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.1em; line-height: 1; color: var(--text); }
         
-        .week-nav { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .nav-arrow { background: none; border: none; color: var(--muted); font-size: 10px; cursor: pointer; padding: 2px 10px; }
-        .range-text { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: #fff; text-transform: uppercase; }
+        /* Week Nav Horizontal Layout */
+        .week-nav { position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; align-items: center; gap: 12px; }
+        .nav-arrow { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 2px 10px; display: flex; align-items: center; justify-content: center; }
+        .nav-arrow:active { color: #fff; }
+        .range-text { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: #fff; text-transform: uppercase; min-width: 60px; text-align: center; }
 
         .header-right { display: flex; align-items: center; gap: 12px; }
         .sync-info { display: flex; align-items: center; gap: 5px; font-family: 'DM Mono', monospace; font-size: 7px; color: var(--muted); }
@@ -54,7 +56,7 @@
         
         .settings-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* Grid - Thick Border implementation (6px) */
+        /* Grid - 3px Border (368.png Adjusted) */
         .dow-row { display: grid; grid-template-columns: 32px repeat(7, 1fr); padding: 0 8px; margin-bottom: 4px; }
         .dow-label { text-align: center; font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; }
         .dow-label.today { color: var(--lv5); font-weight: bold; }
@@ -63,11 +65,12 @@
         .grid-matrix { display: grid; grid-template-columns: 32px repeat(7, 1fr); gap: 0; }
         .time-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
         
-        .cell { aspect-ratio: 1; border-radius: 3px; background: var(--empty); cursor: pointer; transition: 0.2s; position: relative; border: 6px solid var(--bg); }
+        /* Cell border set to 3px to match 368.png vibe */
+        .cell { aspect-ratio: 1; border-radius: 3px; background: var(--empty); cursor: pointer; transition: 0.2s; position: relative; border: 3px solid var(--bg); }
         .cell:active { transform: scale(0.9); }
         .cell.has-note::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 3px; height: 3px; background: rgba(255,255,255,0.3); border-radius: 50%; }
 
-        /* Intensity Glow (331.png Style) */
+        /* Intensity Glow (Restored to 331.png colors) */
         .lv-5 { background: var(--lv5) !important; box-shadow: 0 0 20px 2px var(--lv5) !important; z-index: 1; }
         .lv-4 { background: var(--lv4) !important; }
         .lv-3 { background: var(--lv3) !important; }
@@ -131,9 +134,9 @@
         <div class="header-top">
             <div class="app-title">MOOD LOG</div>
             <div class="week-nav">
-                <button class="nav-arrow" onclick="moveWeek(-1)">▲</button>
+                <button class="nav-arrow" onclick="moveWeek(-1)">‹</button>
                 <div class="range-text" id="week-range">-- . --</div>
-                <button class="nav-arrow" onclick="moveWeek(1)">▼</button>
+                <button class="nav-arrow" onclick="moveWeek(1)">›</button>
             </div>
             <div class="header-right">
                 <div class="sync-info">
