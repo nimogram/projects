@@ -23,7 +23,7 @@
             --yellow: #ffff00;
             --bg: #0d0d0d; 
             --surface: #131313; 
-            --card: #181818;
+            --card: rgba(24, 24, 24, 0.7); /* 透明度を上げたカード背景 */
             --border: rgba(255,255,255,0.07); 
             --text: #ffffff; 
             --muted: #7a7a7a;
@@ -100,18 +100,18 @@
         .char-reveal { display: inline-block; opacity: 0; transform: translateY(5px); animation: charIn 0.4s forwards; }
         @keyframes charIn { to { opacity: 1; transform: translateY(0); } }
 
-        /* Bottom Nav - Thinner Blur */
+        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
         .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; position: relative; opacity: 0.6; font-weight: 400; }
         .nav-item.active { color: var(--lv5); opacity: 1; }
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 24px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
         /* Summaries */
-        .stats-summary { padding: 24px 20px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; }
+        .stats-summary { padding: 24px 20px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; backdrop-filter: blur(4px); }
         .stats-main-score { font-family: 'Bebas Neue', sans-serif; font-size: 82px; line-height: 0.8; color: var(--lv5); min-width: 150px; }
         .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); }
         
-        /* Panels - Thinner Blur */
+        /* Panels */
         .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
         .panel.open { transform: translateY(0); }
         .panel-content { padding: 44px 24px 64px; max-width: 430px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
@@ -133,20 +133,19 @@
         .lv-color-sq { width: 100%; aspect-ratio: 1; border-radius: 10px; border: 2px solid transparent; transition: 0.2s; }
         .lv-box.selected .lv-color-sq { border-color: #fff; transform: scale(1.05); }
 
-        .lv-label-sub { font-family: 'DM Mono', monospace; font-size: 5px; color: var(--muted); text-transform: uppercase; font-weight: 400; letter-spacing: 0.05em; }
+        .lv-label-sub { font-family: 'DM Mono', monospace; font-size: 6px; color: var(--muted); text-transform: uppercase; font-weight: 400; letter-spacing: 0.05em; }
 
         .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 20px; font-size: 14px; resize: none; min-height: 100px; outline: none; margin-bottom: 24px; font-family: inherit; }
-        .main-save-btn { width: 100%; padding: 22px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        
+        .btn-group { display: flex; gap: 12px; margin-bottom: 24px; }
+        .main-save-btn { flex: 2; padding: 22px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .clear-btn { flex: 1; padding: 22px; background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; font-weight: 500; cursor: pointer; }
 
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: 500; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
         
-        .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border-left: 5px solid var(--lv5); border: 1px solid var(--border); border-left-width: 5px; }
+        .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border-left: 5px solid var(--lv5); border: 1px solid var(--border); border-left-width: 5px; backdrop-filter: blur(4px); }
         .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
 
-        .review-summary-row { display: flex; gap: 12px; margin-bottom: 16px; }
-        .impact-card { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
-        .impact-val { font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1; margin-bottom: 4px; }
-        .impact-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; }
         .impact-commentary { font-size: 10px; line-height: 1.5; color: var(--text); padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 24px; border-left: 2px solid var(--lv5); }
 
         .date-label-sub { position: absolute; top: 2px; left: 3px; font-family: 'DM Mono', monospace; font-size: 7px; color: var(--muted); opacity: 0.6; pointer-events: none; }
@@ -202,7 +201,10 @@
         <div class="detail-full-date" id="d-date">--- . --- ----</div>
         <div class="intensity-grid" id="intensity-grid"></div>
         <textarea id="memo-input" class="memo-input" placeholder="Notes..."></textarea>
-        <button class="main-save-btn" onclick="saveDetail()">SAVE TO CLOUD</button>
+        <div class="btn-group">
+            <button class="main-save-btn" onclick="saveDetail()">SAVE TO CLOUD</button>
+            <button class="clear-btn" onclick="clearData()">CLEAR</button>
+        </div>
     </div>
 </div>
 
@@ -347,7 +349,8 @@
 
     function renderSummary() {
         const days = Array.from({length:7}, (_,i) => { const d=new Date(ST.weekStart); d.setDate(d.getDate()+i); return d; });
-        let sum=0, count=0, html='';
+        let sum=0, count=0, html='', gridHtml = '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding: 0 20px; margin-bottom:20px;">';
+        
         days.forEach(d => {
             const dstr = ds(d);
             const slots = ST.data[dstr]?.slots || {};
@@ -362,9 +365,15 @@
                     dLogs.push(`<div class="log-line ${cls}"><div class="level-dot" style="background:var(--lv${s.level})"></div><b>[${h}:00]</b> ${s.note}</div>`);
                 }
             });
+
+            const dayAvg = dCnt ? (dSum/dCnt) : 0;
+            gridHtml += `<div class="cell ${dayAvg?`lv-${Math.round(dayAvg)}`:''}" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:14px; color:${dayAvg>3?'#000':'#fff'}">
+                <span class="date-label-sub">${d.getDate()}</span>
+                ${dayAvg ? dayAvg.toFixed(1) : ''}
+            </div>`;
+
             if (dLogs.length) {
-                const dayAvg = dCnt ? (dSum/dCnt) : 1;
-                html += `<div class="card-item" style="border-left-color: var(--lv${Math.round(dayAvg)})">
+                html += `<div class="card-item" style="border-left-color: var(--lv${Math.round(dayAvg || 1)})">
                     <div class="card-date">${d.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div>
                     <div>${dLogs.join('')}</div>
                 </div>`;
@@ -378,6 +387,7 @@
                 <div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div>
             </div>
             <div class="stats-insight">💎 週間レポ：平均スコア ${avg}。LV5のエメラルド、LV1のオレンジに着目してください。</div>
+            ${gridHtml}</div>
             ${html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>'}
         `;
         revealScore(document.getElementById('wk-score'), avg);
@@ -475,7 +485,6 @@
             });
         }
         
-        // Unify Review Card: Show ONLY specific comments for LV1 and LV5
         document.getElementById('review-commentary-area').innerHTML = `
             <div class="label-top" style="margin-bottom:12px;">Period LV1 & LV5 Logs</div>
             <div class="impact-commentary" style="max-height: 200px; overflow-y: auto;">
@@ -483,9 +492,7 @@
             </div>
         `;
 
-        // Hide impact cards for both WKLY and MONTH as requested
         document.getElementById('review-impact-summary').innerHTML = '';
-
         document.getElementById('r-title').textContent = type.toUpperCase();
         document.getElementById('r-keep').value = r.keep||'';
         document.getElementById('r-prob').value = r.prob||'';
