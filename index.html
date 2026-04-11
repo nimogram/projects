@@ -62,7 +62,7 @@
             z-index: 10;
             transition: all 0.2s;
             font-size: 20px;
-            font-weight: 500; /* Button Normal Weight */
+            font-weight: 500; 
         }
         .side-nav-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); color: #fff; }
         .side-nav-btn.prev { left: 16px; transform: translateY(-50%); }
@@ -112,7 +112,7 @@
         .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); }
         
         /* Panels - Thinner Blur */
-        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; column; }
+        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
         .panel.open { transform: translateY(0); }
         .panel-content { padding: 44px 24px 64px; max-width: 430px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
         .panel-close { position: absolute; top: 30px; right: 20px; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -453,7 +453,7 @@
         const scanPeriod = isMonth ? 31 : 7;
         const start = isMonth ? new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1) : new Date(ST.weekStart);
         
-        let monthLogsHtml = "";
+        let periodLogsHtml = "";
         
         for(let i=0; i<scanPeriod; i++) {
             const d = new Date(start); d.setDate(d.getDate() + i);
@@ -465,9 +465,9 @@
                 if(s.level === 1) lv1Count++;
                 if(s.level === 5) lv5Count++;
                 
-                if (isMonth && s.note && (s.level === 1 || s.level === 5)) {
+                if (s.note && (s.level === 1 || s.level === 5)) {
                     let cls = s.level === 5 ? 'lv-5-text' : 'lv-1-text';
-                    monthLogsHtml += `<div class="log-line ${cls}" style="margin-bottom:8px; font-size:11px;">
+                    periodLogsHtml += `<div class="log-line ${cls}" style="margin-bottom:8px; font-size:11px;">
                         <div class="level-dot" style="background:var(--lv${s.level})"></div>
                         <b>${d.getDate()}日 ${h}:00</b> ${s.note}
                     </div>`;
@@ -475,39 +475,16 @@
             });
         }
         
-        if (isMonth) {
-            // MONTH: Show specific comments for LV1 and LV5 instead of secretary insight
-            document.getElementById('review-commentary-area').innerHTML = `
-                <div class="label-top" style="margin-bottom:12px;">Monthly LV1 & LV5 Logs</div>
-                <div class="impact-commentary" style="max-height: 200px; overflow-y: auto;">
-                    ${monthLogsHtml || '<div style="color:var(--muted); font-size:10px;">NO LV1/LV5 LOGS THIS MONTH</div>'}
-                </div>
-            `;
-        } else {
-            // WEEKLY: Show secretary commentary
-            let impactComment = "";
-            if (lv5Count > 3) impactComment += `<span style="color:var(--emerald)">● PEAK状態が${lv5Count}回！攻めの運勢を完全に掴んでいますよ。</span><br>`;
-            else impactComment += "● PEAKの出現を増やして、非連続な成果を狙いましょう。<br>";
-            
-            if (lv1Count > 2) impactComment += `<span style="color:var(--orange)">● 警告：LV1が${lv1Count}回検知されました。体の運勢が低下中。休息が必要です。</span>`;
-            else impactComment += "● 規律ある管理により、低コンディションが抑えられています。";
-
-            document.getElementById('review-commentary-area').innerHTML = `
-                <div class="impact-commentary">${impactComment}</div>
-            `;
-        }
-
-        // Hide impact cards for month review as requested
-        document.getElementById('review-impact-summary').innerHTML = isMonth ? '' : `
-            <div class="impact-card" style="border-bottom: 3px solid var(--orange)">
-                <div class="impact-val" style="color:var(--orange)">${lv1Count}</div>
-                <div class="impact-label">Low Condition</div>
-            </div>
-            <div class="impact-card" style="border-bottom: 3px solid var(--emerald)">
-                <div class="impact-val" style="color:var(--emerald)">${lv5Count}</div>
-                <div class="impact-label">Peak Condition</div>
+        // Unify Review Card: Show ONLY specific comments for LV1 and LV5
+        document.getElementById('review-commentary-area').innerHTML = `
+            <div class="label-top" style="margin-bottom:12px;">Period LV1 & LV5 Logs</div>
+            <div class="impact-commentary" style="max-height: 200px; overflow-y: auto;">
+                ${periodLogsHtml || `<div style="color:var(--muted); font-size:10px;">NO LV1/LV5 LOGS THIS ${type.toUpperCase()}</div>`}
             </div>
         `;
+
+        // Hide impact cards for both WKLY and MONTH as requested
+        document.getElementById('review-impact-summary').innerHTML = '';
 
         document.getElementById('r-title').textContent = type.toUpperCase();
         document.getElementById('r-keep').value = r.keep||'';
