@@ -46,17 +46,16 @@
         .lv-5 { background: var(--lv5) !important; box-shadow: 0 0 18px 2px var(--lv5), inset 0 0 10px rgba(255,255,255,0.4) !important; z-index: 1; }
         .lv-1 { background: var(--lv1) !important; box-shadow: 0 0 8px var(--lv1); }
 
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.8); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
         .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; opacity: 0.6; }
         .nav-item.active { color: var(--lv5); opacity: 1; }
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 24px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
         .stats-summary { padding: 24px 20px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; }
         .stats-main-score { font-family: 'Bebas Neue', sans-serif; font-size: 82px; line-height: 0.8; color: var(--lv5); min-width: 150px; }
-        .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); }
         .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border-left: 5px solid var(--lv5); border: 1px solid var(--border); border-left-width: 5px; }
 
-        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
+        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
         .panel.open { transform: translateY(0); }
         .panel-content { padding: 44px 24px 64px; max-width: 430px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
         .panel-close { position: absolute; top: 30px; right: 20px; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; }
@@ -66,14 +65,19 @@
         .log-line.lv-1-text { color: var(--orange); font-weight: 500; }
         .level-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
-        .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 16px; font-size: 14px; resize: none; min-height: 80px; outline: none; margin-bottom: 20px; font-family: inherit; }
-        .main-save-btn { width: 100%; padding: 16px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 16px; font-size: 14px; resize: none; min-height: 80px; outline: none; margin-bottom: 16px; font-family: inherit; }
+        .main-save-btn { width: 100%; padding: 16px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: auto; }
 
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: bold; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; }
-        .impact-commentary { font-size: 10px; line-height: 1.5; color: var(--text); padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 20px; border-left: 2px solid var(--lv5); }
-        .date-label-sub { position: absolute; top: 2px; left: 3px; font-family: 'DM Mono', monospace; font-size: 7px; color: var(--muted); opacity: 0.6; }
+        .date-label-sub { position: absolute; top: 4px; left: 6px; font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); opacity: 0.8; }
         .char-reveal { display: inline-block; opacity: 0; transform: translateY(5px); animation: charIn 0.4s forwards; }
         @keyframes charIn { to { opacity: 1; transform: translateY(0); } }
+        
+        .label-top { color: var(--lv5); font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .label-top::before { content: '●'; font-size: 8px; }
+        .detail-day-num { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 0.8; color: var(--text); }
+        .detail-time-green { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--lv5); margin-bottom: 4px; }
+        .detail-full-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 30px; }
     </style>
 </head>
 <body>
@@ -122,7 +126,7 @@
         <div class="detail-full-date" id="d-date">--- . --- ----</div>
         <div style="display:flex; gap:10px; margin-bottom:24px;" id="intensity-grid"></div>
         <textarea id="memo-input" class="memo-input" placeholder="Notes..."></textarea>
-        <button class="main-save-btn" onclick="saveDetail()">SAVE TO CLOUD</button>
+        <button class="main-save-btn" style="margin-top: 0;" onclick="saveDetail()">SAVE TO CLOUD</button>
         <div onclick="clearData()" style="text-align:center; color:var(--muted); font-size:10px; margin-top:24px; cursor:pointer; letter-spacing:0.2em;">CLEAR DATA</div>
     </div>
 </div>
@@ -131,10 +135,9 @@
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
         <div class="label-top">REVIEW</div>
-        <div class="detail-day-num" id="r-title" style="font-size: 42px;">WKLY</div>
-        <div id="review-commentary-area"></div>
-        <div class="review-summary-row" id="review-impact-summary"></div>
-        <div style="flex: 1; overflow-y: auto;">
+        <div class="detail-day-num" id="r-title" style="font-size: 42px; margin-bottom: 20px;">WKLY</div>
+        
+        <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
             <span class="label-top" style="color:var(--lv5)">KEEP</span>
             <textarea id="r-keep" class="memo-input" placeholder="継続したい成功要因"></textarea>
             <span class="label-top" style="color:#ff4444">PROBLEM</span>
@@ -155,7 +158,7 @@
             <div class="label-top">GAS ENDPOINT</div>
             <input type="text" id="gas-url-input" style="width:100%; background:transparent; border:none; color:#fff; font-family:'DM Mono'; font-size:10px; outline:none;" readonly>
         </div>
-        <button class="main-save-btn" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="manualSync()">MANUAL SYNC</button>
+        <button class="main-save-btn" style="background:rgba(255,255,255,0.1); color:#fff; margin-top: 0;" onclick="manualSync()">MANUAL SYNC</button>
     </div>
 </div>
 
@@ -174,8 +177,7 @@
     const revealScore = (el, score) => {
         el.innerHTML = '';
         score.toString().split('').forEach((char, i) => {
-            const span = document.createElement('span');
-            span.className = 'char-reveal'; span.textContent = char;
+            const span = document.createElement('span'); span.className = 'char-reveal'; span.textContent = char;
             span.style.animationDelay = `${i * 0.1}s`; el.appendChild(span);
         });
     };
@@ -191,10 +193,7 @@
         try {
             const res = await fetch(GAS_URL); const result = await res.json();
             if (result.data) {
-                for (let key in result.data) {
-                    if (key.startsWith('review-')) ST.data[key] = Object.assign({}, ST.data[key] || {}, result.data[key]);
-                    else { if (!ST.data[key]) ST.data[key] = { slots: {} }; ST.data[key].slots = Object.assign({}, result.data[key].slots, ST.data[key].slots); }
-                }
+                ST.data = result.data;
                 localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data));
                 dot.className = "status-dot online"; document.getElementById('sync-text').textContent = "IDLE";
                 refreshTab();
@@ -218,7 +217,7 @@
         const grid = document.getElementById('grid-area'); grid.innerHTML = '';
         const cellH = Math.max(Math.floor((window.innerHeight - 240) / 12), 34);
         for (let h=8; h<=19; h++) {
-            const tl = document.createElement('div'); tl.className = 'time-label'; tl.textContent = h; tl.style.height = cellH + 'px'; tl.style.display = "flex"; tl.style.alignItems = "center"; tl.style.justifyContent = "flex-end"; tl.style.paddingRight = "8px"; tl.style.fontSize = "9px"; tl.style.color = "var(--muted)"; tl.style.fontFamily = "DM Mono"; grid.appendChild(tl);
+            const tl = document.createElement('div'); tl.innerHTML = h; tl.style.height = cellH + 'px'; tl.style.display = "flex"; tl.style.alignItems = "center"; tl.style.justifyContent = "flex-end"; tl.style.paddingRight = "8px"; tl.style.fontSize = "9px"; tl.style.color = "var(--muted)"; tl.style.fontFamily = "DM Mono"; grid.appendChild(tl);
             days.forEach(d => {
                 const dstr = ds(d); const lv = ST.data[dstr]?.slots?.[h]?.level;
                 const cell = document.createElement('div'); cell.className = 'cell' + (lv ? ` lv-${lv}` : ''); cell.style.height = cellH + 'px';
@@ -241,7 +240,7 @@
             if (dLogs.length) html += `<div class="card-item" style="border-left-color:var(--lv${Math.round(dSum/dCnt)})"><div class="card-date">${d.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div>${dLogs.join('')}</div></div>`;
         });
         const avg = count ? (sum/count).toFixed(2) : "0.00";
-        document.getElementById('summary-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Weekly Performance</div><div class="stats-main-score" id="wk-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div></div><div class="stats-insight">💎 週間レポ：平均スコア ${avg}。LV5のエメラルド、LV1のオレンジに着目してください。</div>${html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>'}`;
+        document.getElementById('summary-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Weekly Performance</div><div class="stats-main-score" id="wk-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div></div>${html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>'}`;
         revealScore(document.getElementById('wk-score'), avg);
     }
 
@@ -249,31 +248,21 @@
         const start = new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1);
         const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
         let gridHtml = '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding: 0 20px;">';
-        let totalSum=0, totalCount=0;
+        let tSum=0, tCount=0;
         for (let d=1; d<=end.getDate(); d++) {
             const curDate = new Date(start.getFullYear(), start.getMonth(), d);
             const dstr = ds(curDate); const slots = ST.data[dstr]?.slots || {};
             let s=0, c=0; Object.values(slots).forEach(v => { if(v.level){s+=v.level; c++} });
-            const avg = c ? (s/c) : 0; if(avg > 0) { totalSum += avg; totalCount++; }
+            const avg = c ? (s/c) : 0; if(avg > 0) { tSum += avg; tCount++; }
             gridHtml += `<div class="cell ${avg?`lv-${Math.round(avg)}`:''}" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:16px; color:${avg>3?'#000':'#fff'}" onclick="jumpToWeekReview('${curDate.toISOString()}')"><span class="date-label-sub">${d}</span>${avg ? avg.toFixed(1) : ''}</div>`;
         }
-        const mAvg = totalCount ? (totalSum/totalCount).toFixed(2) : "0.00";
-        document.getElementById('month-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Monthly Performance</div><div class="stats-main-score" id="mo-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow:0 0 15px var(--lv5);"></div></div><div class="stats-insight">🌙 月間レポ：平均スコア ${mAvg}。月全体のコンディション推移を俯瞰しましょう。</div>${gridHtml}</div>`;
+        const mAvg = tCount ? (tSum/tCount).toFixed(2) : "0.00";
+        document.getElementById('month-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Monthly Performance</div><div class="stats-main-score" id="mo-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div></div>${gridHtml}</div>`;
         revealScore(document.getElementById('mo-score'), mAvg);
     }
 
     function openReview(type) {
         ST.revType = type; const key = `review-${type==='wkly'?'w':'m'}-${ds(ST.weekStart)}`; const r = ST.data[key] || {};
-        let lv1Count = 0, lv5Count = 0; const isMonth = (type === 'month'); const scanPeriod = isMonth ? 31 : 7;
-        const start = isMonth ? new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1) : new Date(ST.weekStart);
-        for(let i=0; i<scanPeriod; i++) {
-            const d = new Date(start); d.setDate(d.getDate() + i); if (isMonth && d.getMonth() !== start.getMonth()) break;
-            const slots = ST.data[ds(d)]?.slots || {}; Object.values(slots).forEach(s => { if(s.level === 1) lv1Count++; if(s.level === 5) lv5Count++; });
-        }
-        let impactComment = (lv5Count > (isMonth?12:3)) ? `<span style="color:var(--emerald)">● PEAK状態が${lv5Count}回！攻めの運勢を完全に掴んでいますよ。</span><br>` : "● PEAKの出現を増やして、非連続な成果を狙いましょう。<br>";
-        impactComment += (lv1Count > (isMonth?8:2)) ? `<span style="color:var(--orange)">● 警告：LV1が${lv1Count}回検知されました。体の運勢が低下中。休息が必要です。</span>` : "● 規律ある管理により、低コンディションが抑えられています。";
-        document.getElementById('review-commentary-area').innerHTML = `<div class="impact-commentary">${impactComment}</div>`;
-        document.getElementById('review-impact-summary').innerHTML = isMonth ? '' : `<div class="impact-card" style="border-bottom:3px solid var(--orange)"><div class="impact-val" style="color:var(--orange)">${lv1Count}</div><div class="impact-label">Low Condition</div></div><div class="impact-card" style="border-bottom:3px solid var(--emerald)"><div class="impact-val" style="color:var(--emerald)">${lv5Count}</div><div class="impact-label">Peak Condition</div></div>`;
         document.getElementById('r-title').textContent = type.toUpperCase();
         document.getElementById('r-keep').value = r.keep||''; document.getElementById('r-prob').value = r.prob||''; document.getElementById('r-try').value = r.try||'';
         document.getElementById('panel-review').classList.add('open');
@@ -286,17 +275,26 @@
         document.getElementById('memo-input').value = ST.data[ST.selDs]?.slots?.[h]?.note || '';
         const grid = document.getElementById('intensity-grid'); grid.innerHTML = '';
         [5,4,3,2,1].forEach(l => {
-            const box = document.createElement('div'); box.className = 'lv-box' + (ST.data[ST.selDs]?.slots?.[h]?.level === l ? ' selected' : '');
-            box.innerHTML = `<div class="lv-color-sq" style="background:var(--lv${l})"></div><div class="lv-label-sub">${['BAD','LOW','FAIR','GOOD','PEAK'][l-1]}</div>`;
-            box.onclick = () => { if (!ST.data[ST.selDs]) ST.data[ST.selDs] = { slots: {} }; ST.data[ST.selDs].slots[h] = { ...ST.data[ST.selDs].slots[h], level: l }; openDetail(d, h); };
-            grid.appendChild(box);
+            const box = document.createElement('div'); box.style.flex = "1"; box.style.textAlign = "center"; box.innerHTML = `<div style="aspect-ratio:1; background:var(--lv${l}); border-radius:8px; border:2px solid ${ST.data[ST.selDs]?.slots?.[h]?.level === l ? '#fff' : 'transparent'};"></div><div style="font-size:7px; color:var(--muted); margin-top:4px; text-transform:uppercase;">${['BAD','LOW','FAIR','GOOD','PEAK'][l-1]}</div>`;
+            box.onclick = () => { if (!ST.data[ST.selDs]) ST.data[ST.selDs] = { slots: {} }; ST.data[ST.selDs].slots[h] = { ...ST.data[ST.selDs].slots[h], level: l }; openDetail(d, h); }; grid.appendChild(box);
         });
         document.getElementById('panel-detail').classList.add('open');
     }
 
     function saveDetail() { if (ST.data[ST.selDs]?.slots?.[ST.selH]) ST.data[ST.selDs].slots[ST.selH].note = document.getElementById('memo-input').value; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); closePanel(); refreshTab(); syncToSheets(); }
     function saveReview() { const key = `review-${ST.revType==='wkly'?'w':'m'}-${ds(ST.weekStart)}`; ST.data[key] = { keep: document.getElementById('r-keep').value, prob: document.getElementById('r-prob').value, try: document.getElementById('r-try').value }; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); closePanel(); syncToSheets(); }
-    function clearData() { if (ST.data[ST.selDs]?.slots?.[ST.selH]) { delete ST.data[ST.selDs].slots[ST.selH]; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); syncToSheets(); } }
+    
+    function clearData() { 
+        if (ST.data[ST.selDs]?.slots?.[ST.selH]) { 
+            delete ST.data[ST.selDs].slots[ST.selH]; 
+            localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); 
+            // 確実にクラウドから消すために即同期
+            syncToSheets(); 
+            closePanel(); 
+            refreshTab(); 
+        } 
+    }
+    
     function jumpToWeekReview(iso) { ST.weekStart = monday(new Date(iso)); switchTab('summary'); setTimeout(() => openReview('wkly'), 150); }
     function switchTab(t) { ST.tab = t; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(`screen-${t}`).classList.add('active'); document.querySelectorAll('.nav-item').forEach(b => { b.classList.remove('active'); if (b.id === `tab-${t}`) b.classList.add('active'); }); refreshTab(); }
     function refreshTab() { if (ST.tab === 'week') renderWeek(); else if (ST.tab === 'summary') renderSummary(); else renderMonth(); }
