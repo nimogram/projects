@@ -62,6 +62,7 @@
             z-index: 10;
             transition: all 0.2s;
             font-size: 20px;
+            font-weight: 500; /* Button Normal Weight */
         }
         .side-nav-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); color: #fff; }
         .side-nav-btn.prev { left: 16px; transform: translateY(-50%); }
@@ -101,7 +102,7 @@
 
         /* Bottom Nav - Thinner Blur */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
-        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; position: relative; opacity: 0.6; }
+        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; cursor: pointer; transition: 0.3s; position: relative; opacity: 0.6; font-weight: 400; }
         .nav-item.active { color: var(--lv5); opacity: 1; }
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 24px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
@@ -132,10 +133,12 @@
         .lv-color-sq { width: 100%; aspect-ratio: 1; border-radius: 10px; border: 2px solid transparent; transition: 0.2s; }
         .lv-box.selected .lv-color-sq { border-color: #fff; transform: scale(1.05); }
 
-        .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 20px; font-size: 14px; resize: none; min-height: 100px; outline: none; margin-bottom: 24px; font-family: inherit; }
-        .main-save-btn { width: 100%; padding: 22px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .lv-label-sub { font-family: 'DM Mono', monospace; font-size: 5px; color: var(--muted); text-transform: uppercase; font-weight: 400; letter-spacing: 0.05em; }
 
-        .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: bold; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
+        .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 20px; font-size: 14px; resize: none; min-height: 100px; outline: none; margin-bottom: 24px; font-family: inherit; }
+        .main-save-btn { width: 100%; padding: 22px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
+
+        .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: 500; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
         
         .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border-left: 5px solid var(--lv5); border: 1px solid var(--border); border-left-width: 5px; }
         .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
@@ -450,26 +453,49 @@
         const scanPeriod = isMonth ? 31 : 7;
         const start = isMonth ? new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1) : new Date(ST.weekStart);
         
+        let monthLogsHtml = "";
+        
         for(let i=0; i<scanPeriod; i++) {
             const d = new Date(start); d.setDate(d.getDate() + i);
             if (isMonth && d.getMonth() !== start.getMonth()) break;
-            const slots = ST.data[ds(d)]?.slots || {};
-            Object.values(slots).forEach(s => {
+            const dsKey = ds(d);
+            const slots = ST.data[dsKey]?.slots || {};
+            Object.keys(slots).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(h => {
+                const s = slots[h];
                 if(s.level === 1) lv1Count++;
                 if(s.level === 5) lv5Count++;
+                
+                if (isMonth && s.note && (s.level === 1 || s.level === 5)) {
+                    let cls = s.level === 5 ? 'lv-5-text' : 'lv-1-text';
+                    monthLogsHtml += `<div class="log-line ${cls}" style="margin-bottom:8px; font-size:11px;">
+                        <div class="level-dot" style="background:var(--lv${s.level})"></div>
+                        <b>${d.getDate()}日 ${h}:00</b> ${s.note}
+                    </div>`;
+                }
             });
         }
         
-        let impactComment = "";
-        if (lv5Count > (isMonth ? 12 : 3)) impactComment += `<span style="color:var(--emerald)">● PEAK状態が${lv5Count}回！攻めの運勢を完全に掴んでいますよ。</span><br>`;
-        else impactComment += "● PEAKの出現を増やして、非連続な成果を狙いましょう。<br>";
-        
-        if (lv1Count > (isMonth ? 8 : 2)) impactComment += `<span style="color:var(--orange)">● 警告：LV1が${lv1Count}回検知されました。体の運勢が低下中。休息が必要です。</span>`;
-        else impactComment += "● 規律ある管理により、低コンディションが抑えられています。";
+        if (isMonth) {
+            // MONTH: Show specific comments for LV1 and LV5 instead of secretary insight
+            document.getElementById('review-commentary-area').innerHTML = `
+                <div class="label-top" style="margin-bottom:12px;">Monthly LV1 & LV5 Logs</div>
+                <div class="impact-commentary" style="max-height: 200px; overflow-y: auto;">
+                    ${monthLogsHtml || '<div style="color:var(--muted); font-size:10px;">NO LV1/LV5 LOGS THIS MONTH</div>'}
+                </div>
+            `;
+        } else {
+            // WEEKLY: Show secretary commentary
+            let impactComment = "";
+            if (lv5Count > 3) impactComment += `<span style="color:var(--emerald)">● PEAK状態が${lv5Count}回！攻めの運勢を完全に掴んでいますよ。</span><br>`;
+            else impactComment += "● PEAKの出現を増やして、非連続な成果を狙いましょう。<br>";
+            
+            if (lv1Count > 2) impactComment += `<span style="color:var(--orange)">● 警告：LV1が${lv1Count}回検知されました。体の運勢が低下中。休息が必要です。</span>`;
+            else impactComment += "● 規律ある管理により、低コンディションが抑えられています。";
 
-        document.getElementById('review-commentary-area').innerHTML = `
-            <div class="impact-commentary">${impactComment}</div>
-        `;
+            document.getElementById('review-commentary-area').innerHTML = `
+                <div class="impact-commentary">${impactComment}</div>
+            `;
+        }
 
         // Hide impact cards for month review as requested
         document.getElementById('review-impact-summary').innerHTML = isMonth ? '' : `
