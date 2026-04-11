@@ -33,12 +33,24 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
 
-        /* Screens */
-        .screen { display: none; flex-direction: column; height: 100dvh; opacity: 0; transform: translateY(8px); transition: 0.3s var(--ease); }
+        /* Screens Base */
+        .screen { position: fixed; inset: 0; display: none; flex-direction: column; height: 100dvh; opacity: 0; transition: 0.3s var(--ease); }
+        
+        /* GRID screen as the absolute base layer */
+        #screen-week { display: flex; z-index: 1; }
+        
+        /* Overlays (WKLY/MONTH) */
+        #screen-summary, #screen-month {
+            z-index: 10;
+            background: rgba(13, 13, 13, 0.75); /* 半透明設定 */
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
         .screen.active { display: flex; opacity: 1; transform: translateY(0); }
 
         /* Header (368.png Style) */
-        header { flex-shrink: 0; padding-top: env(safe-area-inset-top, 36px); background: var(--bg); position: relative; }
+        header { flex-shrink: 0; padding-top: env(safe-area-inset-top, 36px); background: transparent; position: relative; }
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; }
         .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.1em; line-height: 1; color: var(--text); }
         
@@ -111,9 +123,9 @@
         .stats-main-score { font-family: 'Bebas Neue', sans-serif; font-size: 82px; line-height: 0.8; color: var(--lv5); min-width: 150px; }
         .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 12px; color: var(--text); }
         
-        /* Sticky Parts for WKLY and MONTH */
-        .sticky-summary { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
-        .wkly-mini-grid { background: var(--bg); padding: 12px 20px 20px; }
+        /* Sticky Area */
+        .sticky-summary { flex-shrink: 0; position: sticky; top: 0; z-index: 50; background: transparent; }
+        .wkly-mini-grid { padding: 12px 20px 20px; }
 
         /* Panels */
         .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
@@ -141,10 +153,10 @@
 
         .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 20px; font-size: 14px; resize: none; min-height: 100px; outline: none; margin-bottom: 24px; font-family: inherit; }
         
-        /* Button Sizes Restored (Smaller) */
+        /* Button Sizes Restored (Original Compact Size) */
         .btn-group { display: flex; gap: 12px; margin-bottom: 24px; }
-        .main-save-btn { flex: 2; padding: 16px; background: var(--lv5); color: #000; border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .clear-btn { flex: 1; padding: 16px; background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: 500; cursor: pointer; }
+        .main-save-btn { flex: 2; padding: 12px; background: var(--lv5); color: #000; border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .clear-btn { flex: 1; padding: 12px; background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.2); border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: 500; cursor: pointer; }
 
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: 500; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
         
@@ -158,7 +170,7 @@
 </head>
 <body>
 
-<!-- GRID -->
+<!-- GRID (Base Layer) -->
 <div id="screen-week" class="screen active">
     <header>
         <button class="side-nav-btn prev" onclick="moveWeek(-1)">‹</button>
@@ -176,7 +188,7 @@
     <div class="scroll-container"><div class="grid-matrix" id="grid-area"></div></div>
 </div>
 
-<!-- WKLY (Sticky Summary & Grid) -->
+<!-- WKLY (Overlay) -->
 <div id="screen-summary" class="screen">
     <header><div class="header-top"><div class="app-title">WKLY</div></div></header>
     <div id="summary-fixed-area" class="sticky-summary"></div>
@@ -184,7 +196,7 @@
     <button class="review-fab" onclick="openReview('wkly')">REVIEW</button>
 </div>
 
-<!-- MONTH (Sticky Summary) -->
+<!-- MONTH (Overlay) -->
 <div id="screen-month" class="screen">
     <header><div class="header-top"><div class="app-title">MONTH</div></div></header>
     <div id="month-fixed-area" class="sticky-summary"></div>
@@ -390,7 +402,6 @@
         gridHtml += '</div>';
 
         const avg = count ? (sum/count).toFixed(2) : "0.00";
-        // Fixed Part
         document.getElementById('summary-fixed-area').innerHTML = `
             <div class="stats-summary">
                 <div><div class="label-top">Weekly Performance</div><div class="stats-main-score" id="wk-score">0.00</div></div>
@@ -399,7 +410,6 @@
             <div class="stats-insight" style="margin: 12px 20px;">💎 週間レポ：平均スコア ${avg}。LV5のエメラルド、LV1のオレンジに着目してください。</div>
             ${gridHtml}
         `;
-        // Scroll Part
         document.getElementById('summary-list-area').innerHTML = html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>';
         revealScore(document.getElementById('wk-score'), avg);
     }
@@ -427,7 +437,6 @@
         gridHtml += '</div>';
         
         const mAvg = totalCount ? (totalSum/totalCount).toFixed(2) : "0.00";
-        // Fixed Part
         document.getElementById('month-fixed-area').innerHTML = `
             <div class="stats-summary">
                 <div><div class="label-top">Monthly Performance</div><div class="stats-main-score" id="mo-score">0.00</div></div>
@@ -435,7 +444,6 @@
             </div>
             <div class="stats-insight" style="margin: 12px 20px;">🌙 月間レポ：平均スコア ${mAvg}。月全体のコンディション推移を俯瞰し、次月の戦略を練りましょう。</div>
         `;
-        // Scroll Part
         document.getElementById('month-list-area').innerHTML = gridHtml;
         revealScore(document.getElementById('mo-score'), mAvg);
     }
@@ -526,8 +534,22 @@
 
     function switchTab(t) {
         ST.tab = t;
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(`screen-${t}`).classList.add('active');
+        const weekScreen = document.getElementById('screen-week');
+        
+        // GRID画面は常に表示(z-index:1)し、他のタブがアクティブな時は操作不能にする
+        if (t === 'week') {
+            weekScreen.style.pointerEvents = 'auto';
+            weekScreen.style.opacity = '1';
+        } else {
+            weekScreen.style.pointerEvents = 'none';
+            weekScreen.style.opacity = '0.5'; // 背景であることを示すために少し不透明度を下げる
+        }
+
+        document.querySelectorAll('.screen:not(#screen-week)').forEach(s => s.classList.remove('active'));
+        if (t !== 'week') {
+            document.getElementById(`screen-${t}`).classList.add('active');
+        }
+
         document.querySelectorAll('.nav-item').forEach(b => {
             b.classList.remove('active'); if (b.id === `tab-${t}`) b.classList.add('active');
         });
