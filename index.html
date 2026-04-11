@@ -22,16 +22,35 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
 
-        /* Header Layout (368.png base) */
-        header { flex-shrink: 0; padding-top: env(safe-area-inset-top, 36px); background: var(--bg); position: relative; }
+        /* Multi-layered Screen Management */
+        .screen-container { position: relative; height: 100dvh; width: 100%; }
+        .screen { 
+            position: absolute; inset: 0; display: none; flex-direction: column; height: 100%; width: 100%;
+            opacity: 0; transform: translateY(8px); transition: 0.3s var(--ease);
+        }
+        .screen.active { display: flex; opacity: 1; transform: translateY(0); }
+        
+        /* GRID (Always as background layer) */
+        #screen-week { z-index: 1; display: flex; opacity: 1; transform: none; }
+        
+        /* Overlay Screens with transparency */
+        #screen-summary, #screen-month { 
+            z-index: 10; 
+            background: rgba(13, 13, 13, 0.7); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Header (368.png base) */
+        header { flex-shrink: 0; padding-top: env(safe-area-inset-top, 36px); background: transparent; position: relative; }
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; }
+        .title-group { display: flex; align-items: center; gap: 8px; }
         .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.1em; line-height: 1; color: var(--text); }
         .week-display { position: absolute; left: 50%; top: 60%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
         .range-text { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: #fff; text-transform: uppercase; }
 
-        /* Side Navigation Buttons */
-        .side-nav-btn { position: absolute; top: 50%; width: 44px; height: 44px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 20px; transition: 0.2s; }
-        .side-nav-btn:active { transform: scale(0.85); background: rgba(255,255,255,0.1); }
+        /* Side Navigation */
+        .side-nav-btn { position: absolute; top: 50%; width: 44px; height: 44px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 20px; }
         .side-nav-btn.prev { left: 16px; transform: translateY(-50%); }
         .side-nav-btn.next { right: 16px; transform: translateY(-50%); }
 
@@ -41,14 +60,15 @@
         .status-dot.online { background: var(--lv5); box-shadow: 0 0 5px var(--lv5); }
         .status-dot.syncing { background: var(--yellow); animation: pulse 1s infinite; }
         @keyframes pulse { 50% { opacity: 0.3; } }
-        .settings-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        
+        .settings-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* GRID BALANCE (6px gap for the bold border look) */
+        /* GRID BALANCE (368.png Style) */
         .dow-row { display: grid; grid-template-columns: 32px repeat(7, 1fr); padding: 0 16px; margin-bottom: 6px; }
         .dow-label { text-align: center; font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; }
         .dow-label.today { color: var(--lv5); font-weight: bold; }
 
-        .scroll-container { flex: 1; overflow-y: auto; padding: 0 16px 100px; }
+        .scroll-container { flex: 1; overflow-y: auto; padding: 0 16px 120px; }
         .grid-matrix { display: grid; grid-template-columns: 32px repeat(7, 1fr); gap: 6px; } 
         .time-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
         
@@ -56,33 +76,33 @@
         .cell:active { transform: scale(0.9); }
         .cell.has-note::after { content: ''; position: absolute; bottom: 3px; right: 3px; width: 3px; height: 3px; background: rgba(255,255,255,0.4); border-radius: 50%; }
 
-        /* Intensity Styles with 368.png Glow */
         .lv-5 { background: var(--lv5) !important; box-shadow: 0 0 18px 2px var(--lv5), inset 0 0 10px rgba(255,255,255,0.4) !important; z-index: 1; }
         .lv-4 { background: var(--lv4) !important; }
         .lv-3 { background: var(--lv3) !important; }
         .lv-2 { background: var(--lv2) !important; }
         .lv-1 { background: var(--lv1) !important; box-shadow: 0 0 8px var(--lv1); }
 
-        /* Bottom Navigation */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.8); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
         .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; opacity: 0.6; cursor: pointer; }
         .nav-item.active { color: var(--lv5); opacity: 1; }
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 24px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
-        /* Summaries (WKLY/MONTH) */
-        .stats-summary { padding: 24px 20px 16px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; }
+        /* Summaries - Sticky Top */
+        .summary-header-sticky { position: sticky; top: 0; background: transparent; z-index: 20; padding-top: env(safe-area-inset-top, 36px); }
+        .stats-summary { padding: 24px 20px 16px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; border-radius: 0 0 20px 20px; }
         .stats-main-score { font-family: 'Bebas Neue', sans-serif; font-size: 82px; line-height: 0.8; color: var(--lv5); min-width: 150px; }
-        .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); }
         
-        .daily-mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 0 20px 20px; background: var(--card); margin-bottom: 12px; border-bottom: 1px solid var(--border); }
-        .mini-cell { aspect-ratio: 1; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-size: 9px; background: var(--empty); color: var(--muted); }
-        .mini-cell.active { color: #000; font-weight: bold; }
+        .daily-mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 12px 20px; background: var(--card); margin-top: -1px; border-bottom: 1px solid var(--border); }
+        .mini-cell { aspect-ratio: 1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 16px; background: var(--empty); color: var(--muted); position: relative; }
+        .mini-cell.active { color: #000; }
+        .mini-cell-day { position: absolute; top: 4px; left: 4px; font-family: 'DM Mono', monospace; font-size: 7px; color: inherit; opacity: 0.6; }
 
+        .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 20px; color: var(--text); }
         .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border-left: 5px solid var(--lv5); border: 1px solid var(--border); border-left-width: 5px; }
-        .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
 
         /* Panels */
-        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
+        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
         .panel.open { transform: translateY(0); }
         .panel-content { padding: 44px 24px 64px; max-width: 430px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
         .panel-close { position: absolute; top: 30px; right: 20px; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
@@ -98,7 +118,6 @@
 
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: bold; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
         
-        /* Analysis Facts (No AI comments) */
         .fact-section { margin-bottom: 20px; padding: 14px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--border); }
         .fact-title { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
         .fact-log { font-size: 11px; line-height: 1.6; margin-bottom: 6px; }
@@ -107,42 +126,54 @@
         .char-reveal { display: inline-block; opacity: 0; transform: translateY(5px); animation: charIn 0.4s forwards; }
         @keyframes charIn { to { opacity: 1; transform: translateY(0); } }
 
-        .screen { display: none; flex-direction: column; height: 100dvh; opacity: 0; transform: translateY(8px); transition: 0.3s var(--ease); }
-        .screen.active { display: flex; opacity: 1; transform: translateY(0); }
+        .label-top { color: var(--lv5); font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .detail-day-num { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 0.8; color: var(--text); }
+        .detail-time-green { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--lv5); margin-bottom: 4px; }
+        .detail-full-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 30px; }
     </style>
 </head>
 <body>
 
-<!-- WEEKLY GRID -->
-<div id="screen-week" class="screen active">
-    <header>
-        <button class="side-nav-btn prev" onclick="moveWeek(-1)">‹</button>
-        <div class="header-top">
-            <div class="app-title">MOOD LOG</div>
-            <div class="week-display"><div class="range-text" id="week-range">-- . --</div></div>
-            <div class="header-right">
-                <div class="sync-info"><div id="sync-dot" class="status-dot"></div><span id="sync-text">IDLE</span></div>
-                <button class="settings-btn" onclick="openSettings()">⚙</button>
+<div class="screen-container">
+    <!-- GRID (Base Layer) -->
+    <div id="screen-week" class="screen active">
+        <header>
+            <button class="side-nav-btn prev" onclick="moveWeek(-1)">‹</button>
+            <div class="header-top">
+                <div class="title-group">
+                    <div class="app-title">MOOD LOG</div>
+                    <button class="settings-btn" onclick="openSettings()">⚙</button>
+                </div>
+                <div class="week-display"><div class="range-text" id="week-range">-- . --</div></div>
+                <div class="header-right">
+                    <div class="sync-info"><div id="sync-dot" class="status-dot"></div><span id="sync-text">IDLE</span></div>
+                </div>
             </div>
+            <button class="side-nav-btn next" onclick="moveWeek(1)">›</button>
+            <div class="dow-row" id="dow-header" style="margin-top: 10px;"></div>
+        </header>
+        <div class="scroll-container"><div class="grid-matrix" id="grid-area"></div></div>
+    </div>
+
+    <!-- WKLY (Transparent Overlay) -->
+    <div id="screen-summary" class="screen">
+        <div class="summary-header-sticky">
+            <header><div class="header-top"><div class="app-title">WKLY REPO</div></div></header>
+            <div id="summary-header-content"></div>
         </div>
-        <button class="side-nav-btn next" onclick="moveWeek(1)">›</button>
-        <div class="dow-row" id="dow-header" style="margin-top: 10px;"></div>
-    </header>
-    <div class="scroll-container"><div class="grid-matrix" id="grid-area"></div></div>
-</div>
+        <div class="scroll-container" id="summary-logs-content"></div>
+        <button class="review-fab" onclick="openReview('wkly')">REVIEW</button>
+    </div>
 
-<!-- WKLY REPO -->
-<div id="screen-summary" class="screen">
-    <header><div class="header-top"><div class="app-title">WKLY</div></div></header>
-    <div class="scroll-container" id="summary-content"></div>
-    <button class="review-fab" onclick="openReview('wkly')">REVIEW</button>
-</div>
-
-<!-- MONTH REPO -->
-<div id="screen-month" class="screen">
-    <header><div class="header-top"><div class="app-title">MONTH</div></div></header>
-    <div class="scroll-container" id="month-content"></div>
-    <button class="review-fab" onclick="openReview('month')">REVIEW</button>
+    <!-- MONTH (Transparent Overlay) -->
+    <div id="screen-month" class="screen">
+        <div class="summary-header-sticky">
+            <header><div class="header-top"><div class="app-title">MONTH REPO</div></div></header>
+            <div id="month-header-content"></div>
+        </div>
+        <div class="scroll-container" id="month-grid-content"></div>
+        <button class="review-fab" onclick="openReview('month')">REVIEW</button>
+    </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -152,11 +183,11 @@
     <button class="nav-item" id="tab-month" onclick="switchTab('month')">MONTH</button>
 </nav>
 
-<!-- DETAIL PANEL -->
+<!-- PANELS -->
 <div id="panel-detail" class="panel">
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
-        <div class="label-top">LOG</div>
+        <div class="label-top">LOG DETAIL</div>
         <div class="detail-day-num" id="d-day-num">--</div>
         <div class="detail-time-green" id="d-time">00:00</div>
         <div class="detail-full-date" id="d-date">--- . --- ----</div>
@@ -167,31 +198,35 @@
     </div>
 </div>
 
-<!-- REVIEW PANEL -->
 <div id="panel-review" class="panel">
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
-        <div class="label-top">REVIEW</div>
+        <div class="label-top">ANALYSIS REVIEW</div>
         <div class="detail-day-num" id="r-title" style="font-size: 42px;">WKLY</div>
-        
         <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
             <div id="review-fact-area"></div>
-            
             <span class="label-top" style="color:var(--lv5)">KEEP</span>
-            <textarea id="r-keep" class="memo-input" placeholder="継続したい成功要因"></textarea>
+            <textarea id="r-keep" class="memo-input" placeholder="Success factors..."></textarea>
             <span class="label-top" style="color:#ff4444">PROBLEM</span>
-            <textarea id="r-prob" class="memo-input" placeholder="改善が必要な課題"></textarea>
+            <textarea id="r-prob" class="memo-input" placeholder="Critical issues..."></textarea>
             <span class="label-top" style="color:#00d2ff">TRY / 10X REFLECTION</span>
-            <textarea id="r-try" class="memo-input" style="min-height:100px;" placeholder="10Xへの次なる一手..."></textarea>
+            <textarea id="r-try" class="memo-input" style="min-height:100px;" placeholder="Next 10X action..."></textarea>
         </div>
         <button class="review-save-btn" onclick="saveReview()">SAVE REVIEW</button>
     </div>
 </div>
 
-<!-- SETTINGS -->
 <div id="panel-settings" class="panel">
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
+        <div class="label-top">PALETTE</div>
+        <div style="display:flex; gap:6px; margin-bottom:30px;">
+            <div style="flex:1; height:30px; background:var(--lv5); border-radius:4px;"></div>
+            <div style="flex:1; height:30px; background:var(--lv4); border-radius:4px;"></div>
+            <div style="flex:1; height:30px; background:var(--lv3); border-radius:4px;"></div>
+            <div style="flex:1; height:30px; background:var(--lv2); border-radius:4px;"></div>
+            <div style="flex:1; height:30px; background:var(--lv1); border-radius:4px;"></div>
+        </div>
         <div class="label-top">SYSTEM</div>
         <div class="detail-day-num" style="font-size: 42px;">SETTINGS</div>
         <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
@@ -204,28 +239,9 @@
 
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyUSkMWv6L3r2WxJfCXzTX7v5etbYtnPc0nuVoTQeJq1PItiQadSVnvP__LLvbbDnz8gQ/exec";
-    
-    // JST Logic (UTC+9)
-    const getJSTDate = () => {
-        const d = new Date();
-        const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-        return new Date(utc + (9 * 60 * 60000));
-    };
-
-    function ds(dateObj) {
-        const y = dateObj.getFullYear();
-        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const d = String(dateObj.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    }
-
-    function monday(d){ 
-        const t = new Date(d);
-        t.setHours(0,0,0,0);
-        const dw = t.getDay(); 
-        t.setDate(t.getDate() + (dw === 0 ? -6 : 1 - dw));
-        return t;
-    }
+    const getJSTDate = () => { const d = new Date(); return new Date(d.getTime() + (d.getTimezoneOffset() + 540) * 60000); };
+    function ds(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+    function monday(d){ const t = new Date(d); t.setHours(0,0,0,0); const dw = t.getDay(); t.setDate(t.getDate() + (dw === 0 ? -6 : 1 - dw)); return t; }
 
     let ST = {
         weekStart: monday(getJSTDate()),
@@ -279,7 +295,7 @@
         const grid = document.getElementById('grid-area'); grid.innerHTML = '';
         const cellH = Math.max(Math.floor((window.innerHeight - 240) / 12), 34);
         for (let h=8; h<=19; h++) {
-            const tl = document.createElement('div'); tl.innerHTML = h; tl.style.height = cellH + 'px'; tl.style.display = "flex"; tl.style.alignItems = "center"; tl.style.justifyContent = "flex-end"; tl.style.paddingRight = "8px"; tl.style.fontSize = "9px"; tl.style.color = "var(--muted)"; tl.style.fontFamily = "DM Mono"; grid.appendChild(tl);
+            const tl = document.createElement('div'); tl.innerHTML = h; tl.style.height = cellH + 'px'; tl.className = "time-label"; grid.appendChild(tl);
             days.forEach(d => {
                 const dstr = ds(d); const lv = ST.data[dstr]?.slots?.[h]?.level;
                 const cell = document.createElement('div'); cell.className = 'cell' + (lv ? ` lv-${lv}` : ''); cell.style.height = cellH + 'px';
@@ -300,16 +316,18 @@
                 if (s.note) { let cls = (s.level===5)?'lv-5-text':(s.level===1?'lv-1-text':''); dLogs.push(`<div class="log-line ${cls}"><div class="level-dot" style="background:var(--lv${s.level})"></div><b>[${h}:00]</b> ${s.note}</div>`); }
             });
             const dAvg = dCnt ? (dSum/dCnt) : 0;
-            miniHtml += `<div class="mini-cell ${dAvg?`lv-${Math.round(dAvg)} active`:''}"><div>${['M','T','W','T','F','S','S'][idx]}</div><div>${dAvg?dAvg.toFixed(1):'-'}</div></div>`;
+            miniHtml += `<div class="mini-cell ${dAvg?`lv-${Math.round(dAvg)} active`:''}" style="${dAvg?'':'opacity:0.2'}"><span class="mini-cell-day">${['M','T','W','T','F','S','S'][idx]}</span>${dAvg?dAvg.toFixed(1):'-'}</div>`;
             if (dLogs.length) html += `<div class="card-item" style="border-left-color:var(--lv${Math.round(dAvg || 1)})"><div class="card-date">${d.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div>${dLogs.join('')}</div></div>`;
         });
         const avg = count ? (sum/count).toFixed(2) : "0.00";
-        document.getElementById('summary-content').innerHTML = `
+        document.getElementById('summary-header-content').innerHTML = `
             <div class="stats-summary">
                 <div><div class="label-top">Weekly Performance</div><div class="stats-main-score" id="wk-score">0.00</div></div>
                 <div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div>
             </div>
             <div class="daily-mini-grid">${miniHtml}</div>
+        `;
+        document.getElementById('summary-logs-content').innerHTML = `
             <div class="stats-insight">💎 週間レポ：平均スコア ${avg}。LV5のエメラルド、LV1のオレンジに着目してください。</div>
             ${html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>'}
         `;
@@ -329,11 +347,13 @@
             gridHtml += `<div class="cell ${avg?`lv-${Math.round(avg)}`:''}" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:16px; color:${avg>3?'#000':'#fff'}" onclick="jumpToWeekReview('${curDate.toISOString()}')"><span class="date-label-sub">${d}</span>${avg ? avg.toFixed(1) : ''}</div>`;
         }
         const mAvg = tCount ? (tSum/tCount).toFixed(2) : "0.00";
-        document.getElementById('month-content').innerHTML = `
+        document.getElementById('month-header-content').innerHTML = `
             <div class="stats-summary">
                 <div><div class="label-top">Monthly Performance</div><div class="stats-main-score" id="mo-score">0.00</div></div>
                 <div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div>
             </div>
+        `;
+        document.getElementById('month-grid-content').innerHTML = `
             <div class="stats-insight">🌙 月間レポ：平均スコア ${mAvg}。月全体の成果を俯瞰しましょう。</div>
             ${gridHtml}</div>`;
         revealScore(document.getElementById('mo-score'), mAvg);
@@ -343,7 +363,6 @@
         ST.revType = type; const key = `review-${type==='wkly'?'w':'m'}-${ds(ST.weekStart)}`; const r = ST.data[key] || {};
         const isMonth = (type === 'month'); const scanPeriod = isMonth ? 31 : 7;
         const start = isMonth ? new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1) : new Date(ST.weekStart);
-        
         let lv1Logs = [], lv5Logs = [];
         for(let i=0; i<scanPeriod; i++) {
             const d = new Date(start); d.setDate(d.getDate() + i); if (isMonth && d.getMonth() !== start.getMonth()) break;
@@ -354,7 +373,6 @@
                 if (s.level === 5 && s.note) lv5Logs.push({ d: d.getDate(), h, note: s.note });
             });
         }
-        
         let logsHtml = '';
         if (lv5Logs.length) {
             logsHtml += `<div class="fact-section"><div class="fact-title" style="color:var(--emerald)">PEAK LOGS (LV5)</div>`;
@@ -366,8 +384,7 @@
             lv1Logs.forEach(l => logsHtml += `<div class="fact-log" style="color:var(--orange)"><b>${l.d}日 ${l.h}:00</b> ${l.note}</div>`);
             logsHtml += `</div>`;
         }
-        if (!lv1Logs.length && !lv5Logs.length) logsHtml = `<div class="fact-section" style="text-align:center; color:var(--muted); font-size:10px; padding:20px;">事実としてのログ（LV1/LV5）は記録されていません</div>`;
-
+        if (!lv1Logs.length && !lv5Logs.length) logsHtml = `<div class="fact-section" style="text-align:center; color:var(--muted); font-size:10px; padding:20px;">FACT LOGS（LV1/LV5）の記録なし</div>`;
         document.getElementById('review-fact-area').innerHTML = logsHtml;
         document.getElementById('r-title').textContent = type.toUpperCase();
         document.getElementById('r-keep').value = r.keep||''; document.getElementById('r-prob').value = r.prob||''; document.getElementById('r-try').value = r.try||'';
@@ -392,7 +409,13 @@
     function clearData() { if (ST.data[ST.selDs]?.slots?.[ST.selH]) { delete ST.data[ST.selDs].slots[ST.selH]; localStorage.setItem('nimo-v6-matrix-data', JSON.stringify(ST.data)); closePanel(); refreshTab(); syncToSheets(); } }
     
     function jumpToWeekReview(iso) { ST.weekStart = monday(new Date(iso)); switchTab('summary'); setTimeout(() => openReview('wkly'), 150); }
-    function switchTab(t) { ST.tab = t; document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(`screen-${t}`).classList.add('active'); document.querySelectorAll('.nav-item').forEach(b => { b.classList.remove('active'); if (b.id === `tab-${t}`) b.classList.add('active'); }); refreshTab(); }
+    function switchTab(t) {
+        ST.tab = t;
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`screen-${t}`).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(b => { b.classList.remove('active'); if (b.id === `tab-${t}`) b.classList.add('active'); });
+        refreshTab();
+    }
     function refreshTab() { if (ST.tab === 'week') renderWeek(); else if (ST.tab === 'summary') renderSummary(); else renderMonth(); }
     function closePanel() { document.querySelectorAll('.panel').forEach(p => p.classList.remove('open')); }
     function openSettings() { document.getElementById('panel-settings').classList.add('open'); }
