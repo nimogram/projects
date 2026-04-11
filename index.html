@@ -23,7 +23,7 @@
             --yellow: #ffff00;
             --bg: #0d0d0d; 
             --surface: #131313; 
-            --card: rgba(24, 24, 24, 0.7); /* 透明度を上げたカード背景 */
+            --card: rgba(24, 24, 24, 0.7); 
             --border: rgba(255,255,255,0.07); 
             --text: #ffffff; 
             --muted: #7a7a7a;
@@ -107,10 +107,14 @@
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 24px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
         /* Summaries */
-        .stats-summary { padding: 24px 20px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; backdrop-filter: blur(4px); }
+        .stats-summary { padding: 24px 20px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 0; backdrop-filter: blur(4px); }
         .stats-main-score { font-family: 'Bebas Neue', sans-serif; font-size: 82px; line-height: 0.8; color: var(--lv5); min-width: 150px; }
-        .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); }
+        .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 12px; color: var(--text); }
         
+        /* Sticky Parts for WKLY and MONTH */
+        .sticky-summary { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--border); }
+        .wkly-mini-grid { background: var(--bg); padding: 12px 20px 20px; }
+
         /* Panels */
         .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
         .panel.open { transform: translateY(0); }
@@ -137,9 +141,10 @@
 
         .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 20px; font-size: 14px; resize: none; min-height: 100px; outline: none; margin-bottom: 24px; font-family: inherit; }
         
+        /* Button Sizes Restored (Smaller) */
         .btn-group { display: flex; gap: 12px; margin-bottom: 24px; }
-        .main-save-btn { flex: 2; padding: 22px; background: var(--lv5); color: #000; border: none; border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; }
-        .clear-btn { flex: 1; padding: 22px; background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 15px; font-family: 'Bebas Neue', sans-serif; font-size: 24px; font-weight: 500; cursor: pointer; }
+        .main-save-btn { flex: 2; padding: 16px; background: var(--lv5); color: #000; border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .clear-btn { flex: 1; padding: 16px; background: rgba(255, 68, 68, 0.15); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: 500; cursor: pointer; }
 
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: 500; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; cursor: pointer; }
         
@@ -171,17 +176,19 @@
     <div class="scroll-container"><div class="grid-matrix" id="grid-area"></div></div>
 </div>
 
-<!-- WKLY -->
+<!-- WKLY (Sticky Summary & Grid) -->
 <div id="screen-summary" class="screen">
     <header><div class="header-top"><div class="app-title">WKLY</div></div></header>
-    <div class="scroll-container" id="summary-content"></div>
+    <div id="summary-fixed-area" class="sticky-summary"></div>
+    <div class="scroll-container" id="summary-list-area"></div>
     <button class="review-fab" onclick="openReview('wkly')">REVIEW</button>
 </div>
 
-<!-- MONTH -->
+<!-- MONTH (Sticky Summary) -->
 <div id="screen-month" class="screen">
     <header><div class="header-top"><div class="app-title">MONTH</div></div></header>
-    <div class="scroll-container" id="month-content"></div>
+    <div id="month-fixed-area" class="sticky-summary"></div>
+    <div class="scroll-container" id="month-list-area" style="padding-top: 20px;"></div>
     <button class="review-fab" onclick="openReview('month')">REVIEW</button>
 </div>
 
@@ -275,6 +282,7 @@
     };
 
     const revealScore = (el, score) => {
+        if(!el) return;
         el.innerHTML = '';
         score.toString().split('').forEach((char, i) => {
             const span = document.createElement('span');
@@ -349,7 +357,7 @@
 
     function renderSummary() {
         const days = Array.from({length:7}, (_,i) => { const d=new Date(ST.weekStart); d.setDate(d.getDate()+i); return d; });
-        let sum=0, count=0, html='', gridHtml = '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding: 0 20px; margin-bottom:20px;">';
+        let sum=0, count=0, html='', gridHtml = '<div class="wkly-mini-grid" style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;">';
         
         days.forEach(d => {
             const dstr = ds(d);
@@ -379,17 +387,20 @@
                 </div>`;
             }
         });
+        gridHtml += '</div>';
 
         const avg = count ? (sum/count).toFixed(2) : "0.00";
-        document.getElementById('summary-content').innerHTML = `
+        // Fixed Part
+        document.getElementById('summary-fixed-area').innerHTML = `
             <div class="stats-summary">
                 <div><div class="label-top">Weekly Performance</div><div class="stats-main-score" id="wk-score">0.00</div></div>
                 <div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div>
             </div>
-            <div class="stats-insight">💎 週間レポ：平均スコア ${avg}。LV5のエメラルド、LV1のオレンジに着目してください。</div>
-            ${gridHtml}</div>
-            ${html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>'}
+            <div class="stats-insight" style="margin: 12px 20px;">💎 週間レポ：平均スコア ${avg}。LV5のエメラルド、LV1のオレンジに着目してください。</div>
+            ${gridHtml}
         `;
+        // Scroll Part
+        document.getElementById('summary-list-area').innerHTML = html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>';
         revealScore(document.getElementById('wk-score'), avg);
     }
 
@@ -413,15 +424,19 @@
                 ${avg ? avg.toFixed(1) : ''}
             </div>`;
         }
+        gridHtml += '</div>';
         
         const mAvg = totalCount ? (totalSum/totalCount).toFixed(2) : "0.00";
-        document.getElementById('month-content').innerHTML = `
+        // Fixed Part
+        document.getElementById('month-fixed-area').innerHTML = `
             <div class="stats-summary">
                 <div><div class="label-top">Monthly Performance</div><div class="stats-main-score" id="mo-score">0.00</div></div>
                 <div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div>
             </div>
-            <div class="stats-insight">🌙 月間レポ：平均スコア ${mAvg}。月全体のコンディション推移を俯瞰し、次月の戦略を練りましょう。</div>
-            ${gridHtml}</div>`;
+            <div class="stats-insight" style="margin: 12px 20px;">🌙 月間レポ：平均スコア ${mAvg}。月全体のコンディション推移を俯瞰し、次月の戦略を練りましょう。</div>
+        `;
+        // Scroll Part
+        document.getElementById('month-list-area').innerHTML = gridHtml;
         revealScore(document.getElementById('mo-score'), mAvg);
     }
 
@@ -506,8 +521,7 @@
     function moveWeek(n) { 
         ST.weekStart.setDate(ST.weekStart.getDate() + (n * 7)); 
         renderWeek(); 
-        if (ST.tab === 'summary') renderSummary();
-        if (ST.tab === 'month') renderMonth();
+        refreshTab();
     }
 
     function switchTab(t) {
