@@ -22,13 +22,14 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
 
+        /* Header */
         header { flex-shrink: 0; padding-top: env(safe-area-inset-top, 36px); background: var(--bg); position: relative; }
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; }
         .app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.1em; line-height: 1; color: var(--text); }
         .week-display { position: absolute; left: 50%; top: 60%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
         .range-text { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; color: #fff; text-transform: uppercase; }
 
-        .side-nav-btn { position: absolute; top: 50%; width: 44px; height: 44px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 20px; }
+        .side-nav-btn { position: absolute; top: 50%; width: 44px; height: 44px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 20px; transition: 0.2s; }
         .side-nav-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
         .side-nav-btn.prev { left: 16px; transform: translateY(-50%); }
         .side-nav-btn.next { right: 16px; transform: translateY(-50%); }
@@ -39,49 +40,66 @@
         @keyframes pulse { 50% { opacity: 0.3; } }
         .settings-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
 
+        /* Grid - 368.png Style */
         .grid-matrix { display: grid; grid-template-columns: 32px repeat(7, 1fr); gap: 6px; } 
+        .scroll-container { flex: 1; overflow-y: auto; padding: 0 8px 100px; }
         .cell { aspect-ratio: 1; border-radius: 4px; background: var(--empty); cursor: pointer; position: relative; transition: 0.2s; }
         .cell:active { transform: scale(0.9); }
         .cell.has-note::after { content: ''; position: absolute; bottom: 3px; right: 3px; width: 3px; height: 3px; background: rgba(255,255,255,0.4); border-radius: 50%; }
 
-        /* Color States */
+        /* Correct Color Application */
         .lv-5 { background: var(--lv5) !important; box-shadow: 0 0 18px 2px var(--lv5), inset 0 0 10px rgba(255,255,255,0.4) !important; z-index: 1; }
         .lv-4 { background: var(--lv4) !important; }
         .lv-3 { background: var(--lv3) !important; }
         .lv-2 { background: var(--lv2) !important; }
         .lv-1 { background: var(--lv1) !important; box-shadow: 0 0 8px var(--lv1); }
 
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
-        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; opacity: 0.6; }
+        /* Screens */
+        .screen { display: none; flex-direction: column; height: 100dvh; opacity: 0; transform: translateY(8px); transition: 0.3s var(--ease); }
+        .screen.active { display: flex; opacity: 1; transform: translateY(0); }
+
+        /* Bottom Nav - Lighter Blur */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: calc(64px + env(safe-area-inset-bottom, 20px)); background: rgba(10,10,10,0.8); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border-top: 1px solid var(--border); display: flex; padding-bottom: env(safe-area-inset-bottom, 20px); z-index: 100; }
+        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--muted); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; opacity: 0.6; transition: 0.3s; }
         .nav-item.active { color: var(--lv5); opacity: 1; }
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 24px; height: 2px; background: var(--lv5); border-radius: 2px; }
 
+        /* Stats Design */
         .stats-summary { padding: 24px 20px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 12px; }
         .stats-main-score { font-family: 'Bebas Neue', sans-serif; font-size: 82px; line-height: 0.8; color: var(--lv5); min-width: 150px; }
-        .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); }
-        .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border-left: 5px solid var(--lv5); border: 1px solid var(--border); border-left-width: 5px; }
+        .stats-insight { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 18px; font-size: 11px; line-height: 1.6; margin: 0 20px 20px; color: var(--text); border-left: 3px solid var(--lv5); }
+        .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border: 1px solid var(--border); border-left: 5px solid var(--lv5); }
 
-        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
+        /* Panels - Thin Blur */
+        .panel { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 200; transform: translateY(100%); transition: 0.4s var(--ease); display: flex; flex-direction: column; }
         .panel.open { transform: translateY(0); }
         .panel-content { padding: 44px 24px 64px; max-width: 430px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
-        .panel-close { position: absolute; top: 30px; right: 20px; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .panel-close { position: absolute; top: 30px; right: 20px; width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
+        .label-top { color: var(--lv5); font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .label-top::before { content: '●'; font-size: 8px; }
+        .detail-day-num { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 0.8; color: var(--text); }
+        .detail-time-green { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--lv5); margin-bottom: 4px; }
+        
         .log-line { font-size: 12px; line-height: 1.8; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
         .log-line.lv-5-text { color: var(--emerald); font-weight: 500; }
         .log-line.lv-1-text { color: var(--orange); font-weight: 500; }
         .level-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
-        .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 15px; color: #fff; padding: 16px; font-size: 14px; resize: none; min-height: 80px; outline: none; margin-bottom: 20px; font-family: inherit; }
-        .main-save-btn { width: 100%; padding: 14px; background: var(--lv5); color: #000; border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .memo-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; color: #fff; padding: 14px; font-size: 14px; resize: none; min-height: 80px; outline: none; margin-bottom: 16px; font-family: inherit; }
+        
+        /* Smaller Save Button */
+        .main-save-btn { width: 100%; padding: 14px; background: var(--lv5); color: #000; border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif; font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+        .main-save-btn:active { transform: scale(0.98); opacity: 0.9; }
 
         .review-fab { position: fixed; bottom: calc(84px + env(safe-area-inset-bottom, 20px)); right: 20px; width: 84px; height: 44px; background: var(--lv5); color: #000; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-weight: bold; font-size: 16px; box-shadow: 0 8px 20px rgba(0,255,163,0.4); z-index: 90; }
-        .impact-commentary { font-size: 10px; line-height: 1.5; color: var(--text); padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 16px; border-left: 3px solid var(--lv5); }
+        .impact-commentary { font-size: 10px; line-height: 1.5; color: var(--text); padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 16px; border-left: 3px solid var(--lv5); }
         .review-summary-row { display: flex; gap: 12px; margin-bottom: 16px; }
         .impact-card { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
         .impact-val { font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1; margin-bottom: 4px; }
         .impact-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; }
 
-        .date-label-sub { position: absolute; top: 3px; left: 5px; font-family: 'DM Mono', monospace; font-size: 7px; color: var(--muted); opacity: 0.7; pointer-events: none; }
+        .date-label-sub { position: absolute; top: 4px; left: 6px; font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); opacity: 0.8; }
         .char-reveal { display: inline-block; opacity: 0; transform: translateY(5px); animation: charIn 0.4s forwards; }
         @keyframes charIn { to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -123,30 +141,30 @@
     <button class="nav-item" id="tab-month" onclick="switchTab('month')">MONTH</button>
 </nav>
 
+<!-- DETAIL -->
 <div id="panel-detail" class="panel">
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
         <div class="label-top">LOG</div>
         <div class="detail-day-num" id="d-day-num">--</div>
         <div class="detail-time-green" id="d-time">00:00</div>
-        <div class="detail-full-date" id="d-date">--- . --- ----</div>
+        <div class="detail-full-date" id="d-date" style="font-family:'DM Mono'; font-size:10px; color:var(--muted); text-transform:uppercase; margin-bottom:24px;">--- . --- ----</div>
         <div style="display:flex; gap:10px; margin-bottom:24px;" id="intensity-grid"></div>
         <textarea id="memo-input" class="memo-input" placeholder="Notes..."></textarea>
-        <button class="main-save-btn" style="padding: 16px;" onclick="saveDetail()">SAVE TO CLOUD</button>
-        <div onclick="clearData()" style="text-align:center; color:var(--muted); font-size:10px; margin-top:24px; cursor:pointer; letter-spacing:0.2em;">CLEAR DATA</div>
+        <button class="main-save-btn" onclick="saveDetail()">SAVE TO CLOUD</button>
+        <div onclick="clearData()" style="text-align:center; color:#ff4444; font-size:10px; margin-top:24px; cursor:pointer; letter-spacing:0.2em; font-weight:bold;">CLEAR DATA</div>
     </div>
 </div>
 
+<!-- REVIEW -->
 <div id="panel-review" class="panel">
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
         <div class="label-top">REVIEW</div>
         <div class="detail-day-num" id="r-title" style="font-size: 42px;">WKLY</div>
-        
         <div id="review-commentary-area"></div>
         <div class="review-summary-row" id="review-impact-summary"></div>
-        
-        <div style="flex: 1; overflow-y: auto; padding-bottom: 20px;">
+        <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
             <span class="label-top" style="color:var(--lv5)">KEEP</span>
             <textarea id="r-keep" class="memo-input" placeholder="継続したい成功要因"></textarea>
             <span class="label-top" style="color:#ff4444">PROBLEM</span>
@@ -154,7 +172,7 @@
             <span class="label-top" style="color:#00d2ff">TRY / 10X REFLECTION</span>
             <textarea id="r-try" class="memo-input" style="min-height:100px;" placeholder="10Xへのアクション..."></textarea>
         </div>
-        <button class="main-save-btn" onclick="saveReview()">SAVE REVIEW</button>
+        <button class="main-save-btn" style="margin-top: 10px;" onclick="saveReview()">SAVE REVIEW</button>
     </div>
 </div>
 
@@ -167,7 +185,7 @@
             <div class="label-top">GAS ENDPOINT</div>
             <input type="text" id="gas-url-input" style="width:100%; background:transparent; border:none; color:#fff; font-family:'DM Mono'; font-size:10px; outline:none;" readonly>
         </div>
-        <button class="main-save-btn" style="background:rgba(255,255,255,0.1); color:#fff; padding: 16px;" onclick="fetchCloudData()">MANUAL SYNC</button>
+        <button class="main-save-btn" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="fetchCloudData()">MANUAL SYNC</button>
     </div>
 </div>
 
@@ -187,7 +205,7 @@
         el.innerHTML = '';
         score.toString().split('').forEach((char, i) => {
             const span = document.createElement('span'); span.className = 'char-reveal'; span.textContent = char;
-            span.style.animationDelay = `${i * 0.1s}`; el.appendChild(span);
+            span.style.animationDelay = `${i * 0.1}s`; el.appendChild(span);
         });
     };
 
@@ -255,7 +273,7 @@
             if (dLogs.length) html += `<div class="card-item" style="border-left-color:var(--lv${Math.round(dSum/dCnt)})"><div class="card-date">${d.getDate()} ${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]}</div><div>${dLogs.join('')}</div></div>`;
         });
         const avg = count ? (sum/count).toFixed(2) : "0.00";
-        document.getElementById('summary-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Weekly Performance</div><div class="stats-main-score" id="wk-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div></div><div class="stats-insight">💎 週間レポ：平均スコア ${avg}。LV5のエメラルド、LV1のオレンジに着目してください。</div>${html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>'}`;
+        document.getElementById('summary-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Weekly Performance</div><div class="stats-main-score" id="wk-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div></div><div class="stats-insight">💎 週間レポ：平均スコア ${avg}。10Xへの道を歩めています。</div>${html || '<div style="text-align:center; padding:40px; color:var(--muted)">NO DATA</div>'}`;
         revealScore(document.getElementById('wk-score'), avg);
     }
 
@@ -263,16 +281,16 @@
         const start = new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1);
         const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
         let gridHtml = '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding: 0 20px;">';
-        let totalSum=0, totalCount=0;
+        let tSum=0, tCount=0;
         for (let d=1; d<=end.getDate(); d++) {
             const curDate = new Date(start.getFullYear(), start.getMonth(), d);
             const dstr = ds(curDate); const slots = ST.data[dstr]?.slots || {};
             let s=0, c=0; Object.values(slots).forEach(v => { if(v.level){s+=v.level; c++} });
-            const avg = c ? (s/c) : 0; if(avg > 0) { totalSum += avg; totalCount++; }
+            const avg = c ? (s/c) : 0; if(avg > 0) { tSum += avg; tCount++; }
             gridHtml += `<div class="cell ${avg?`lv-${Math.round(avg)}`:''}" style="aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:16px; color:${avg>3?'#000':'#fff'}" onclick="jumpToWeekReview('${curDate.toISOString()}')"><span class="date-label-sub">${d}</span>${avg ? avg.toFixed(1) : ''}</div>`;
         }
-        const mAvg = totalCount ? (totalSum/totalCount).toFixed(2) : "0.00";
-        document.getElementById('month-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Monthly Performance</div><div class="stats-main-score" id="mo-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow:0 0 15px var(--lv5);"></div></div><div class="stats-insight">🌙 月間レポ：平均スコア ${mAvg}。月全体のコンディションを俯瞰しましょう。</div>${gridHtml}</div>`;
+        const mAvg = tCount ? (tSum/tCount).toFixed(2) : "0.00";
+        document.getElementById('month-content').innerHTML = `<div class="stats-summary"><div><div class="label-top">Monthly Performance</div><div class="stats-main-score" id="mo-score">0.00</div></div><div style="background:var(--lv5); width:48px; height:48px; border-radius:12px; box-shadow: 0 0 15px var(--lv5);"></div></div><div class="stats-insight">🌙 月間レポ：平均スコア ${mAvg}。月全体の成果を俯瞰しましょう。</div>${gridHtml}</div>`;
         revealScore(document.getElementById('mo-score'), mAvg);
     }
 
@@ -296,11 +314,12 @@
     function openDetail(d, h) {
         ST.selDs = ds(d); ST.selH = h;
         document.getElementById('d-day-num').textContent = d.getDate(); document.getElementById('d-time').textContent = `${String(h).padStart(2,'0')}:00`;
-        document.getElementById('d-date').textContent = `${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getMonth()]} ${d.getFullYear()}`;
+        const mNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        document.getElementById('d-date').textContent = `${mNames[d.getMonth()]} ${d.getFullYear()}`;
         document.getElementById('memo-input').value = ST.data[ST.selDs]?.slots?.[h]?.note || '';
         const grid = document.getElementById('intensity-grid'); grid.innerHTML = '';
         [5,4,3,2,1].forEach(l => {
-            const box = document.createElement('div'); box.style.flex = "1"; box.style.textAlign = "center"; box.innerHTML = `<div style="aspect-ratio:1; background:var(--lv${l}); border-radius:8px; border:2px solid ${ST.data[ST.selDs]?.slots?.[h]?.level === l ? '#fff' : 'transparent'};"></div><div style="font-size:7px; color:var(--muted); margin-top:4px; text-transform:uppercase;">${['BAD','LOW','FAIR','GOOD','PEAK'][l-1]}</div>`;
+            const box = document.createElement('div'); box.style.flex = "1"; box.style.textAlign = "center"; box.innerHTML = `<div style="aspect-ratio:1; background:var(--lv${l}); border-radius:8px; border:2px solid ${ST.data[ST.selDs]?.slots?.[h]?.level === l ? '#fff' : 'transparent'}; transition:0.2s;"></div><div style="font-size:7px; color:var(--muted); margin-top:4px; text-transform:uppercase;">${['BAD','LOW','FAIR','GOOD','PEAK'][l-1]}</div>`;
             box.onclick = () => { if (!ST.data[ST.selDs]) ST.data[ST.selDs] = { slots: {} }; ST.data[ST.selDs].slots[h] = { ...ST.data[ST.selDs].slots[h], level: l }; openDetail(d, h); }; grid.appendChild(box);
         });
         document.getElementById('panel-detail').classList.add('open');
