@@ -140,11 +140,12 @@
         .card-item { background: var(--card); border-radius: 14px; padding: 18px 20px; margin: 0 20px 12px; border-left: 5px solid var(--lv5); border: 1px solid var(--border); border-left-width: 5px; }
         .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
 
-        /* Review Impact Summary (New) */
-        .review-summary-row { display: flex; gap: 12px; margin-bottom: 24px; }
+        /* Review Impact Summary */
+        .review-summary-row { display: flex; gap: 12px; margin-bottom: 16px; }
         .impact-card { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
         .impact-val { font-family: 'Bebas Neue', sans-serif; font-size: 32px; line-height: 1; margin-bottom: 4px; }
         .impact-label { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--muted); text-transform: uppercase; }
+        .impact-commentary { font-size: 10px; line-height: 1.5; color: var(--text); padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; margin-bottom: 24px; border-left: 2px solid var(--lv5); }
     </style>
 </head>
 <body>
@@ -201,13 +202,15 @@
     </div>
 </div>
 
-<!-- REVIEW (Impact summary added) -->
+<!-- REVIEW -->
 <div id="panel-review" class="panel">
     <div class="panel-content">
         <button class="panel-close" onclick="closePanel()">✕</button>
         <div class="label-top">REVIEW</div>
         <div class="detail-day-num" id="r-title" style="font-size: 42px;">WKLY</div>
         
+        <!-- Condition Commentary Row -->
+        <div id="review-commentary-area"></div>
         <div class="review-summary-row" id="review-impact-summary"></div>
         
         <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
@@ -239,27 +242,32 @@
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyUSkMWv6L3r2WxJfCXzTX7v5etbYtnPc0nuVoTQeJq1PItiQadSVnvP__LLvbbDnz8gQ/exec";
     
-    const getJSTDate = (date = new Date()) => {
-        const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+    // JST Logic: Fix double-shifting bug
+    const getJSTDate = () => {
+        const d = new Date();
+        const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
         return new Date(utc + (9 * 60 * 60000));
     };
 
-    function ds(d) {
-        const jst = getJSTDate(d);
-        const y = jst.getFullYear();
-        const m = String(jst.getMonth() + 1).padStart(2, '0');
-        const day = String(jst.getDate()).padStart(2, '0');
+    function ds(dateObj) {
+        // Already a Date object, just format it.
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
         return `${y}-${m}-${day}`;
     }
 
     function monday(d){ 
-        const t = getJSTDate(d); t.setHours(0,0,0,0);
-        const dw = t.getDay(); t.setDate(t.getDate() + (dw === 0 ? -6 : 1 - dw));
+        // Need to ensure we operate on a fresh JST Date if none provided
+        const t = d ? new Date(d) : getJSTDate();
+        t.setHours(0,0,0,0);
+        const dw = t.getDay(); 
+        t.setDate(t.getDate() + (dw === 0 ? -6 : 1 - dw));
         return t;
     }
 
     let ST = {
-        weekStart: monday(new Date()),
+        weekStart: monday(getJSTDate()),
         data: JSON.parse(localStorage.getItem('nimo-v6-matrix-data') || '{}'),
         tab: 'week', selDs: '', selH: 0, revType: ''
     };
@@ -433,7 +441,7 @@
         // Calculate LV1 and LV5 impact counts
         let lv1Count = 0, lv5Count = 0;
         const scanPeriod = type === 'wkly' ? 7 : 31;
-        const start = type === 'wkly' ? ST.weekStart : new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1);
+        const start = type === 'wkly' ? new Date(ST.weekStart) : new Date(ST.weekStart.getFullYear(), ST.weekStart.getMonth(), 1);
         
         for(let i=0; i<scanPeriod; i++) {
             const d = new Date(start); d.setDate(d.getDate() + i);
@@ -444,6 +452,18 @@
             });
         }
         
+        // Impact commentary based on Secretary persona
+        let impactComment = "";
+        if (lv5Count > 3) impactComment += `<span style="color:var(--emerald)">● PEAK状態が${lv5Count}回！攻めの運勢を完全に掴んでいますよ。</span><br>`;
+        else impactComment += "● PEAKの出現を増やして、非連続な成果を狙いましょう。<br>";
+        
+        if (lv1Count > 2) impactComment += `<span style="color:var(--orange)">● 警告：LV1が${lv1Count}回検知されました。体の運勢が低下中。休息が必要です。</span>`;
+        else impactComment += "● 規律ある管理により、低コンディションが抑えられています。";
+
+        document.getElementById('review-commentary-area').innerHTML = `
+            <div class="impact-commentary">${impactComment}</div>
+        `;
+
         document.getElementById('review-impact-summary').innerHTML = `
             <div class="impact-card" style="border-bottom: 3px solid var(--orange)">
                 <div class="impact-val" style="color:var(--orange)">${lv1Count}</div>
@@ -464,7 +484,13 @@
 
     function openSettings() { document.getElementById('panel-settings').classList.add('open'); }
     function closePanel() { document.querySelectorAll('.panel').forEach(p => p.classList.remove('open')); }
-    function moveWeek(n) { ST.weekStart.setDate(ST.weekStart.getDate() + (n * 7)); renderWeek(); refreshTab(); }
+    
+    function moveWeek(n) { 
+        ST.weekStart.setDate(ST.weekStart.getDate() + (n * 7)); 
+        renderWeek(); 
+        if (ST.tab === 'summary') renderSummary();
+    }
+
     function switchTab(t) {
         ST.tab = t;
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -473,6 +499,12 @@
             b.classList.remove('active'); if (b.id === `tab-${t}`) b.classList.add('active');
         });
         refreshTab();
+    }
+
+    function refreshTab() {
+        if (ST.tab === 'week') renderWeek();
+        else if (ST.tab === 'summary') renderSummary();
+        else renderMonth();
     }
 
     function saveDetail() {
