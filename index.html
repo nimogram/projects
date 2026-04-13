@@ -313,7 +313,7 @@
             let dSum=0, dCnt=0, dLogs=[];
             Object.keys(slots).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(h => {
                 const s = slots[h]; if (s.level) { dSum+=s.level; dCnt++; sum+=s.level; count++; }
-                if (s.note) { let cls = (s.level===5)?'lv-5-text':(s.level===1?'lv-1-text':''); dLogs.push(`<div class="log-line ${cls}"><div class="level-dot" style="background:var(--lv${s.level})"></div><b>[${h}:00]</b> ${s.note}</div>`); }
+                if (s.note && s.level !== 3) { let cls = (s.level===5)?'lv-5-text':(s.level===1?'lv-1-text':''); dLogs.push(`<div class="log-line ${cls}"><div class="level-dot" style="background:var(--lv${s.level})"></div><b>[${h}:00]</b> ${s.note}</div>`); }
             });
             const dAvg = dCnt ? (dSum/dCnt) : 0;
             miniHtml += `<div class="mini-cell ${dAvg?`lv-${Math.round(dAvg)} active`:''}" style="${dAvg?'':'opacity:0.2'}"><span class="mini-cell-day">${['M','T','W','T','F','S','S'][idx]}</span>${dAvg?dAvg.toFixed(1):'-'}</div>`;
