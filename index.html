@@ -205,14 +205,17 @@
         <div class="detail-day-num" id="r-title" style="font-size: 42px;">WKLY</div>
         <div style="flex: 1; overflow-y: auto; padding-right: 4px;">
             <div id="review-fact-area"></div>
-            <span class="label-top" style="color:var(--lv5)">KEEP</span>
-            <textarea id="r-keep" class="memo-input" placeholder="Success factors..."></textarea>
-            <span class="label-top" style="color:#ff4444">PROBLEM</span>
-            <textarea id="r-prob" class="memo-input" placeholder="Critical issues..."></textarea>
-            <span class="label-top" style="color:#00d2ff">TRY / 10X REFLECTION</span>
-            <textarea id="r-try" class="memo-input" style="min-height:100px;" placeholder="Next 10X action..."></textarea>
+            <!-- KPTエリア（MONTHでは非表示にする） -->
+            <div id="review-kpt-area">
+                <span class="label-top" style="color:var(--lv5)">KEEP</span>
+                <textarea id="r-keep" class="memo-input" placeholder="Success factors..."></textarea>
+                <span class="label-top" style="color:#ff4444">PROBLEM</span>
+                <textarea id="r-prob" class="memo-input" placeholder="Critical issues..."></textarea>
+                <span class="label-top" style="color:#00d2ff">TRY / 10X REFLECTION</span>
+                <textarea id="r-try" class="memo-input" style="min-height:100px;" placeholder="Next 10X action..."></textarea>
+            </div>
         </div>
-        <button class="review-save-btn" onclick="saveReview()">SAVE REVIEW</button>
+        <button id="btn-save-review" class="review-save-btn" onclick="saveReview()">SAVE REVIEW</button>
     </div>
 </div>
 
@@ -385,9 +388,24 @@
             logsHtml += `</div>`;
         }
         if (!lv1Logs.length && !lv5Logs.length) logsHtml = `<div class="fact-section" style="text-align:center; color:var(--muted); font-size:10px; padding:20px;">FACT LOGS（LV1/LV5）の記録なし</div>`;
+        
         document.getElementById('review-fact-area').innerHTML = logsHtml;
         document.getElementById('r-title').textContent = type.toUpperCase();
-        document.getElementById('r-keep').value = r.keep||''; document.getElementById('r-prob').value = r.prob||''; document.getElementById('r-try').value = r.try||'';
+        
+        // MONTHの場合はKPT入力と保存ボタンを隠す
+        const kptArea = document.getElementById('review-kpt-area');
+        const saveBtn = document.getElementById('btn-save-review');
+        if (isMonth) {
+            kptArea.style.display = 'none';
+            saveBtn.style.display = 'none';
+        } else {
+            kptArea.style.display = 'block';
+            saveBtn.style.display = 'block';
+            document.getElementById('r-keep').value = r.keep||''; 
+            document.getElementById('r-prob').value = r.prob||''; 
+            document.getElementById('r-try').value = r.try||'';
+        }
+
         document.getElementById('panel-review').classList.add('open');
     }
 
